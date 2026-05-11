@@ -1,0 +1,96 @@
+AstraNotes Class Diagram Context Export for Lucidchart AI
+Generated: 2026-04-27
+Source Requirements: planning/requirements.md
+Authoritative Requirement Count: 71
+
+Objective
+Generate a UML class diagram only. Do not generate sequence, use case, activity, object, state, or deployment diagrams.
+Model implementation-facing classes and interfaces required to satisfy current AstraNotes MVP and scoped hardening requirements.
+
+Class-Diagram Prompt Guidance
+Use the requirement statements below as binding constraints.
+Prioritize domain model, service layer, repository abstractions, security components, versioning, error/result model, and persistence boundaries.
+Keep naming consistent and stable throughout diagram generation.
+Show attributes, operations, visibility, relationships, multiplicity, composition/aggregation/dependency/interface-realization, and constraint notes.
+
+Suggested Core Types (minimum expected in model)
+Note, SecureNote, NoteVersion, VersionHistory, NoteRepository, JsonNoteRepository, NoteService
+
+Critical Constraints To Encode As UML Notes
+All-note at-rest authenticated encryption; private-note unlock policy; lockout and backoff persistence; optimistic concurrency via version field;
+soft delete and restore semantics; immutable version history; metadata plaintext allowlist; durable local JSON commit semantics; testable interface boundaries.
+
+Canonical Requirements
+Format: ID | Scope | Requirement
+
+NFR-01 | Unscoped | The system shall support 100 concurrently active user sessions in a single deployment instance.
+NFR-02 | Unscoped | A session shall be counted as active when it issues at least one request every 10 seconds during a continuous 5-minute test window. The concurrency test workload shall be 70% read operations (list, search, open), 20% update operations (edit), and 10% create operations.
+NFR-03 | Unscoped | Under NFR-02 workload and with a dataset of up to 5,000 notes, measured latency targets shall be p95 <= 120 ms for read operations, p95 <= 180 ms for create/update operations, and p99 <= 300 ms for all operations.
+NFR-04 | Unscoped | When concurrent edits target the same note, the system shall enforce optimistic concurrency using a note version field. A stale write shall be rejected with a conflict response and shall not overwrite newer data.
+NFR-05 | Unscoped | For load above 100 active sessions, the system may throttle new requests, but shall not corrupt stored notes. During NFR-02 test conditions, non-user-cancelled request failures shall be <= 1%.
+NFR-06 | Unscoped | In local mode (single-user desktop operation against local storage), the system shall support a dataset of up to 5,000 notes.
+NFR-07 | Unscoped | In local mode with up to 5,000 notes, operation latency targets shall be p95 <= 120 ms for read operations (open, list, search), p95 <= 150 ms for create/update operations, and p99 <= 250 ms for all local operations.
+NFR-08 | Unscoped | Local latency measurements shall be recorded at the application service boundary from operation invocation to completion of storage commit, excluding UI rendering time.
+NFR-09 | Unscoped | For local create and update operations, successful completion shall guarantee durable persistence to storage before success is returned to the caller.
+NFR-10 | Unscoped | On desktop platforms, the UI shall support keyboard-only completion of core workflows: create note, open note, edit title/body, save, search, navigate note list, toggle checklist items, and delete with confirmation.
+NFR-11 | Unscoped | On mobile platforms, the same core workflows shall be completable using touch-only interaction without requiring a hardware keyboard.
+NFR-12 | Unscoped | Every interactive control in core workflows shall be reachable by the primary input model of the platform (tab navigation on keyboard-capable platforms; touch interaction on mobile) and shall provide a clear visible active/focus indicator.
+NFR-17 | Unscoped | Interactive touch controls on mobile shall provide touch targets of at least 44x44 CSS pixels for primary actions in core workflows.
+NFR-18 | Unscoped | Any keyboard shortcut action on desktop shall have an equivalent accessible touch action on mobile.
+NFR-13 | Unscoped | The system shall enforce dependency boundaries that prevent direct coupling between UI and storage/security implementations, so that security and storage components can be replaced or tested independently without UI code changes.
+NFR-14 | Unscoped | Storage and security capabilities shall be accessed through explicit interfaces that support test doubles, so UI and service logic can be tested without real file I/O or cryptographic backends.
+NFR-15 | Unscoped | The system shall include automated tests that independently validate UI workflow logic, security policy enforcement, and storage persistence behavior.
+NFR-16 | Unscoped | Replacing the storage backend implementation (for example, JSON to SQLite) shall not require changes to UI module code.
+SRG-01 | MVP | All notes shall be encrypted at rest with authenticated encryption (AES-256-GCM or ChaCha20-Poly1305). At minimum, note title, note body, and note content versions shall be encrypted and shall never be written to persistent storage in plaintext; only minimal non-sensitive metadata required for indexing and lifecycle management may remain unencrypted.
+SRG-02 | MVP | For notes marked as private, encryption at rest shall include title, body, and private-note content versions; only minimal non-sensitive metadata required for indexing and lifecycle management may remain unencrypted.
+SRG-03 | Post-MVP | Each note shall be encrypted independently using a unique per-note data encryption key; compromise of one note key shall not expose plaintext of other notes.
+SRG-04 | MVP | Any network transmission containing note content (including sync, backup, restore, and export/import APIs) shall use TLS 1.2 or higher; note content shall not be transmitted over unencrypted channels.
+SRG-17 | MVP | No feature that transmits note content may be released unless SRG-04 transport encryption requirements are satisfied.
+SRG-18 | MVP | Viewing or decrypting a private note shall require successful private-note unlock authentication using a user-defined app passphrase.
+SRG-19 | MVP | Private note content shall remain hidden until unlock authentication succeeds; failed authentication shall not reveal any private title/body/version plaintext.
+SRG-20 | MVP | Unlock authentication shall be required at least once per app session before any private note can be opened.
+SRG-21 | MVP | After 15 minutes of inactivity, private-note unlock state shall expire and re-authentication shall be required.
+SRG-22 | MVP | Failed unlock attempts shall return clear error messages, shall not crash the app, and shall apply rate limiting after 5 consecutive failures.
+SRG-23 | MVP | After 5 consecutive failed unlock attempts within a single session, the private-note unlock mechanism shall enter a locked-out state for a minimum of 5 minutes. Each subsequent lockout period shall double (exponential backoff). The lockout state, attempt count, and expiry timestamp shall persist across app restarts.
+SRG-24 | MVP | Unlock error responses shall be identical in content and timing regardless of whether the failure is caused by a wrong passphrase or an internal error, preventing enumeration of failure cause.
+SRG-25 | MVP | The only fields permitted to remain unencrypted in local storage are: `note_id`, `created_at`, `updated_at`, `is_private` (boolean), `is_deleted` (boolean), and `deleted_at`. All other note fields—including `title`, `body`, and `version_content`—shall be encrypted at rest per SRG-01. Any future addition of a plaintext field requires explicit update to this allowlist in requirements before implementation.
+SRG-26 | MVP | The encryption key used for private notes shall be derived from the user passphrase using PBKDF2-HMAC-SHA256 with a minimum iteration count of 260,000, a randomly generated 16-byte salt stored alongside the derived key material, and a 256-bit output key. The raw passphrase shall never be stored or logged. The derived key shall be held only in memory for the duration of the unlocked session.
+SRG-05 | MVP | Create, read, update, delete, restore, and export operations shall generate audit log entries containing actor identity, action type, note ID, UTC timestamp, operation outcome, and request correlation ID.
+SRG-06 | Post-MVP | Audit logs shall be append-only and tamper-evident using SHA-256 hash chaining where each entry stores the hash of the previous entry.
+SRG-07 | MVP | Audit entries shall not store plaintext private note content; change details shall be limited to metadata and content fingerprints.
+SRG-08 | MVP | Note version history shall be immutable; updates shall create new version records and shall not modify prior stored versions.
+SRG-09 | Post-MVP | Each stored note version shall include a SHA-256 content hash. Hash verification failures shall raise integrity errors, block further writes to affected records, and preserve existing data unchanged.
+SRG-10 | MVP | Deleting a note shall perform a soft delete by default, retaining recoverable metadata and content for 30 calendar days.
+SRG-11 | MVP | Soft-deleted notes shall be excluded from default list and search results, and shall be restorable only within the retention window.
+SRG-12 | Post-MVP | At retention expiry, soft-deleted notes shall be permanently purged within 24 hours unless an explicit policy override is configured.
+SRG-13 | MVP | Restore operations shall preserve original note ID, maintain version history continuity, and create an audit entry for restore action.
+SRG-14 | MVP | Invalid save, load, or delete operations (including malformed input, missing records, permission denial, and integrity check failures) shall return structured errors with machine-readable codes and user-safe messages, and shall not crash the application.
+SRG-15 | MVP | On failed save, load, delete, or restore operations, the system shall preserve pre-operation data state and prevent partial writes via atomic commit/rollback behavior.
+SRG-16 | MVP | Repeated identical invalid requests shall produce consistent error codes and shall not create duplicate side effects in storage or audit logs.
+REQ-01 | Unscoped | The app shall allow the user to create a note with a required title and an optional body.
+REQ-02 | Unscoped | The note title shall accept Unicode letters, numbers, spaces, and common punctuation (. , - ' "), and shall reject symbols (@ # $ % &) and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
+REQ-03 | Unscoped | If the entered title already exists, the app shall auto-assign the next available numeric suffix (Title, Title1, Title2, ...).
+REQ-04 | Unscoped | Each created note shall be assigned a unique ID and creation timestamp, and persisted to local JSON storage.
+REQ-05 | Unscoped | The app shall allow the user to edit the title and/or body of an existing note.
+REQ-06 | Unscoped | The edited title shall follow the same validation rules as REQ-02 (required, max 255, Unicode-friendly, no symbols/newlines). Body shall remain optional, max 10,000 characters.
+REQ-07 | Unscoped | If the edited title conflicts with another existing note, the app shall auto-assign the next available numeric suffix, excluding the current note from the duplicate check.
+REQ-08 | Unscoped | On successful save, the note shall retain its original ID and created_at timestamp, update its updated_at timestamp, and persist changes to local JSON storage.
+REQ-09 | Unscoped | The app shall require the user to confirm deletion before a note is removed. The confirmation prompt shall display the note title and state that the action is permanent and cannot be undone.
+REQ-10 | Unscoped | Upon confirmation, the app shall permanently remove the note from storage atomically. If the delete operation fails, the note shall remain intact and the user shall receive an error message.
+REQ-11 | Unscoped | After a note is deleted, the app shall update the notes list immediately and display an empty state if no notes remain.
+REQ-12 | Unscoped | The app shall display all notes in a scrollable list ordered by creation date (newest first), showing each note's title (truncated at 60 characters with ellipsis if longer) and creation date formatted as Month DD, YYYY.
+REQ-13 | Unscoped | When no notes exist, the app shall display an empty state message prompting the user to create their first note.
+REQ-14 | Unscoped | The notes list shall refresh automatically after any create, edit, or delete operation to reflect the current state of storage.
+REQ-15 | Unscoped | The app shall allow the user to filter notes by entering a query that matches against note titles and body content, case-insensitively. Minimum query length is 1 non-whitespace character. Special characters in the search query are treated as literal text and do not cause errors.
+REQ-16 | Unscoped | The app shall handle empty, whitespace-only, and no-result search inputs by displaying specific feedback messages in place of the notes list, with no errors or crashes occurring.
+REQ-17 | Unscoped | The app shall allow the user to create and edit unordered bullet lists and checkbox lists inside the note body.
+REQ-18 | Unscoped | List content shall be persisted in note storage and rendered consistently after save, close, and reopen. Nested lists deeper than 2 levels are not required for MVP.
+REQ-19 | Unscoped | The app shall allow the user to toggle checkbox list items between checked and unchecked states, and persist each state change immediately.
+REQ-20 | Unscoped | The app shall allow the user to apply bold, italic, and underline formatting to selected text in the note body.
+REQ-21 | Unscoped | Formatting actions shall not modify note title content and shall preserve existing surrounding text without data loss when multiple formats are combined.
+REQ-22 | Unscoped | Bold and italic shall be stored using Markdown-compatible markers, and underline shall be stored using a consistent format supported by the renderer.
+REQ-23 | Unscoped | The app shall allow up to 10,000 notes in a single user data store.
+REQ-24 | Unscoped | When note count is 10,000, create and duplicate-title-save operations that would add a new note shall be blocked, the existing data shall remain unchanged, and the app shall display: "Note limit reached (10,000). Delete notes to create a new one."
+REQ-25 | Unscoped | The app shall allow the user to mark or unmark any note as private using a per-note toggle.
+REQ-26 | Unscoped | Private status shall be persisted in storage and visually indicated in the notes list.
+REQ-27 | Unscoped | Private notes shall hide body preview text in list and search results to prevent accidental on-screen disclosure.
