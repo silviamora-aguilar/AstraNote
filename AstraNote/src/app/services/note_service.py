@@ -14,6 +14,7 @@ MAX_NOTES = 10_000
 MAX_TITLE_LENGTH = 255
 MAX_BODY_LENGTH = 10_000
 CAPACITY_ERROR_MESSAGE = "Note limit reached (10,000). Delete notes to create a new one."
+ALLOWED_TITLE_PUNCTUATION = {" ", ".", ",", "-", "'", '"', "@", "#", "&", ":", ";", "!", "?", "(", ")", "[", "]", "/", "+", "_", "¿", "¡"}
 
 
 class NoteValidationError(ValueError):
@@ -132,10 +133,10 @@ class NoteService:
         for char in trimmed_title:
             if char in {"\n", "\r"}:
                 raise NoteValidationError("Title cannot contain newlines")
-            if char.isalnum() or char in {" ", ".", ",", "-", "'", '"'}:
+            if char.isalnum() or char in ALLOWED_TITLE_PUNCTUATION:
                 continue
             raise NoteValidationError(
-                "Title contains unsupported symbols. Allowed punctuation: . , - ' \""
+                "Title contains unsupported symbols. Allowed punctuation: . , - ' \" @ # & : ; ! ? ( ) [ ] / + _ ¿ ¡"
             )
 
         return trimmed_title

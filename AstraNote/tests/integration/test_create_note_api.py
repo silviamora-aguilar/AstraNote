@@ -38,7 +38,7 @@ def test_create_note_endpoint_returns_201_and_note_payload(client) -> None:
 
 @pytest.mark.integration
 def test_create_note_endpoint_rejects_invalid_title(client) -> None:
-    response = client.post('/api/notes', json={'title': 'bad@title', 'body': ''})
+    response = client.post('/api/notes', json={'title': 'bad<title', 'body': ''})
 
     assert response.status_code == 400
     assert 'unsupported symbols' in response.json()['detail']

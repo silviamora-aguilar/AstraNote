@@ -62,7 +62,7 @@ def test_update_note_endpoint_rejects_invalid_title(client) -> None:
     note_id = create_response.json()["note_id"]
     update_response = client.put(
         f"/api/notes/{note_id}",
-        json={"title": "bad@title", "body": "after"},
+        json={"title": "bad<title", "body": "after"},
     )
 
     assert update_response.status_code == 400

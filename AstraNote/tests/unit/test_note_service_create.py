@@ -146,7 +146,7 @@ def test_create_note_rejects_symbol_in_title() -> None:
     service = NoteService(repo)
 
     with pytest.raises(NoteValidationError, match='unsupported symbols'):
-        service.create(title='bad@title')
+        service.create(title='bad<title')
 
 
 @pytest.mark.unit
@@ -183,6 +183,35 @@ def test_create_note_rejects_body_above_limit() -> None:
 
     with pytest.raises(NoteValidationError, match='0-10000'):
         service.create(title='Valid Title', body='a' * 10001)
+
+
+@pytest.mark.unit
+def test_create_note_accepts_spanish_accented_letters_in_title() -> None:
+    repo = FakeNoteRepository()
+    service = NoteService(repo)
+
+    note = service.create(title='Pañuelos de muñeca')
+    assert note.title == 'Pañuelos de muñeca'
+
+
+@pytest.mark.unit
+def test_create_note_accepts_spanish_inverted_punctuation_in_title() -> None:
+    repo = FakeNoteRepository()
+    service = NoteService(repo)
+
+    note = service.create(title='¿Qué tal?')
+    assert note.title == '¿Qué tal?'
+
+
+@pytest.mark.unit
+def test_create_note_accepts_spanish_characters_in_body() -> None:
+    repo = FakeNoteRepository()
+    service = NoteService(repo)
+
+    note = service.create(title='Nota', body='Él dijo: ¡Hola! ¿Cómo estás, señor García?')
+    assert 'ñ' in note.body
+    assert '¡' in note.body
+    assert '¿' in note.body
 
 
 @pytest.mark.unit
@@ -267,7 +296,7 @@ def test_update_note_rejects_invalid_title() -> None:
     created = service.create(title='Valid', body='a')
 
     with pytest.raises(NoteValidationError, match='unsupported symbols'):
-        service.update(note_id=created.note_id, title='bad@title', body='x')
+        service.update(note_id=created.note_id, title='bad<title', body='x')
 
 
 @pytest.mark.unit

@@ -43,18 +43,18 @@
         hx-swap="outerHTML"
     >
         <label for="title-{{ note.note_id }}" class="label">Title</label>
-        <input id="title-{{ note.note_id }}" name="title" type="text" required maxlength="255" value="{{ note.title }}" />
+        <input id="title-{{ note.note_id }}" name="title" type="text" required maxlength="255" value="{{ form_title if form_title is defined else note.title }}" />
 
         <div class="microcopy">Created: {{ created_display }}</div>
         <div class="microcopy">Modified: {{ modified_display }}</div>
 
         <label class="toggle" style="justify-content: flex-start;">
-            <input id="private-{{ note.note_id }}" name="is_private" type="checkbox" value="true" {% if note.is_private %}checked{% endif %} />
+            <input id="private-{{ note.note_id }}" name="is_private" type="checkbox" value="true" {% if form_is_private is defined %}{% if form_is_private %}checked{% endif %}{% elif note.is_private %}checked{% endif %} />
             Private note
         </label>
 
         <label for="body-{{ note.note_id }}" class="label">Body</label>
-        <textarea id="body-{{ note.note_id }}" name="body" maxlength="10000">{{ note.body }}</textarea>
+        <textarea id="body-{{ note.note_id }}" name="body" maxlength="10000">{{ form_body if form_body is defined else note.body }}</textarea>
     </form>
 
     {% if oob_note %}

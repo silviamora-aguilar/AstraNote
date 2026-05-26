@@ -37,7 +37,7 @@ def _format_modified_pacific(updated_at: datetime) -> str:
     else:
         updated_at_utc = updated_at.astimezone(timezone.utc)
     updated_at_pacific = updated_at_utc.astimezone(PACIFIC_TZ)
-    return updated_at_pacific.strftime("%B %d, %Y %H:%M %Z")
+    return updated_at_pacific.strftime("%B %d, %Y %I:%M %p %Z")
 
 
 def _build_note_groups(notes):
@@ -248,8 +248,11 @@ def update_note_editor_panel(
                 "edit_error_message": map_note_error_message(exc),
                 "oob_note": current_note,
                 "selected_note_id": current_note.note_id,
+                "form_title": title,
+                "form_body": resolved_body,
+                "form_is_private": is_private,
             },
-            status_code=map_note_error_status(exc),
+            status_code=200,
         )
 
     return templates.TemplateResponse(

@@ -60,7 +60,7 @@ def test_htmx_create_note_returns_html_snippet(client) -> None:
 
 @pytest.mark.integration
 def test_htmx_create_note_returns_error_snippet_on_invalid_title(client) -> None:
-    response = client.post('/ui/notes', data={'title': 'bad@title', 'body': ''})
+    response = client.post('/ui/notes', data={'title': 'bad<title', 'body': ''})
 
     assert response.status_code == 400
     assert 'unsupported symbols' in response.text

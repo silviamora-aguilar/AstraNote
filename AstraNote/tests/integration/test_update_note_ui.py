@@ -82,11 +82,13 @@ def test_htmx_update_note_returns_inline_error_for_invalid_title(client) -> None
 
     update_response = client.post(
         f"/ui/notes/{note_id}/editor",
-        data={"title": "bad@title", "body": "after"},
+        data={"title": "bad<title", "body": "after"},
     )
 
-    assert update_response.status_code == 400
+    assert update_response.status_code == 200
     assert "unsupported symbols" in update_response.text
+    assert 'value="bad&lt;title"' in update_response.text
+    assert ">after</textarea>" in update_response.text
 
 
 @pytest.mark.integration
@@ -217,7 +219,7 @@ def test_editor_panel_renders_modified_timestamp_under_created(client) -> None:
 
     editor_response = client.get(f"/ui/notes/{note_id}/editor")
     assert editor_response.status_code == 200
-    assert re.search(r"Modified:\s*[A-Z][a-z]+\s\d{2},\s\d{4}\s\d{2}:\d{2}\s(PST|PDT)", editor_response.text)
+    assert re.search(r"Modified:\s*[A-Z][a-z]+\s\d{2},\s\d{4}\s\d{2}:\d{2}\s(?:AM|PM)\s(PST|PDT)", editor_response.text)
 
 
 @pytest.mark.integration

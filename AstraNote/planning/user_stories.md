@@ -14,13 +14,13 @@
 - Saved note appears in the notes list immediately.
 
 ### REQ-02 — Title and Body Validation
-**Requirement**: The note title shall accept Unicode letters, numbers, spaces, and common punctuation (. , - ' "), and shall reject symbols (@ # $ % &) and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
+**Requirement**: The note title shall accept Unicode letters, numbers, spaces, and common punctuation `. , - ' " @ # & : ; ! ? ( ) [ ] / + _`, and shall reject control characters, unsupported symbols, and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
 
 **User Story**: As a user, I want the app to validate my note title so that invalid characters are caught before saving.
 
 **Acceptance Criteria**:
-- Title accepts Unicode letters (any language), numbers, spaces, and . , - ' ".
-- Title rejects symbols and newlines with a clear validation message.
+- Title accepts Unicode letters (any language), numbers, spaces, and `. , - ' " @ # & : ; ! ? ( ) [ ] / + _`.
+- Title rejects unsupported symbols and newlines with a clear validation message.
 - Title exceeding 255 characters is rejected.
 - Body exceeding 10,000 characters is rejected.
 
@@ -59,7 +59,7 @@
 - If the note no longer exists at save time, show error and do not recreate it.
 
 ### REQ-06 — Edit Title and Body Validation
-**Requirement**: The edited title shall follow the same validation rules as REQ-02 (required, max 255, Unicode-friendly, no symbols/newlines). Body shall remain optional, max 10,000 characters.
+**Requirement**: The edited title shall follow the same validation rules as REQ-02 (required, max 255, Unicode-friendly, common punctuation allowed, no control characters/newlines). Body shall remain optional, max 10,000 characters.
 
 **User Story**: As a user, I want the same title validation rules applied during editing so that my notes stay consistent.
 

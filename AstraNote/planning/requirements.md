@@ -197,13 +197,13 @@ Scope: All SMR requirements are [MVP] unless explicitly marked otherwise. These 
 
 ### Create Note
 - **REQ-01 ✅**: The app shall allow the user to create a note with a required title and an optional body.
-- **REQ-02 ✅**: The note title shall accept Unicode letters, numbers, spaces, and common punctuation (. , - ' "), and shall reject symbols (@ # $ % &) and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
+- **REQ-02 ✅**: The note title shall accept Unicode letters, numbers, spaces, and common punctuation `. , - ' " @ # & : ; ! ? ( ) [ ] / + _`, and shall reject control characters, unsupported symbols, and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
 - **REQ-03 ✅**: If the entered title already exists, the app shall auto-assign the next available numeric suffix (Title, Title1, Title2, ...).
 - **REQ-04 ✅**: Each created note shall be assigned a unique ID and creation timestamp, and persisted to server-side storage.
 
 ### Edit Note
 - **REQ-05 ✅**: The app shall allow the user to edit the title and/or body of an existing note.
-- **REQ-06 ✅**: The edited title shall follow the same validation rules as REQ-02 (required, max 255, Unicode-friendly, no symbols/newlines). Body shall remain optional, max 10,000 characters.
+- **REQ-06 ✅**: The edited title shall follow the same validation rules as REQ-02 (required, max 255, Unicode-friendly, common punctuation allowed, no control characters/newlines). Body shall remain optional, max 10,000 characters.
 - **REQ-07 ✅**: If the edited title conflicts with another existing note, the app shall auto-assign the next available numeric suffix, excluding the current note from the duplicate check.
 - **REQ-08 ✅**: On successful save, the note shall retain its original ID and created_at timestamp, update its updated_at timestamp, and persist changes to server-side storage.
 
