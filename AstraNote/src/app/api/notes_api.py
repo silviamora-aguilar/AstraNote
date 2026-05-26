@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from src.app.api.error_mapping import map_note_error_message, map_note_error_status
 from src.app.api.schemas import (
@@ -12,6 +12,7 @@ from src.app.api.schemas import (
     BulkDeleteNotesResponse,
     CreateNoteRequest,
     CreateNoteResponse,
+    SearchNoteResponse,
     UpdateNoteRequest,
     UpdateNoteResponse,
 )
@@ -20,6 +21,34 @@ from src.app.services import NoteService
 
 
 router = APIRouter(prefix="/api/notes", tags=["notes-api"])
+
+
+@router.get("/search", response_model=list[SearchNoteResponse])
+def search_notes(
+    note_service: Annotated[NoteService, Depends(get_note_service)],
+    q: str = Query(default=""),
+) -> list[SearchNoteResponse]:
+    """Search notes by title/body with case-insensitive matching."""
+    try:
+        notes = note_service.search(q)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=map_note_error_status(exc),
+            detail=map_note_error_message(exc),
+        ) from exc
+
+    return [
+        SearchNoteResponse(
+            note_id=note.note_id,
+            title=note.title,
+            body=note.body,
+            is_private=note.is_private,
+            is_deleted=note.is_deleted,
+            created_at=note.created_at,
+            updated_at=note.updated_at,
+        )
+        for note in notes
+    ]
 
 
 @router.post("", response_model=CreateNoteResponse, status_code=201)

@@ -263,6 +263,19 @@
 - If there are no notes at all and user searches, display the empty state message from REQ-13, not "no results."
 - Search state updates in real-time if a note is edited or deleted while search is active.
 
+### BL-05 UI Alignment — Hero Toolbar Search Placement
+**Requirement**: BL-05 search UX shall place the search field in the hero toolbar to the right of the "Create Note" button, not inside the notes list panel. Search requests shall update only the notes result area using HTMX partial swaps.
+
+**User Story**: As a user, I want search controls near primary actions so I can quickly create or find notes from one top-level toolbar.
+
+**Acceptance Criteria**:
+- Hero toolbar includes "Create Note" followed by the search field and clear button.
+- Search field performs live filtering via HTMX with a short debounce and case-insensitive matching against title/body.
+- Clearing search resets the notes list to the full view without page navigation.
+- Notes list panel content updates in place (`#notes-results`) while editor/create panel state remains unchanged.
+- Search route returns REQ-16 messages for no-result and no-notes cases.
+- API route `/api/notes/search` returns matching active notes and supports whitespace query fallback to full list.
+
 ## Lists in Notes
 
 ### REQ-17 — Bullet and Checkbox Lists

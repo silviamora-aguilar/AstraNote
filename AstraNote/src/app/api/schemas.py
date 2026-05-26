@@ -47,6 +47,18 @@ class UpdateNoteResponse(BaseModel):
     updated_at: datetime
 
 
+class SearchNoteResponse(BaseModel):
+    """Response model for note search result items."""
+
+    note_id: str
+    title: str
+    body: str
+    is_private: bool
+    is_deleted: bool
+    created_at: datetime
+    updated_at: datetime
+
+
 class BulkDeleteNotesRequest(BaseModel):
     """Request model for deleting multiple notes."""
 

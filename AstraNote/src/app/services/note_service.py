@@ -98,7 +98,10 @@ class NoteService:
 
     def search(self, query: str) -> list[Note]:
         """Return active notes matching query in title or body."""
-        return self.repository.search(query)
+        normalized_query = (query or "").strip()
+        if not normalized_query:
+            return self.repository.list()
+        return self.repository.search(normalized_query)
 
     def update(self, note_id: str, title: str, body: str = "", is_private: bool = False) -> Note:
         """Update title/body using BL-02 rules."""

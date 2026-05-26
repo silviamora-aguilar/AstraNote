@@ -214,15 +214,16 @@ class SqlNoteRepository(NoteRepository):
 
     def search(self, query: str) -> list[Note]:
         with self._session_factory() as session:
-            like_query = f"%{query}%"
+            escaped_query = query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            like_query = f"%{escaped_query}%"
             stmt = (
                 select(NoteRecord)
                 .where(
                     and_(
                         NoteRecord.is_deleted.is_(False),
                         or_(
-                            NoteRecord.title.ilike(like_query),
-                            NoteRecord.body.ilike(like_query),
+                            NoteRecord.title.ilike(like_query, escape="\\"),
+                            NoteRecord.body.ilike(like_query, escape="\\"),
                         ),
                     )
                 )

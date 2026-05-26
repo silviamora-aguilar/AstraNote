@@ -246,3 +246,28 @@ def test_bulk_delete_raises_not_found_when_no_ids_match():
     service, _ = _make_service()
     with pytest.raises(NoteNotFoundError):
         service.bulk_delete(["missing-1", "missing-2"])
+
+
+@pytest.mark.unit
+def test_search_whitespace_query_returns_full_active_list():
+    """BL-05: whitespace-only query should return full list."""
+    service, _ = _make_service()
+    note_a = service.create(title="Alpha", body="first")
+    note_b = service.create(title="Bravo", body="second")
+    service.delete(note_b.note_id)
+
+    results = service.search("   ")
+
+    assert [note.note_id for note in results] == [note_a.note_id]
+
+
+@pytest.mark.unit
+def test_search_trims_query_before_repository_match():
+    """BL-05: query trimming should still return the expected match."""
+    service, _ = _make_service()
+    target = service.create(title="Project Plan", body="Milestone notes")
+    service.create(title="Unrelated", body="Something else")
+
+    results = service.search("   project   ")
+
+    assert [note.note_id for note in results] == [target.note_id]
