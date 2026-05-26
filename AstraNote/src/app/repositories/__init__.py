@@ -1,7 +1,6 @@
 """Repository layer for data access."""
 
-# Import repositories here as they're created
-# from .user_repository import UserRepository
-# from .note_repository import NoteRepository
+from .note_repository import NoteRepository, NoteRepositoryCapacityError, NoteRepositoryError
+from .sql_note_repository import SqlNoteRepository
 
-__all__ = []
+__all__ = ["NoteRepository", "NoteRepositoryError", "NoteRepositoryCapacityError", "SqlNoteRepository"]

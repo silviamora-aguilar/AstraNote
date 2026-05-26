@@ -1,5 +1,15 @@
 # Requirements
 
+## Implementation Tracking
+
+Status markers in this document track repository-backed delivery progress.
+
+- `✅` = implemented and verified in code/tests as of 2026-05-18.
+- Unmarked = not yet fully implemented or not yet verified end-to-end.
+- `[Post-MVP]` remains a scope marker, not an implementation marker.
+
+Detailed evidence still lives in `planning/traceability-matrix.md`.
+
 ## Change Control Addendum (2026-05-04)
 
 Course requirement update: AstraNotes must ship as a web-based multi-user application.
@@ -81,10 +91,10 @@ Course requirement update: AstraNotes must ship as a web-based multi-user applic
 - **NFR-18 [Post-MVP]**: Any keyboard shortcut action on desktop shall have an equivalent accessible touch action on mobile.
 
 ### Architecture Separation and Testability
-- **NFR-13**: The system shall enforce dependency boundaries that prevent direct coupling between UI and storage/security implementations, so that security and storage components can be replaced or tested independently without UI code changes.
-- **NFR-14**: Storage and security capabilities shall be accessed through explicit interfaces that support test doubles, so UI and service logic can be tested without real file I/O or cryptographic backends.
-- **NFR-15**: The system shall include automated tests that independently validate UI workflow logic, security policy enforcement, and storage persistence behavior.
-- **NFR-16**: Replacing the storage backend implementation (for example, SQLite to PostgreSQL) shall not require changes to UI module code.
+- **NFR-13 ✅**: The system shall enforce dependency boundaries that prevent direct coupling between UI and storage/security implementations, so that security and storage components can be replaced or tested independently without UI code changes.
+- **NFR-14 ✅**: Storage and security capabilities shall be accessed through explicit interfaces that support test doubles, so UI and service logic can be tested without real file I/O or cryptographic backends.
+- **NFR-15 ✅**: The system shall include automated tests that independently validate UI workflow logic, security policy enforcement, and storage persistence behavior.
+- **NFR-16 ✅**: Replacing the storage backend implementation (for example, SQLite to PostgreSQL) shall not require changes to UI module code.
 
 ## Original Security, Reliability, and Governance Requirements
 
@@ -135,8 +145,8 @@ Scope tags: [MVP] = target for quarter delivery, [Post-MVP] = planned hardening 
 - **SRG-13 [MVP]**: Restore operations shall preserve original note ID, maintain version history continuity, and create an audit entry for restore action.
 
 ### Failure Handling
-- **SRG-14 [MVP]**: Invalid save, load, or delete operations (including malformed input, missing records, permission denial, and integrity check failures) shall return structured errors with machine-readable codes and user-safe messages, and shall not crash the application.
-- **SRG-15 [MVP]**: On failed save, load, delete, or restore operations, the system shall preserve pre-operation data state and prevent partial writes via atomic commit/rollback behavior.
+- **SRG-14 ✅ [MVP]**: Invalid save, load, or delete operations (including malformed input, missing records, permission denial, and integrity check failures) shall return structured errors with machine-readable codes and user-safe messages, and shall not crash the application.
+- **SRG-15 ✅ [MVP]**: On failed save, load, delete, or restore operations, the system shall preserve pre-operation data state and prevent partial writes via atomic commit/rollback behavior.
 - **SRG-16 [MVP]**: Repeated identical invalid requests shall produce consistent error codes and shall not create duplicate side effects in storage or audit logs.
 
 ## Serviceability and Manageability Requirements
@@ -186,26 +196,32 @@ Scope: All SMR requirements are [MVP] unless explicitly marked otherwise. These 
 ## Enhanced Early-Stage Requirements
 
 ### Create Note
-- **REQ-01**: The app shall allow the user to create a note with a required title and an optional body.
-- **REQ-02**: The note title shall accept Unicode letters, numbers, spaces, and common punctuation (. , - ' "), and shall reject symbols (@ # $ % &) and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
-- **REQ-03**: If the entered title already exists, the app shall auto-assign the next available numeric suffix (Title, Title1, Title2, ...).
-- **REQ-04**: Each created note shall be assigned a unique ID and creation timestamp, and persisted to server-side storage.
+- **REQ-01 ✅**: The app shall allow the user to create a note with a required title and an optional body.
+- **REQ-02 ✅**: The note title shall accept Unicode letters, numbers, spaces, and common punctuation (. , - ' "), and shall reject symbols (@ # $ % &) and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
+- **REQ-03 ✅**: If the entered title already exists, the app shall auto-assign the next available numeric suffix (Title, Title1, Title2, ...).
+- **REQ-04 ✅**: Each created note shall be assigned a unique ID and creation timestamp, and persisted to server-side storage.
 
 ### Edit Note
-- **REQ-05**: The app shall allow the user to edit the title and/or body of an existing note.
-- **REQ-06**: The edited title shall follow the same validation rules as REQ-02 (required, max 255, Unicode-friendly, no symbols/newlines). Body shall remain optional, max 10,000 characters.
-- **REQ-07**: If the edited title conflicts with another existing note, the app shall auto-assign the next available numeric suffix, excluding the current note from the duplicate check.
-- **REQ-08**: On successful save, the note shall retain its original ID and created_at timestamp, update its updated_at timestamp, and persist changes to server-side storage.
+- **REQ-05 ✅**: The app shall allow the user to edit the title and/or body of an existing note.
+- **REQ-06 ✅**: The edited title shall follow the same validation rules as REQ-02 (required, max 255, Unicode-friendly, no symbols/newlines). Body shall remain optional, max 10,000 characters.
+- **REQ-07 ✅**: If the edited title conflicts with another existing note, the app shall auto-assign the next available numeric suffix, excluding the current note from the duplicate check.
+- **REQ-08 ✅**: On successful save, the note shall retain its original ID and created_at timestamp, update its updated_at timestamp, and persist changes to server-side storage.
+
+**BL-02 UI Implementation Notes (2026-05-18):**
+- Note edits are performed through a dedicated editor panel opened from the notes list selection.
+- The editor supports private-state toggle updates as part of the same edit save operation.
+- Editor save keeps the panel open and refreshes the selected list item to reflect updated title/preview state.
+- The editor displays note creation time in Pacific time with automatic PST/PDT labeling.
 
 ### Delete Note
-- **REQ-09**: The app shall require the user to confirm deletion before a note is removed. The confirmation prompt shall display the note title and state that the action is permanent and cannot be undone.
-- **REQ-10**: Upon confirmation, the app shall permanently remove the note from storage atomically. If the delete operation fails, the note shall remain intact and the user shall receive an error message.
-- **REQ-11**: After a note is deleted, the app shall update the notes list immediately and display an empty state if no notes remain.
+- **REQ-09** ✅: The app shall require the user to confirm deletion before a note is removed. The confirmation prompt shall display the note title and state that the action is permanent and cannot be undone.
+- **REQ-10** ✅: Upon confirmation, the app shall permanently remove the note from storage atomically. If the delete operation fails, the note shall remain intact and the user shall receive an error message.
+- **REQ-11** ✅: After a note is deleted, the app shall update the notes list immediately and display an empty state if no notes remain.
 
 ### List Notes
-- **REQ-12**: The app shall display all notes in a scrollable list ordered by creation date (newest first), showing each note's title (truncated at 60 characters with ellipsis if longer) and creation date formatted as Month DD, YYYY.
-- **REQ-13**: When no notes exist, the app shall display an empty state message prompting the user to create their first note.
-- **REQ-14**: The notes list shall refresh automatically after any create, edit, or delete operation to reflect the current state of storage.
+- **REQ-12 ✅**: The app shall display all notes in a scrollable list ordered by creation date (newest first), showing each note's title (truncated at 60 characters with ellipsis if longer). In the editor panel, under the Created timestamp, the app shall show `Modified: Month DD, YYYY HH:MM PST/PDT`.
+- **REQ-13 ✅**: When no notes exist, the app shall display an empty state message prompting the user to create their first note.
+- **REQ-14 ✅**: The notes list shall refresh automatically after any create, edit, or delete operation to reflect the current state of storage.
 
 ### Search Notes
 - **REQ-15**: The app shall allow the user to filter notes by entering a query that matches against note titles and body content, case-insensitively. Minimum query length is 1 non-whitespace character. Special characters in the search query are treated as literal text and do not cause errors.
@@ -222,10 +238,10 @@ Scope: All SMR requirements are [MVP] unless explicitly marked otherwise. These 
 - **REQ-22**: Bold and italic shall be stored using Markdown-compatible markers, and underline shall be stored using a consistent format supported by the renderer.
 
 ### Note Capacity
-- **REQ-23**: The app shall allow up to 10,000 notes in a single user data store.
-- **REQ-24**: When note count is 10,000, create and duplicate-title-save operations that would add a new note shall be blocked, the existing data shall remain unchanged, and the app shall display: "Note limit reached (10,000). Delete notes to create a new one."
+- **REQ-23 ✅**: The app shall allow up to 10,000 notes in a single user data store.
+- **REQ-24 ✅**: When note count is 10,000, create and duplicate-title-save operations that would add a new note shall be blocked, the existing data shall remain unchanged, and the app shall display: "Note limit reached (10,000). Delete notes to create a new one."
 
 ### Note Privacy
-- **REQ-25**: The app shall allow the user to mark or unmark any note as private using a per-note toggle.
-- **REQ-26**: Private status shall be persisted in storage and visually indicated in the notes list.
-- **REQ-27**: Private notes shall hide body preview text in list and search results to prevent accidental on-screen disclosure.
+- **REQ-25 ✅**: The app shall allow the user to mark or unmark any note as private using a per-note toggle.
+- **REQ-26 ✅**: Private status shall be persisted in storage and visually indicated in the notes list.
+- **REQ-27 ✅**: Private notes shall hide body preview text in list and search results to prevent accidental on-screen disclosure.

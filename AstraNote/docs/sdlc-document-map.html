@@ -222,6 +222,12 @@
       gap: 8px;
     }
 
+    .shortcut-list li.shortcut-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
     .shortcut-list a {
       display: block;
       text-decoration: none;
@@ -366,6 +372,12 @@
       color: #fff;
     }
 
+    .btn.html {
+      background: #edf5fc;
+      border-color: #c9dff1;
+      color: #295780;
+    }
+
     .btn:hover {
       filter: brightness(0.98);
     }
@@ -395,6 +407,10 @@
 
       .phase-strip {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .shortcut-list li.shortcut-row {
+        grid-template-columns: 1fr;
       }
 
       .hero {
@@ -449,7 +465,7 @@
         <p class="sub">Web multi-user planning baseline is synchronized across requirements, user stories, backlog, traceability, tests, sprint plans, release gates, and customer acceptance.</p>
         <ul class="coverage-list">
           <li>Decision lock complete: FastAPI, Jinja2 + HTMX, SQLite (PostgreSQL-ready), server-side sessions + CSRF.</li>
-          <li>Requirement baseline aligned to 91 tracked items: REQ, NFR, SRG, SMR, and WEB.</li>
+          <li>Requirement baseline aligned to 94 tracked items: REQ, NFR, SRG, SMR, and WEB.</li>
           <li>BL-22 added and propagated through planning, testing, and release governance artifacts.</li>
           <li>Acceptance package now includes explicit web multi-user sign-off criteria.</li>
         </ul>
@@ -636,7 +652,7 @@
         <article class="doc-card">
           <div class="doc-tag">Coverage Mapping</div>
           <h4>Traceability Matrix</h4>
-          <p>Requirement-to-story-to-test linkage across the 91-item baseline.</p>
+          <p>Requirement-to-story-to-test linkage across the 94-item baseline.</p>
           <p class="fit-note">SDLC fit: Shows end-to-end accountability from requirement to evidence.</p>
           <div class="actions"><a class="btn primary" href="../planning/traceability-matrix.md">Open Markdown</a></div>
         </article>
@@ -698,5 +714,44 @@
 
     <p class="footer">AstraNotes SDLC map refreshed for the current web multi-user planning baseline.</p>
   </main>
+  <script>
+    (function addHtmlCompanionButtons() {
+      function buildViewerHref(markdownHref, title) {
+        return `markdown-viewer.html?source=${encodeURIComponent(markdownHref)}&title=${encodeURIComponent(title)}&rev=${encodeURIComponent(`${Date.now()}`)}`;
+      }
+
+      document.querySelectorAll('.actions a[href$=".md"]').forEach((link) => {
+        const href = link.getAttribute('href');
+        const actions = link.parentElement;
+        if (actions.querySelector(`a[data-html-for="${href}"]`)) {
+          return;
+        }
+
+        const card = link.closest('.doc-card');
+        const title = card ? card.querySelector('h4').textContent.trim() : link.textContent.trim();
+        const htmlLink = document.createElement('a');
+        htmlLink.className = 'btn html';
+        htmlLink.textContent = 'Open HTML';
+        htmlLink.href = buildViewerHref(href, title);
+        htmlLink.setAttribute('data-html-for', href);
+        link.insertAdjacentElement('afterend', htmlLink);
+      });
+
+      document.querySelectorAll('.shortcut-list a[href$=".md"]').forEach((link) => {
+        const href = link.getAttribute('href');
+        const item = link.parentElement;
+        item.classList.add('shortcut-row');
+        if (item.querySelector(`a[data-html-for="${href}"]`)) {
+          return;
+        }
+
+        const htmlLink = document.createElement('a');
+        htmlLink.href = buildViewerHref(href, link.textContent.trim());
+        htmlLink.textContent = 'Open HTML';
+        htmlLink.setAttribute('data-html-for', href);
+        item.appendChild(htmlLink);
+      });
+    })();
+  </script>
 </body>
 </html>

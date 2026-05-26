@@ -1,7 +1,7 @@
 # Release Gates — AstraNotes MVP
 
 **Version**: 1.0  
-**Date**: 2026-05-11
+**Date**: 2026-05-18
 
 A release gate is a mandatory pass/fail check that must be satisfied before any code is shipped. Every item below must be ✅ before an MVP release is cut. No exceptions.
 
@@ -13,10 +13,11 @@ All MVP backlog items must be complete and verified:
 
 | Item | Requirement Coverage | Status |
 |---|---|---|
-| BL-01: Create note | REQ-01–04 | ☐ |
-| BL-02: Edit note | REQ-05–08 | ☐ |
-| BL-03: Delete note | REQ-09–11 + SRG-10, 11, 13 | ☐ |
-| BL-04: List notes | REQ-12–14 | ☐ |
+| BL-01: Create note | REQ-01–04 | ✅ |
+| BL-02: Edit note | REQ-05–08 | ✅ |
+| BL-03: Delete note | REQ-09–11 + SRG-10, 11, 13 | ✅ (SRG-13 restore deferred to BL-13 Security Stack) |
+| BL-03.1: Bulk delete selected notes (extension) | REQ-09–11 (multi-select UX extension) | ✅ |
+| BL-04: List notes | REQ-12–14 | ✅ |
 | BL-05: Search | REQ-15–16 | ☐ |
 | BL-06: Lists in notes | REQ-17–19 | ☐ |
 | BL-07: Text formatting | REQ-20–22 | ☐ |

@@ -1,0 +1,29 @@
+<li class="note-item" id="note-{{ note.note_id }}">
+    <h3>{{ note.title }}</h3>
+    <div class="note-meta">
+        Created {{ note.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}{% if note.is_private %} · Private{% endif %}
+    </div>
+    {% if note.body %}
+        <p class="note-body">{{ note.body }}</p>
+    {% endif %}
+    <details class="note-editor" {% if edit_error_message %}open{% endif %}>
+        <summary>Edit note</summary>
+        {% if edit_error_message %}
+            <div class="error edit-error">{{ edit_error_message }}</div>
+        {% endif %}
+        <form
+            class="note-edit-form"
+            hx-post="/ui/notes/{{ note.note_id }}"
+            hx-target="#note-{{ note.note_id }}"
+            hx-swap="outerHTML"
+        >
+            <label for="title-{{ note.note_id }}" class="label">Edit title</label>
+            <input id="title-{{ note.note_id }}" name="title" type="text" required maxlength="255" value="{{ note.title }}" />
+
+            <label for="body-{{ note.note_id }}" class="label">Edit body</label>
+            <textarea id="body-{{ note.note_id }}" name="body" maxlength="10000">{{ note.body }}</textarea>
+
+            <button type="submit">Save edit</button>
+        </form>
+    </details>
+</li>

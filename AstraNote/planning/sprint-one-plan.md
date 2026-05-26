@@ -16,6 +16,20 @@ Deliver a working web multi-user note-taking core: authenticated create, edit, d
 - S1-04: Implement `NoteService.create()` with title validation (REQ-02), duplicate-title suffix (REQ-03), capacity check (REQ-23/24), unique ID + timestamps (REQ-04)
 - S1-05: Wire web create-note form (Jinja2 + HTMX) to `NoteService.create()` via protected endpoint
 
+**BL-01 Vertical Slice Traceability Note (2026-05-11):**
+- Requirement IDs realized in this slice: `REQ-01`, `REQ-02`, `REQ-03`, `REQ-04`, `REQ-23`, `REQ-24`.
+- UML class/object elements realized: `Note`, `NoteService.create()`, `NoteRepository` (interface), `SqlNoteRepository`.
+- UML behavior/deployment elements realized: Use Case `Create Note`, activity path for create/persist + validation failure branch, shared DB persistence artifact.
+- Supporting architecture-boundary evidence: `NFR-13`, `NFR-14`, `NFR-16` via service -> repository interface dependency with swappable storage implementation.
+
+**BL-01 Closeout Note (2026-05-18):**
+- Release bookkeeping updated: BL-01 marked complete in `release-gates.md`.
+- Route-layer concurrency tests (API + UI) added and passing for create workflow.
+- Carry-forward residuals (tracked, non-blocking for BL-02 start):
+  - UML explicit validation and duplicate-suffix branches still pending artifact updates.
+  - Capacity/load verification artifact for the 10,000-note boundary remains pending.
+  - Broader Sprint 1 foundations (BL-21/BL-22) remain open and continue in planned order.
+
 **Exit criteria:** Creates a note, persists to SQLite store, title constraints enforced, duplicate auto-suffix works, rejects at 10,000-note limit.
 
 ---
@@ -28,6 +42,13 @@ Deliver a working web multi-user note-taking core: authenticated create, edit, d
 
 **Exit criteria:** Edits persist, original `note_id` and `created_at` preserved, `updated_at` updated, duplicate check excludes current note.
 
+**BL-02 Closeout Note (2026-05-18):**
+- Release bookkeeping updated: BL-02 marked complete in `release-gates.md` and REQ-05 through REQ-08 are marked implemented in `requirements.md`.
+- Remaining documentation debt to close before BL-05:
+  - Update the traceability matrix/UML evidence for the edit-validation and self-exclusion branches (REQ-06, REQ-07).
+  - Reconcile any remaining requirement/story cross-references so BL-02 is reflected consistently across planning artifacts.
+  - Keep the BL-02 residuals visible while we move forward, then revisit them as part of the documentation-debt cleanup pass before BL-05.
+
 ---
 
 ### BL-03 · Delete Note (REQ-09, REQ-10, REQ-11, SRG-10, SRG-11, SRG-13)
@@ -38,18 +59,29 @@ Deliver a working web multi-user note-taking core: authenticated create, edit, d
 - S1-12: Implement `NoteService.restore()` — undelete within 30-day window, preserve original ID and version history, create audit entry (SRG-13)
 - S1-13: Ensure soft-deleted notes excluded from `list()` and `search()` results (SRG-11)
 
-**Exit criteria:** Delete soft-deletes note, removed from list/search, restorable within 30 days; failed delete leaves note intact (REQ-10).
+**Exit criteria:** Delete soft-deletes note, removed from list/search, and failed delete leaves note intact (REQ-10).  
+**Residual (tracked):** 30-day restore flow (SRG-13) remains pending and is explicitly tracked in release gates.
+
+### BL-03.1 · Bulk Delete Selected Notes (Delete Slice Extension)
+**Tasks:**
+- S1-13a: Add multi-select note checkboxes in the list panel with selected-count controls (Select all / Clear).
+- S1-13b: Reuse delete confirmation modal for bulk mode showing selected note count and irreversible-action copy.
+- S1-13c: Implement `NoteService.bulk_delete(note_ids)` with dedupe and not-found handling when no active note matches.
+- S1-13d: Add `POST /api/notes/bulk-delete` and `POST /ui/notes/bulk-delete` routes.
+- S1-13e: Add unit and integration tests for API/UI bulk-delete behavior.
+
+**Exit criteria:** User can select multiple notes and delete in one confirmed action; selected notes are soft-deleted atomically per request path, list refreshes immediately, and tests pass.
 
 ---
 
 ### BL-04 · List Notes (REQ-12, REQ-13, REQ-14)
 **Tasks:**
 - S1-14: Implement `NoteService.list()` returning notes sorted newest-first, excluding soft-deleted
-- S1-15: Implement UI list view: 60-char title truncation with ellipsis, date formatted as "Month DD, YYYY" (REQ-12)
+- S1-15: Implement UI list view: 60-char title truncation with ellipsis; show `Modified: Month DD, YYYY HH:MM PST/PDT` in the editor panel under Created (REQ-12)
 - S1-16: Implement empty-state message: "No notes yet. Create your first note." (REQ-13)
 - S1-17: Ensure list refreshes after create, edit, delete (REQ-14)
 
-**Exit criteria:** List shows notes newest-first, titles truncated, correct date format, refreshes on all mutations, shows empty state when empty.
+**Exit criteria:** List shows notes newest-first with titles truncated; editor panel shows Created + Modified timestamps; list refreshes on all mutations and shows empty state when empty.
 
 ---
 

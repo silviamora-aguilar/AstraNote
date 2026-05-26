@@ -1,0 +1,44 @@
+<article class="card editor-panel create-panel" id="create-note-panel">
+    <div class="editor-header">
+        <button
+            type="button"
+            class="panel-close-btn"
+            aria-label="Close create note panel"
+            title="Close create note panel"
+            onclick="closeEditorPanel()"
+        >
+            ×
+        </button>
+        <h2 style="margin-left: 0.4rem; flex: 1;">New Note</h2>
+    </div>
+    <p class="panel-subtitle">Create a new note here. Closing this panel returns you to the notes list only.</p>
+
+    <div id="form-errors">
+        {% if error_message %}
+            {% include "partials/error_message.html" %}
+        {% endif %}
+    </div>
+
+    <form
+        hx-post="/ui/notes"
+        hx-target="#today-note-list"
+        hx-swap="afterbegin"
+        hx-on::after-request="if(event.detail.successful){this.reset(); document.getElementById('empty-state')?.remove(); document.getElementById('form-errors').innerHTML=''; closeEditorPanel();} else {document.getElementById('form-errors').innerHTML = event.detail.xhr.responseText;}"
+    >
+        <label for="title" class="label">Title</label>
+        <input id="title" name="title" type="text" required maxlength="255" placeholder="Example: Sprint check-in summary" />
+
+        <label for="body" class="label">Body</label>
+        <textarea id="body" name="body" maxlength="10000" placeholder="Add details, context, and next steps..."></textarea>
+
+        <div class="row">
+            <label class="toggle">
+                <input type="checkbox" name="is_private" value="true" />
+                Private note
+            </label>
+            <button type="submit">Create Note</button>
+        </div>
+
+        <p class="microcopy">Validation is enforced server-side through NoteService, then rendered back as inline feedback.</p>
+    </form>
+</article>

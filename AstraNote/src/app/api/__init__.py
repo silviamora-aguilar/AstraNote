@@ -1,7 +1,6 @@
 """API routes and endpoints."""
 
-# Import routers here as they're created
-# from .auth_router import auth_router
-# from .notes_router import notes_router
+from .notes_api import router as notes_api_router
+from .notes_ui import router as notes_ui_router
 
-__all__ = []
+__all__ = ["notes_api_router", "notes_ui_router"]

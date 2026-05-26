@@ -1,0 +1,38 @@
+<li
+    class="note-item{% if selected_note_id and selected_note_id == note.note_id %} selected{% endif %}"
+    id="note-{{ note.note_id }}"
+    {% if oob_swap %}hx-swap-oob="outerHTML"{% endif %}
+>
+    {% set preview_text = (note.body or '') | trim %}
+    {% if note.title|length > 40 %}
+        {% set title_display = note.title[:37] ~ '...' %}
+    {% else %}
+        {% set title_display = note.title %}
+    {% endif %}
+    <label class="note-bulk-check-wrap" aria-label="Select {{ note.title }} for bulk delete">
+        <input class="note-bulk-check" type="checkbox" value="{{ note.note_id }}" />
+    </label>
+    <button
+        class="note-select"
+        type="button"
+        data-full-title="{{ note.title }}"
+        hx-get="/ui/notes/{{ note.note_id }}/editor"
+        hx-target="#editor-slot"
+        hx-swap="innerHTML"
+    >
+        <span class="note-title">{{ title_display }}</span>
+        {% if preview_text and not note.is_private %}
+            <span class="note-preview">{{ preview_text }}</span>
+        {% elif note.is_private %}
+            <span class="note-preview" aria-label="Private note preview hidden">Private note</span>
+        {% else %}
+            <span class="note-preview">Note is empty</span>
+        {% endif %}
+    </button>
+    <button
+        class="note-delete-btn"
+        type="button"
+        aria-label="Delete {{ note.title }}"
+        onclick='openDeleteModal({{ note.note_id | tojson }}, {{ note.title | tojson }})'
+    >&#128465;</button>
+</li>

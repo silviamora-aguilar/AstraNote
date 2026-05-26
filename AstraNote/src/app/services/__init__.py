@@ -1,8 +1,11 @@
 """Service layer for business logic."""
 
-# Import services here as they're created
-# from .note_service import NoteService
-# from .user_service import UserService
-# from .auth_service import AuthService
+from .note_service import NoteCapacityError, NoteNotFoundError, NotePersistenceError, NoteService, NoteValidationError
 
-__all__ = []
+__all__ = [
+	"NoteService",
+	"NoteValidationError",
+	"NoteCapacityError",
+	"NotePersistenceError",
+	"NoteNotFoundError",
+]

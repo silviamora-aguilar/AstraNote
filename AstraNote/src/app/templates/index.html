@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstraNote - Notes</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #fdf8ef;
+            --bg-warm: #f5ead8;
+            --panel: #fffefb;
+            --ink: #1a1e24;
+            --muted: #566171;
+            --accent: #0f766e;
+            --accent-deep: #0d5c55;
+            --highlight: #ffc66d;
+            --danger-bg: #ffe8e3;
+            --danger-ink: #a33229;
+            --line: #d9d4cb;
+            --shadow: 0 14px 42px rgba(18, 26, 41, 0.1);
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 8% 8%, #fff6df 0, transparent 34%),
+                radial-gradient(circle at 92% 12%, #ffe4b8 0, transparent 30%),
+                linear-gradient(170deg, var(--bg-main), var(--bg-warm));
+        }
+
+        .canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.28) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.28) 1px, transparent 1px);
+            background-size: 34px 34px;
+            mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.75), transparent 86%);
+        }
+
+        .layout {
+            width: min(100%, 1680px);
+            max-width: 1680px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            gap: 0.95rem;
+            padding: 0.65rem clamp(0.7rem, 2vw, 1.35rem) 0.8rem;
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.8rem;
+            opacity: 0;
+            animation: rise 520ms ease-out forwards;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-family: "Fraunces", Georgia, serif;
+            font-size: clamp(1.8rem, 3.4vw, 2.55rem);
+            letter-spacing: -0.02em;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .brand-logo {
+            width: 92px;
+            height: 92px;
+            flex: 0 0 auto;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.14));
+        }
+
+        .note-count {
+            margin-top: 0.26rem;
+            color: var(--muted);
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            margin: 0.25rem 0 0;
+            color: var(--muted);
+            max-width: 62ch;
+            line-height: 1.35;
+        }
+
+        .hero-actions {
+            margin-top: 0.55rem;
+        }
+
+        .badge {
+            border-radius: 999px;
+            padding: 0.35rem 0.8rem;
+            background: rgba(255, 198, 109, 0.28);
+            border: 1px solid rgba(255, 198, 109, 0.8);
+            font-size: 0.82rem;
+            color: #6a4b1c;
+            white-space: nowrap;
+        }
+
+        .workbench {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0.9rem;
+            min-height: 0;
+            align-items: stretch;
+            height: 100%;
+        }
+
+        .workbench.with-editor {
+            grid-template-columns: var(--notes-panel-width, 360px) 10px minmax(320px, 1fr);
+        }
+
+        #panel-resizer {
+            display: none;
+            width: 10px;
+            height: 100%;
+            cursor: col-resize;
+            border-radius: 999px;
+            position: relative;
+            touch-action: none;
+        }
+
+        #panel-resizer::before {
+            content: "";
+            position: absolute;
+            left: 3px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 999px;
+            background: rgba(86, 97, 113, 0.24);
+            transition: background-color 160ms ease;
+        }
+
+        .workbench.with-editor #panel-resizer {
+            display: block;
+        }
+
+        #panel-resizer:hover::before,
+        #panel-resizer.dragging::before {
+            background: rgba(15, 118, 110, 0.5);
+        }
+
+        body.is-resizing-panels,
+        body.is-resizing-panels * {
+            cursor: col-resize !important;
+            user-select: none;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transform: translateY(14px);
+            animation: rise 520ms ease-out forwards;
+        }
+
+        .create-panel {
+            animation-delay: 120ms;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .create-panel form {
+            min-height: 0;
+            align-content: start;
+        }
+
+        .notes-panel {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            min-width: 0;
+            overflow: hidden;
+            animation-delay: 220ms;
+            height: 100%;
+        }
+
+        .notes-panel-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.72rem;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 0.35rem;
+            padding-bottom: 0.2rem;
+        }
+
+        #today-group,
+        .note-group {
+            flex: 0 0 auto;
+            min-width: 0;
+        }
+
+        .editor-panel {
+            animation-delay: 320ms;
+            height: 100%;
+        }
+
+        .create-panel,
+        .notes-panel,
+        .editor-panel {
+            box-sizing: border-box;
+        }
+
+        #editor-slot:empty {
+            display: none;
+        }
+
+        h2 {
+            margin: 0;
+            font-family: "Fraunces", Georgia, serif;
+            font-size: 1.28rem;
+            letter-spacing: -0.01em;
+        }
+
+        .panel-subtitle {
+            margin: 0.24rem 0 0.65rem;
+            color: var(--muted);
+            font-size: 0.93rem;
+        }
+
+        form {
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        input[type="text"], textarea {
+            font: 500 0.95rem/1.4 "Manrope", sans-serif;
+            padding: 0.72rem 0.8rem;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            transition: border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: rgba(15, 118, 110, 0.65);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+        }
+
+        textarea {
+            min-height: 118px;
+            resize: vertical;
+        }
+
+        .label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        button {
+            font: 700 0.92rem/1 "Manrope", sans-serif;
+            border: 1px solid var(--accent-deep);
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+            color: white;
+            padding: 0.72rem 1.05rem;
+            cursor: pointer;
+            transition: transform 160ms ease, box-shadow 160ms ease;
+            box-shadow: 0 8px 20px rgba(15, 118, 110, 0.25);
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 11px 24px rgba(15, 118, 110, 0.3);
+        }
+
+        .microcopy {
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        #note-list,
+        .group-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 0.74rem;
+            min-width: 0;
+        }
+
+        .list-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.6rem;
+        }
+
+        .bulk-actions {
+            margin: 0 0 0.85rem;
+            padding: 0.5rem 0.6rem;
+            border: 1px solid rgba(15, 118, 110, 0.28);
+            border-radius: 10px;
+            background: rgba(15, 118, 110, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+        }
+
+        .bulk-actions .left {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--accent-deep);
+        }
+
+        .bulk-actions .right {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            min-width: 0;
+        }
+
+        .bulk-actions .mini-btn {
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--accent-deep);
+            padding: 0.3rem 0.72rem;
+            font-size: 0.78rem;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .bulk-actions .mini-btn.delete {
+            border-color: var(--danger-ink);
+            color: var(--danger-ink);
+            background: #fff;
+        }
+
+        .group-head {
+            margin: 0.9rem 0 0.45rem;
+            font-size: 0.8rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .note-item {
+            border: 1px solid var(--line);
+            border-left: 5px solid var(--accent);
+            border-radius: 12px;
+            padding: 0;
+            background: #fff;
+            animation: appear 220ms ease-out;
+            display: flex;
+            align-items: stretch;
+            min-width: 0;
+        }
+
+        .note-bulk-check-wrap {
+            flex-shrink: 0;
+            width: 2.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid var(--line);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 150ms;
+        }
+
+        .note-bulk-check {
+            width: 0.95rem;
+            height: 0.95rem;
+            accent-color: var(--accent-deep);
+        }
+
+        .note-item:hover .note-bulk-check-wrap,
+        .note-item:focus-within .note-bulk-check-wrap,
+        body.bulk-selection-active .note-bulk-check-wrap {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .note-item.selected {
+            border-left-color: var(--accent-deep);
+            box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+        }
+
+        .note-select {
+            flex: 1;
+            min-width: 0;
+            width: 100%;
+            text-align: left;
+            border: 0;
+            border-radius: 0;
+            padding: 0.78rem 0.9rem;
+            margin: 0;
+            background: transparent;
+            box-shadow: none;
+            color: inherit;
+            cursor: pointer;
+            display: block;
+            position: relative;
+        }
+
+        .note-select:hover {
+            transform: none;
+            box-shadow: none;
+            background: rgba(15, 118, 110, 0.06);
+        }
+
+        .note-delete-btn {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.4rem;
+            border: 0;
+            border-left: 1px solid var(--line);
+            border-radius: 0 12px 12px 0;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0;
+            transition: opacity 150ms, background 150ms, color 150ms;
+        }
+
+        .note-item:hover .note-delete-btn,
+        .note-item:focus-within .note-delete-btn {
+            opacity: 1;
+        }
+
+        .note-delete-btn:hover {
+            background: var(--danger-bg);
+            color: var(--danger-ink);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .note-item h3 {
+            margin: 0 0 0.22rem;
+            font-family: "Fraunces", Georgia, serif;
+            font-size: 1.05rem;
+        }
+
+        .note-body,
+        .note-preview {
+            margin: 0.5rem 0 0.6rem;
+            color: var(--ink);
+            font-size: 0.92rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .note-title {
+            display: block;
+            margin: 0 0 0.22rem;
+            font-family: "Fraunces", Georgia, serif;
+            font-size: 1.05rem;
+            color: var(--ink);
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .note-select[data-full-title]:hover::after,
+        .note-select[data-full-title]:focus-visible::after {
+            content: attr(data-full-title);
+            position: absolute;
+            left: 0;
+            top: calc(100% + 8px);
+            z-index: 15;
+            max-width: min(560px, 75vw);
+            padding: 0.45rem 0.6rem;
+            border-radius: 10px;
+            background: rgba(26, 30, 36, 0.96);
+            color: #fff;
+            box-shadow: 0 10px 26px rgba(18, 26, 41, 0.28);
+            font: 600 0.84rem/1.35 "Manrope", "Segoe UI", sans-serif;
+            letter-spacing: 0.01em;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            pointer-events: none;
+        }
+
+        .note-preview {
+            color: var(--muted);
+            margin-bottom: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .note-meta {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.7rem;
+        }
+
+        .editor-header h2 {
+            margin: 0;
+        }
+
+        .panel-close-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            padding: 0;
+            line-height: 1;
+            font-size: 1.05rem;
+            flex: 0 0 auto;
+        }
+
+        .save-edit-btn {
+            align-self: flex-start;
+        }
+
+        .delete-note-btn {
+            align-self: flex-start;
+            border: 1px solid var(--line);
+            background: transparent;
+            color: var(--muted);
+            box-shadow: none;
+        }
+
+        .delete-note-btn:hover {
+            background: var(--danger-bg);
+            color: var(--danger-ink);
+            border-color: #f0beb7;
+            box-shadow: none;
+        }
+
+        .editor-form {
+            display: grid;
+            gap: 0.7rem;
+        }
+
+        .editor-form textarea {
+            min-height: 200px;
+        }
+
+        .editor-idle-panel {
+            animation-delay: 320ms;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .editor-idle-content {
+            max-width: 32ch;
+        }
+
+        .editor-idle-title {
+            margin: 0;
+            color: var(--ink);
+            font-family: "Fraunces", Georgia, serif;
+            font-size: 1.15rem;
+        }
+
+        .editor-idle-copy {
+            margin: 0.35rem 0 0;
+            font-size: 0.93rem;
+            line-height: 1.45;
+        }
+
+        .editor-empty {
+            color: var(--muted);
+            border: 1px dashed rgba(15, 118, 110, 0.42);
+            border-radius: 12px;
+            padding: 1rem;
+            background: linear-gradient(160deg, rgba(15, 118, 110, 0.07), rgba(255, 255, 255, 0.88));
+        }
+
+        .edit-error {
+            margin-top: 0.55rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .error {
+            border: 1px solid #f0beb7;
+            background: var(--danger-bg);
+            color: var(--danger-ink);
+            border-radius: 10px;
+            padding: 0.64rem 0.75rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .empty {
+            color: var(--muted);
+            border: 1px dashed rgba(15, 118, 110, 0.48);
+            border-radius: 12px;
+            padding: 1rem 1.1rem;
+            background: linear-gradient(160deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0.88));
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 860px) {
+            .workbench {
+                grid-template-columns: 1fr;
+            }
+
+            .workbench.with-editor {
+                grid-template-columns: 1fr;
+            }
+
+            #panel-resizer {
+                display: none !important;
+            }
+
+            .hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .badge {
+                margin-top: 0.3rem;
+            }
+
+            .editor-form textarea {
+                min-height: 140px;
+            }
+        }
+
+        @media (min-width: 861px) and (max-width: 1260px) {
+            .workbench.with-editor {
+                grid-template-columns: minmax(300px, var(--notes-panel-width, 300px)) 10px minmax(0, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="canvas" aria-hidden="true"></div>
+    <main class="layout">
+        <section class="hero">
+            <div>
+                <div class="brand">
+                    <img class="brand-logo" src="/static/giraffe_logo.jpg" alt="AstraNote giraffe logo" />
+                    <div>
+                        <h1>AstraNote</h1>
+                        <div class="note-count" id="note-count">{{ note_count }} Notes</div>
+                    </div>
+                </div>
+                <div class="hero-actions">
+                    <button type="button" onclick="openCreatePanel()">Create Note</button>
+                </div>
+            </div>
+            <span class="badge">BL-05 Active</span>
+        </section>
+
+        <section class="workbench with-editor">
+            <article class="card notes-panel">
+                <div class="list-head">
+                    <h2>Notes</h2>
+                    <span class="microcopy">Newest first</span>
+                </div>
+                <div id="bulk-actions" class="bulk-actions" hidden>
+                    <div class="left"><span id="bulk-selected-count">0</span> selected</div>
+                    <div class="right">
+                        <button id="bulk-toggle-select-btn" class="mini-btn" type="button" onclick="toggleSelectAllVisibleNotes()">Select all</button>
+                        <button class="mini-btn delete" type="button" onclick="openBulkDeleteModal()">Delete selected</button>
+                    </div>
+                </div>
+                {% if not notes %}
+                    <p id="empty-state" class="empty">No notes yet. Create your first note.</p>
+                {% endif %}
+                <div class="notes-panel-body">
+                    <div id="today-group" class="note-group" {% if not today_notes %}hidden{% endif %}>
+                        <div class="group-head">Today</div>
+                        <ul id="today-note-list" class="group-list">
+                            {% if today_notes %}
+                                {% for note in today_notes %}
+                                    {% include "partials/note_list_item.html" %}
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <div class="note-group">
+                        <div class="group-head">Previous 7 days</div>
+                        <ul id="note-list" class="group-list">
+                            {% if recent_notes %}
+                                {% for note in recent_notes %}
+                                    {% include "partials/note_list_item.html" %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if last_month_notes %}
+                                <li class="group-head">{{ last_month_label }}</li>
+                                {% for note in last_month_notes %}
+                                    {% include "partials/note_list_item.html" %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if this_year_notes %}
+                                <li class="group-head">{{ this_year_label }}</li>
+                                {% for note in this_year_notes %}
+                                    {% include "partials/note_list_item.html" %}
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                </div>
+            </article>
+
+            <div id="panel-resizer" role="separator" aria-label="Resize panels" aria-orientation="vertical"></div>
+            <div id="editor-slot">
+                <article class="card editor-panel editor-idle-panel" aria-hidden="true">
+                    <div class="editor-idle-content">
+                        <h3 class="editor-idle-title">Ready when you are</h3>
+                        <p class="editor-idle-copy">Select a note to edit, or click Create Note.</p>
+                    </div>
+                </article>
+            </div>
+        </section>
+        <template id="create-panel-template">
+            {% include "partials/create_panel.html" %}
+        </template>
+    </main>
+<script>
+    const NOTES_PANEL_WIDTH_KEY = 'astranoteNotesPanelWidth';
+    const IDLE_PANEL_MARKUP = '<article class="card editor-panel editor-idle-panel" aria-hidden="true"><div class="editor-idle-content"><h3 class="editor-idle-title">Ready when you are</h3><p class="editor-idle-copy">Select a note to edit, or click Create Note.</p></div></article>';
+    const MIN_NOTES_PANEL_WIDTH = 300;
+    const MIN_EDITOR_PANEL_WIDTH = 320;
+    const PANEL_SPLITTER_WIDTH = 10;
+
+    function syncNoteCount() {
+        const noteCountEl = document.getElementById('note-count');
+        if (!noteCountEl) {
+            return;
+        }
+        const count = document.querySelectorAll('.note-item').length;
+        noteCountEl.textContent = `${count} Notes`;
+    }
+
+    function syncTodayGroupState() {
+        const todayGroup = document.getElementById('today-group');
+        const todayList = document.getElementById('today-note-list');
+        if (!todayGroup || !todayList) {
+            return;
+        }
+        todayGroup.hidden = todayList.querySelectorAll('.note-item').length === 0;
+    }
+
+    function syncWorkbenchHeight() {
+        const workbench = document.querySelector('.workbench');
+        const hero = document.querySelector('.hero');
+        if (!workbench || !hero) {
+            return;
+        }
+
+        if (window.matchMedia('(max-width: 860px)').matches) {
+            workbench.style.height = '';
+            return;
+        }
+
+        const heroBottom = hero.getBoundingClientRect().bottom;
+        const availableHeight = window.innerHeight - heroBottom - 18;
+        workbench.style.height = `${Math.max(360, Math.floor(availableHeight))}px`;
+    }
+
+    function isDesktopLayout() {
+        return !window.matchMedia('(max-width: 860px)').matches;
+    }
+
+    function isIdlePanel(slot) {
+        const firstChild = slot.firstElementChild;
+        return Boolean(firstChild && firstChild.classList.contains('editor-idle-panel'));
+    }
+
+    function setIdlePanel() {
+        const editorSlot = document.getElementById('editor-slot');
+        if (!editorSlot) {
+            return;
+        }
+        editorSlot.innerHTML = IDLE_PANEL_MARKUP;
+    }
+
+    function syncWorkbenchEditorState() {
+        const workbench = document.querySelector('.workbench');
+        const editorSlot = document.getElementById('editor-slot');
+        const panelResizer = document.getElementById('panel-resizer');
+        if (!workbench || !editorSlot) {
+            return;
+        }
+
+        if (isDesktopLayout()) {
+            if (editorSlot.childElementCount === 0) {
+                setIdlePanel();
+            }
+            workbench.classList.add('with-editor');
+            panelResizer?.removeAttribute('hidden');
+        } else {
+            if (isIdlePanel(editorSlot)) {
+                editorSlot.innerHTML = '';
+            }
+            if (editorSlot.childElementCount > 0) {
+                workbench.classList.add('with-editor');
+                panelResizer?.removeAttribute('hidden');
+            } else {
+                workbench.classList.remove('with-editor');
+                panelResizer?.setAttribute('hidden', 'hidden');
+            }
+        }
+    }
+
+    function setupPanelResizer() {
+        const workbench = document.querySelector('.workbench');
+        const resizer = document.getElementById('panel-resizer');
+        if (!workbench || !resizer) {
+            return;
+        }
+
+        const clampAndApplyNotesWidth = (preferredWidth) => {
+            const bounds = workbench.getBoundingClientRect();
+            const maxLeft = Math.max(
+                MIN_NOTES_PANEL_WIDTH,
+                bounds.width - MIN_EDITOR_PANEL_WIDTH - PANEL_SPLITTER_WIDTH,
+            );
+            const nextWidth = Math.min(Math.max(preferredWidth, MIN_NOTES_PANEL_WIDTH), maxLeft);
+            workbench.style.setProperty('--notes-panel-width', `${Math.round(nextWidth)}px`);
+            window.localStorage.setItem(NOTES_PANEL_WIDTH_KEY, String(Math.round(nextWidth)));
+            return nextWidth;
+        };
+
+        const getCurrentPreferredWidth = () => {
+            const inlineWidth = Number.parseFloat(workbench.style.getPropertyValue('--notes-panel-width'));
+            if (Number.isFinite(inlineWidth) && inlineWidth > 0) {
+                return inlineWidth;
+            }
+            const savedWidth = Number(window.localStorage.getItem(NOTES_PANEL_WIDTH_KEY));
+            if (Number.isFinite(savedWidth) && savedWidth > 0) {
+                return savedWidth;
+            }
+            return 340;
+        };
+
+        const syncPanelWidthConstraints = () => {
+            if (!isDesktopLayout() || !workbench.classList.contains('with-editor')) {
+                return;
+            }
+            clampAndApplyNotesWidth(getCurrentPreferredWidth());
+        };
+
+        window.syncPanelWidthConstraints = syncPanelWidthConstraints;
+
+        const savedWidth = Number(window.localStorage.getItem(NOTES_PANEL_WIDTH_KEY));
+        if (Number.isFinite(savedWidth) && savedWidth > 0) {
+            clampAndApplyNotesWidth(savedWidth);
+        } else {
+            syncPanelWidthConstraints();
+        }
+
+        let isDragging = false;
+
+        const applyWidth = (clientX) => {
+            const bounds = workbench.getBoundingClientRect();
+            clampAndApplyNotesWidth(clientX - bounds.left);
+        };
+
+        const stopDragging = () => {
+            if (!isDragging) {
+                return;
+            }
+            isDragging = false;
+            resizer.classList.remove('dragging');
+            document.body.classList.remove('is-resizing-panels');
+        };
+
+        resizer.addEventListener('pointerdown', (event) => {
+            if (window.matchMedia('(max-width: 860px)').matches) {
+                return;
+            }
+            if (!workbench.classList.contains('with-editor')) {
+                return;
+            }
+            event.preventDefault();
+            isDragging = true;
+            resizer.classList.add('dragging');
+            document.body.classList.add('is-resizing-panels');
+            applyWidth(event.clientX);
+        });
+
+        window.addEventListener('pointermove', (event) => {
+            if (!isDragging) {
+                return;
+            }
+            applyWidth(event.clientX);
+        });
+
+        window.addEventListener('pointerup', stopDragging);
+        window.addEventListener('pointercancel', stopDragging);
+
+        resizer.addEventListener('dblclick', () => {
+            workbench.style.removeProperty('--notes-panel-width');
+            window.localStorage.removeItem(NOTES_PANEL_WIDTH_KEY);
+            syncPanelWidthConstraints();
+        });
+    }
+
+    function openCreatePanel() {
+        const editorSlot = document.getElementById('editor-slot');
+        const template = document.getElementById('create-panel-template');
+        if (!editorSlot || !template) {
+            return;
+        }
+
+        const activeCreatePanel = document.getElementById('create-note-panel');
+        if (!activeCreatePanel) {
+            editorSlot.innerHTML = template.innerHTML;
+            if (window.htmx && typeof window.htmx.process === 'function') {
+                window.htmx.process(editorSlot);
+            }
+        }
+
+        document.querySelectorAll('.note-item.selected').forEach((item) => {
+            item.classList.remove('selected');
+        });
+        syncWorkbenchEditorState();
+        requestAnimationFrame(() => {
+            document.getElementById('title')?.focus();
+        });
+    }
+
+    async function fallbackLoadEditorPanel(button) {
+        const targetSelector = button.getAttribute('hx-target') || '#editor-slot';
+        const target = document.querySelector(targetSelector);
+        const url = button.getAttribute('hx-get');
+        if (!target || !url) {
+            return;
+        }
+
+        try {
+            const response = await fetch(url, { headers: { 'HX-Request': 'true' } });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            target.innerHTML = await response.text();
+            syncWorkbenchEditorState();
+        } catch {
+            // Keep fallback silent; server-rendered flow remains usable.
+        }
+    }
+
+    document.addEventListener('click', (event) => {
+        if (window.htmx) {
+            return;
+        }
+        const button = event.target.closest('.note-select[hx-get]');
+        if (!button) {
+            return;
+        }
+        event.preventDefault();
+        fallbackLoadEditorPanel(button);
+    });
+
+    document.addEventListener('submit', async (event) => {
+        if (event.defaultPrevented) {
+            return;
+        }
+
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement)) {
+            return;
+        }
+
+        if (form.getAttribute('hx-post') !== '/ui/notes') {
+            return;
+        }
+
+        event.preventDefault();
+
+        const formData = new FormData(form);
+        const body = new URLSearchParams();
+        for (const [key, value] of formData.entries()) {
+            if (typeof value === 'string') {
+                body.append(key, value);
+            }
+        }
+
+        try {
+            const response = await fetch('/ui/notes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                    'HX-Request': 'true',
+                },
+                body: body.toString(),
+            });
+
+            const html = await response.text();
+            const errors = document.getElementById('form-errors');
+
+            if (response.ok) {
+                const todayList = document.getElementById('today-note-list');
+                if (todayList) {
+                    todayList.insertAdjacentHTML('afterbegin', html);
+                }
+                form.reset();
+                document.getElementById('empty-state')?.remove();
+                if (errors) {
+                    errors.innerHTML = '';
+                }
+                closeEditorPanel();
+                syncTodayGroupState();
+                syncNoteCount();
+                syncBulkActionsState();
+            } else if (errors) {
+                errors.innerHTML = html;
+            }
+        } catch {
+            const errors = document.getElementById('form-errors');
+            if (errors) {
+                errors.innerHTML = '<div class="error">Could not create note. Please try again.</div>';
+            }
+        }
+    });
+
+    function closeEditorPanel() {
+        if (isDesktopLayout()) {
+            setIdlePanel();
+        } else {
+            const editorSlot = document.getElementById('editor-slot');
+            if (editorSlot) {
+                editorSlot.innerHTML = '';
+            }
+        }
+        document.querySelectorAll('.note-item.selected').forEach((item) => {
+            item.classList.remove('selected');
+        });
+        syncWorkbenchEditorState();
+    }
+
+    function submitEditorForm(noteId) {
+        const form = document.getElementById(`edit-form-${noteId}`);
+        if (!form) {
+            return;
+        }
+        form.requestSubmit();
+    }
+
+    function getSelectedNoteIds() {
+        return Array.from(document.querySelectorAll('.note-bulk-check:checked')).map((node) => node.value);
+    }
+
+    function syncBulkActionsState() {
+        const selected = getSelectedNoteIds();
+        const allCheckboxes = Array.from(document.querySelectorAll('.note-bulk-check'));
+        const allSelected = allCheckboxes.length > 0 && allCheckboxes.every((node) => node.checked);
+        const bulkActions = document.getElementById('bulk-actions');
+        const selectedCount = document.getElementById('bulk-selected-count');
+        const toggleSelectBtn = document.getElementById('bulk-toggle-select-btn');
+        if (!bulkActions || !selectedCount || !toggleSelectBtn) {
+            return;
+        }
+        selectedCount.textContent = String(selected.length);
+        bulkActions.hidden = selected.length === 0;
+        toggleSelectBtn.textContent = allSelected ? 'Unselect all' : 'Select all';
+        document.body.classList.toggle('bulk-selection-active', selected.length > 0);
+    }
+
+    function toggleSelectAllVisibleNotes() {
+        const allCheckboxes = Array.from(document.querySelectorAll('.note-bulk-check'));
+        const allSelected = allCheckboxes.length > 0 && allCheckboxes.every((node) => node.checked);
+        allCheckboxes.forEach((node) => {
+            node.checked = !allSelected;
+        });
+        syncBulkActionsState();
+    }
+
+    function openBulkDeleteModal() {
+        const selectedIds = getSelectedNoteIds();
+        if (selectedIds.length === 0) {
+            return;
+        }
+        const modal = document.getElementById('delete-confirm-modal');
+        const heading = document.getElementById('delete-modal-heading');
+        const body = document.getElementById('delete-modal-body');
+        const titleEl = document.getElementById('delete-modal-title');
+        const confirmBtn = document.getElementById('delete-modal-confirm');
+        if (!modal || !heading || !body || !titleEl || !confirmBtn) return;
+
+        heading.textContent = `Delete ${selectedIds.length} notes?`;
+        titleEl.textContent = `${selectedIds.length} selected notes`;
+        body.textContent = 'You are about to permanently delete selected notes. This action cannot be undone.';
+        confirmBtn.dataset.mode = 'bulk';
+        confirmBtn.dataset.noteIds = JSON.stringify(selectedIds);
+        modal.style.display = 'flex';
+        modal.querySelector('.modal-cancel').focus();
+    }
+
+    function openDeleteModal(noteId, noteTitle) {
+        const modal = document.getElementById('delete-confirm-modal');
+        const heading = document.getElementById('delete-modal-heading');
+        const body = document.getElementById('delete-modal-body');
+        const titleEl = document.getElementById('delete-modal-title');
+        const confirmBtn = document.getElementById('delete-modal-confirm');
+        if (!modal || !heading || !body || !titleEl || !confirmBtn) return;
+        heading.textContent = 'Delete note?';
+        titleEl.textContent = noteTitle;
+        body.textContent = 'This action cannot be undone.';
+        confirmBtn.dataset.mode = 'single';
+        confirmBtn.dataset.noteId = noteId;
+        delete confirmBtn.dataset.noteIds;
+        modal.style.display = 'flex';
+        modal.querySelector('.modal-cancel').focus();
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('delete-confirm-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupPanelResizer();
+        syncWorkbenchHeight();
+        syncWorkbenchEditorState();
+        syncNoteCount();
+        syncTodayGroupState();
+        syncBulkActionsState();
+
+        const confirmBtn = document.getElementById('delete-modal-confirm');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', async () => {
+                const mode = confirmBtn.dataset.mode || 'single';
+                closeDeleteModal();
+                if (mode === 'bulk') {
+                    const noteIds = JSON.parse(confirmBtn.dataset.noteIds || '[]');
+                    const formData = new URLSearchParams();
+                    noteIds.forEach((noteId) => formData.append('note_ids', noteId));
+                    const response = await fetch('/ui/notes/bulk-delete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                        body: formData.toString(),
+                    });
+                    if (response.ok) {
+                        window.location.reload();
+                    }
+                    return;
+                }
+
+                const noteId = confirmBtn.dataset.noteId;
+                htmx.ajax('DELETE', `/ui/notes/${noteId}`, { target: 'body' });
+            });
+        }
+
+        document.body.addEventListener('change', (event) => {
+            if (event.target.matches('.note-bulk-check')) {
+                syncBulkActionsState();
+            }
+        });
+
+        document.getElementById('delete-confirm-modal')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeDeleteModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDeleteModal();
+        });
+    });
+    window.addEventListener('resize', () => {
+        syncWorkbenchHeight();
+        syncWorkbenchEditorState();
+        if (typeof window.syncPanelWidthConstraints === 'function') {
+            window.syncPanelWidthConstraints();
+        }
+    });
+    document.body.addEventListener('htmx:afterSwap', () => {
+        syncWorkbenchEditorState();
+        syncNoteCount();
+        syncTodayGroupState();
+        syncBulkActionsState();
+    });
+</script>
+
+<!-- Delete confirmation modal -->
+<div
+    id="delete-confirm-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-modal-heading"
+    style="
+        display: none;
+        position: fixed; inset: 0; z-index: 1000;
+        align-items: center; justify-content: center;
+        background: rgba(26, 30, 36, 0.45);
+        backdrop-filter: blur(2px);
+    "
+>
+    <div style="
+        background: var(--panel);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        padding: 2rem 2rem 1.6rem;
+        max-width: 420px;
+        width: calc(100% - 2rem);
+        display: flex; flex-direction: column; gap: 0.9rem;
+    ">
+        <h3 id="delete-modal-heading" style="margin: 0; font-size: 1.15rem; color: var(--ink);">Delete note?</h3>
+        <p style="margin: 0; color: var(--muted); font-size: 0.95rem;">
+            You are about to permanently delete <strong id="delete-modal-title" style="color: var(--ink);"></strong>.
+            <span id="delete-modal-body">This action cannot be undone.</span>
+        </p>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.4rem;">
+            <button
+                class="modal-cancel"
+                type="button"
+                onclick="closeDeleteModal()"
+                style="
+                    padding: 0.5rem 1.2rem;
+                    border-radius: 999px;
+                    border: 1px solid var(--accent);
+                    background: transparent;
+                    color: var(--accent-deep);
+                    font-size: 0.93rem;
+                    cursor: pointer;
+                "
+            >Cancel</button>
+            <button
+                id="delete-modal-confirm"
+                type="button"
+                style="
+                    padding: 0.5rem 1.2rem;
+                    border-radius: 999px;
+                    border: none;
+                    background: var(--danger-ink);
+                    color: #fff;
+                    font-size: 0.93rem;
+                    cursor: pointer;
+                "
+            >Delete</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

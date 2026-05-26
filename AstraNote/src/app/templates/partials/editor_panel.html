@@ -1,0 +1,65 @@
+<article class="card editor-panel" id="editor-panel">
+    <div class="editor-header">
+        <button
+            type="button"
+            class="panel-close-btn"
+            aria-label="Close editor"
+            title="Close editor"
+            onclick="closeEditorPanel()"
+        >
+            ×
+        </button>
+        <h2 style="margin-left: 0.4rem; flex: 1;">Edit Note</h2>
+        <button
+            class="save-edit-btn"
+            type="button"
+            onclick="submitEditorForm('{{ note.note_id }}')"
+        >
+            Save edits
+        </button>
+        <button
+            class="delete-note-btn"
+            type="button"
+            onclick="openDeleteModal('{{ note.note_id }}', '{{ note.title | replace("'", "\\'") }}')"
+        >
+            Delete
+        </button>
+    </div>
+    <p class="panel-subtitle">Edit the selected note. Save applies your changes and keeps this panel open.</p>
+
+    {% if note.is_private %}
+        <div class="microcopy" style="margin-bottom: 0.35rem; font-weight: 700; color: var(--accent-deep);">Private Note</div>
+    {% endif %}
+
+    {% if edit_error_message %}
+        <div class="error">{{ edit_error_message }}</div>
+    {% endif %}
+
+    <form
+        id="edit-form-{{ note.note_id }}"
+        class="editor-form"
+        hx-post="/ui/notes/{{ note.note_id }}/editor"
+        hx-target="#editor-panel"
+        hx-swap="outerHTML"
+    >
+        <label for="title-{{ note.note_id }}" class="label">Title</label>
+        <input id="title-{{ note.note_id }}" name="title" type="text" required maxlength="255" value="{{ note.title }}" />
+
+        <div class="microcopy">Created: {{ created_display }}</div>
+        <div class="microcopy">Modified: {{ modified_display }}</div>
+
+        <label class="toggle" style="justify-content: flex-start;">
+            <input id="private-{{ note.note_id }}" name="is_private" type="checkbox" value="true" {% if note.is_private %}checked{% endif %} />
+            Private note
+        </label>
+
+        <label for="body-{{ note.note_id }}" class="label">Body</label>
+        <textarea id="body-{{ note.note_id }}" name="body" maxlength="10000">{{ note.body }}</textarea>
+    </form>
+
+    {% if oob_note %}
+        {% with note=oob_note, selected_note_id=selected_note_id, oob_swap=True %}
+            {% include "partials/note_list_item.html" %}
+        {% endwith %}
+    {% endif %}
+</article>

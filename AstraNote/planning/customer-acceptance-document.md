@@ -181,7 +181,7 @@ Every user story in this document is considered **Done** only when ALL of the fo
 **Acceptance Checklist:**
 - [ ] Notes are displayed newest first
 - [ ] Titles longer than 60 characters are truncated with "…"
-- [ ] Each note shows the creation date in the format Month DD, YYYY (e.g., "May 04, 2026")
+- [ ] In the editor panel, directly under `Created:`, display `Modified: Month DD, YYYY HH:MM PST/PDT`
 
 **Sign-off:** _________________________ Date: _________
 

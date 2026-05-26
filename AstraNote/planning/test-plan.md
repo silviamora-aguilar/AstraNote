@@ -41,11 +41,13 @@
 
 ### TP-U03 — Create note: title empty after trim
 - **Requirement**: REQ-02
+- **Status**: ✅ Implemented (`test_create_note_rejects_empty_title_after_trim`)
 - **Input**: title="   "
 - **Expected**: Returns VALIDATION_ERROR
 
 ### TP-U04 — Create note: title exceeds 255 characters
 - **Requirement**: REQ-02
+- **Status**: ✅ Implemented (`test_create_note_rejects_title_above_max_length`)
 - **Input**: title = "A" * 256
 - **Expected**: Returns VALIDATION_ERROR
 
@@ -81,28 +83,43 @@
 - **Setup**: "Work" and "Work1" exist; editing a third note to "Work"
 - **Expected**: Saved as "Work2"
 
+### TP-U10b — Edit note: rejects empty title after trim
+- **Requirement**: REQ-06
+- **Status**: ✅ Implemented (`test_update_note_rejects_empty_title_after_trim`)
+- **Input**: Edit existing note with title="   "
+- **Expected**: Returns VALIDATION_ERROR, note not changed
+
+### TP-U10c — Edit note: rejects title above 255 characters
+- **Requirement**: REQ-06
+- **Status**: ✅ Implemented (`test_update_note_rejects_title_above_max_length`)
+- **Input**: Edit existing note with title = "A" * 256
+- **Expected**: Returns VALIDATION_ERROR, note not changed
+
 ### TP-U11 — Delete note: soft delete sets is_deleted and deleted_at
-- **Requirement**: SRG-10
+- **Requirement**: REQ-09, REQ-10, SRG-10
 - **Expected**: Note is_deleted=True, deleted_at set, note excluded from list() and search()
 
 ### TP-U12 — Delete note: soft-deleted note excluded from list
-- **Requirement**: SRG-11
+- **Requirement**: REQ-11, SRG-11
 - **Expected**: list() returns only non-deleted notes
 
 ### TP-U13 — Delete note: soft-deleted note excluded from search
-- **Requirement**: SRG-11
+- **Requirement**: REQ-11, SRG-11
 - **Expected**: search() returns only non-deleted notes
 
 ### TP-U14 — List notes: sorted newest first
 - **Requirement**: REQ-12
+- **Status**: ✅ Implemented
 - **Expected**: Notes returned in created_at descending order
 
 ### TP-U15 — List notes: empty list returns empty result
 - **Requirement**: REQ-13
+- **Status**: ✅ Implemented
 - **Expected**: list() returns empty list (not error)
 
 ### TP-U16 — List notes: refreshes after create/edit/delete
 - **Requirement**: REQ-14
+- **Status**: ✅ Implemented
 - **Expected**: Each mutation is immediately visible in next list() call
 
 ### TP-U17 — Search: case-insensitive match on title

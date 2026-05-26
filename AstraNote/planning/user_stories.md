@@ -87,6 +87,17 @@
 - On successful edit, note keeps original id and created_at, and updates updated_at.
 - If persistence fails, show error and keep previously saved data unchanged.
 
+### BL-02 UI Alignment — Dedicated Editor Workflow
+**Requirement**: BL-02 editing UX shall use a dedicated editor panel opened from note-list selection, support private-toggle edits, keep the editor open after save, refresh the selected list item preview, and show created timestamp in Pacific time with automatic PST/PDT labeling.
+
+**User Story**: As a user, I want a stable editor workflow that keeps context while I edit so that saving changes is predictable and list previews stay in sync.
+
+**Acceptance Criteria**:
+- Selecting a note from the list opens that note in a dedicated editor panel.
+- The editor panel allows changing title, body, and private toggle state in the same save action.
+- Saving updates the selected note list item without closing the editor panel.
+- The editor shows created timestamp in Pacific time and automatically labels PST or PDT by date.
+
 ## Delete Note
 
 ### REQ-09 — Delete Confirmation
@@ -164,17 +175,33 @@
 - If notes remain, the next note in the list receives focus.
 - If the deleted note was the last one, an empty state message is displayed (e.g., "No notes yet. Create your first note.").
 
+### BL-03.1 — Bulk Delete Selected Notes
+**Requirement**: The UI shall provide a multi-select mode for the notes list that allows the user to select multiple notes at once and delete them in a single confirmation action.
+
+**User Story**: As a user, I want to select and delete multiple notes at once so that I can clean up my list efficiently without repeating the delete action for each note.
+
+**Acceptance Criteria**:
+- User can enter multi-select mode and individually select notes from the list.
+- A bulk-delete button is visible when at least one note is selected.
+- Confirming bulk delete removes all selected notes and refreshes the list immediately.
+- If no notes remain after bulk delete, the empty state message from REQ-13 is shown.
+- Deselecting all notes or cancelling exits multi-select mode without deleting anything.
+- Bulk-action buttons wrap gracefully at narrower panel widths rather than overflowing.
+
 ## List Notes
 
 ### REQ-12 — List Display and Format
-**Requirement**: The app shall display all notes in a scrollable list ordered by creation date (newest first), showing each note's title (truncated at 60 characters with ellipsis if longer) and creation date formatted as Month DD, YYYY.
+**Requirement**: The app shall display all notes in a scrollable list ordered by creation date (newest first), showing each note's title (truncated at 40 characters server-side, with ellipsis appended). In the editor panel, under the Created timestamp, the app shall show `Modified: Month DD, YYYY HH:MM PST/PDT`. A body preview shall appear under each title, truncated by CSS single-line ellipsis.
+
+> **Revision note (2026-05-19)**: Truncation cap revised from 60 to 40 characters to fit the two-panel workbench layout determined during BL-04 UI implementation. The full title is preserved in storage and surfaced via instant hover tooltip.
 
 **User Story**: As a user, I want to see all my notes in a clear, ordered list so I can quickly scan and find what I need.
 
 **Acceptance Criteria**:
 - All notes displayed in a scrollable list, newest first.
-- Each item shows truncated title (max 60 chars, ellipsis if longer) and creation date (e.g., "Apr 14, 2026").
-- Body preview is out of scope for MVP.
+- Each list item shows title truncated server-side at 40 characters (37 chars + "…") with the full title available on hover via tooltip.
+- Each list item shows a one-line body preview truncated by CSS ellipsis.
+- Editor panel shows `Modified: Month DD, YYYY HH:MM PST/PDT` directly under `Created:`.
 
 ### REQ-13 — List Empty State
 **Requirement**: When no notes exist, the app shall display an empty state message prompting the user to create their first note.
@@ -194,6 +221,22 @@
 **Acceptance Criteria**:
 - List updates immediately after a note is created, edited, or deleted.
 - Sort order (newest first) is re-applied after each refresh.
+
+### BL-04 UI Alignment — Two-Panel Workbench Layout
+**Requirement**: The desktop workbench shall display a persistent two-panel layout with a resizable notes list on the left and an editor/action panel on the right. The create-note form and the note editor shall share the same right-panel slot. The right panel shall show an idle placeholder when no action is active. The notes list panel shall be resizable via a draggable splitter bar that persists its position across sessions.
+
+**User Story**: As a user, I want a stable two-panel workspace so that browsing my notes and editing or creating them happen side by side without context-switching.
+
+**Acceptance Criteria**:
+- Desktop layout always opens with two panels visible: notes list (left) and action panel (right).
+- Clicking "Create Note" opens the create form in the right panel slot; selecting a note opens the editor in the same slot.
+- Closing the editor or create form returns the right panel to the idle placeholder ("Ready when you are").
+- A draggable splitter between panels allows resizing; panel widths persist across page loads via `localStorage`.
+- Double-clicking the splitter resets panel widths to the default (360 px notes list).
+- Notes list minimum width is 300 px; right panel minimum width is 320 px.
+- Note titles in the list are truncated server-side at 40 characters; hovering the title shows the full title via an instant CSS tooltip.
+- Note body preview renders as a single line truncated by CSS ellipsis; the full body text is present in the HTML for search and accessibility.
+- HTMX partial templates injected dynamically are initialized with `htmx.process()` to ensure attribute bindings activate.
 
 ## Search Notes
 
