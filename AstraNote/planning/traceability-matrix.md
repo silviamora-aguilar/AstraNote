@@ -33,8 +33,8 @@
 | REQ-12 | List display: newest first, 40-char server-side truncation with hover tooltip; editor shows Modified timestamp; body preview one-line CSS ellipsis | `Note` (title, created_at, updated_at) | UC: List Notes | — | ⚠️ Partially Traced | Implemented. Truncation revised to 40 chars (BL-04 UI Alignment). Full title in storage; hover tooltip via CSS `data-full-title`. UML artifact update pending. |
 | REQ-13 | Empty state message when no notes | — | UC: List Notes | — | ⚠️ Partially Traced | Pending UML detail: explicit empty-state message flow |
 | REQ-14 | List auto-refresh after CRUD | `NoteService` | UC: List Notes | — | ⚠️ Partially Traced | Implemented behavior; refresh trigger is not yet explicit in UML flow |
-| REQ-15 | Search by title/body, case-insensitive | `NoteService.search()` | UC: Search Notes | — | ✅ Fully Traced | |
-| REQ-16 | Search edge cases: empty/whitespace/no results | `NoteService` | UC: Search Notes | — | ⚠️ Partially Traced | Implemented behavior; edge-case branches are not yet shown in activity diagram |
+| REQ-15 | Search by title/body, case-insensitive | `NoteService.search()`, `SqlNoteRepository.search()`, `/api/notes/search`, `/ui/notes/search` | UC: Search Notes | API + HTMX partial route (`#notes-results`) | ✅ Fully Traced | Implemented with integration tests for API and UI live filtering |
+| REQ-16 | Search edge cases: empty/whitespace/no results | `NoteService.search()` normalization, UI search context builder | UC: Search Notes | HTMX partial messaging for empty/no-match states | ⚠️ Partially Traced | Implemented with tests; UML activity branches for search edge states are still pending |
 | REQ-17 | Bullet and checkbox lists in body | `Note` (body) | UC: Edit Note | — | ⚠️ Partially Traced | Implemented UI detail; list rendering is not yet represented in UML |
 | REQ-18 | List persistence and render after reopen | `SqlNoteRepository` | — | Shared DB persistence artifact | ⚠️ Partially Traced | Persistence is represented; render consistency remains a UI evidence gap |
 | REQ-19 | Checkbox toggle + immediate persist | `Note`, `NoteService` | UC: Edit Note | — | ⚠️ Partially Traced | Implemented behavior; immediate persist path is not yet explicit in UML |
@@ -162,9 +162,18 @@
 - BL-04 is implementation-complete and release-marked ✅.
 - REQ-12 title truncation revised from 60-char to 40-char server-side cap (37 chars + "…") to fit the two-panel workbench layout; full title is preserved in storage and exposed via hover tooltip.
 - BL-04 UI Alignment story added to `user_stories.md` covering: two-panel workbench, draggable resizer with `localStorage` persistence, create/editor right-panel slot, idle placeholder, and HTMX `htmx.process()` dynamic initialization requirement.
-- Remaining follow-through items (not blockers for BL-05):
+- Remaining follow-through items (not blockers for BL-06):
 	- UML artifact update for two-panel layout and panel-resizer interaction flow.
 	- Cross-artifact reconciliation pass to confirm REQ-12 traceability references reflect the 40-char revision.
+
+## BL-05 Residual Tracker (Non-Blocking)
+
+- BL-05 is implementation-complete and release-marked ✅.
+- Implemented artifacts include: `NoteService.search()` normalization, wildcard-literal safe repository matching, JSON API route (`/api/notes/search`), HTMX UI route (`/ui/notes/search`), and hero-toolbar search placement beside Create Note.
+- Edge cases covered and verified: whitespace query -> full list, no matches -> "No notes match your search.", no notes -> REQ-13 empty-state message.
+- Remaining follow-through items (not blockers for BL-06):
+	- UML activity update for search edge-case branches and HTMX partial update path.
+	- Optional future enhancement: preserve current selected note highlight across filtered result swaps.
 
 ---
 

@@ -106,6 +106,44 @@
 
         .hero-actions {
             margin-top: 0.55rem;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-search {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 0;
+        }
+
+        .hero-search input[type="search"] {
+            width: min(420px, 72vw);
+            min-width: 220px;
+            border: 1px solid rgba(15, 118, 110, 0.35);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--ink);
+            padding: 0.68rem 0.95rem;
+            font: 600 0.9rem/1.2 "Manrope", sans-serif;
+        }
+
+        .hero-search input[type="search"]:focus {
+            outline: none;
+            border-color: rgba(15, 118, 110, 0.65);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+        }
+
+        .hero-search-clear {
+            border: 1px solid rgba(15, 118, 110, 0.5);
+            background: #fff;
+            color: var(--accent-deep);
+            box-shadow: none;
+            padding: 0.5rem 0.82rem;
+            font-size: 0.82rem;
+            line-height: 1;
         }
 
         .badge {
@@ -647,6 +685,18 @@
             margin-bottom: 0.6rem;
         }
 
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+            white-space: nowrap;
+        }
+
         .empty {
             color: var(--muted);
             border: 1px dashed rgba(15, 118, 110, 0.48);
@@ -695,6 +745,15 @@
                 align-items: flex-start;
             }
 
+            .hero-search {
+                width: 100%;
+            }
+
+            .hero-search input[type="search"] {
+                width: 100%;
+                min-width: 0;
+            }
+
             .badge {
                 margin-top: 0.3rem;
             }
@@ -725,6 +784,28 @@
                 </div>
                 <div class="hero-actions">
                     <button type="button" onclick="openCreatePanel()">Create Note</button>
+                    <form
+                        class="hero-search"
+                        id="search-form"
+                        hx-get="/ui/notes/search"
+                        hx-target="#notes-results"
+                        hx-swap="innerHTML"
+                    >
+                        <label for="note-search" class="sr-only">Search notes</label>
+                        <input
+                            id="note-search"
+                            name="query"
+                            type="search"
+                            placeholder="Search title or content"
+                            value="{{ search_query or '' }}"
+                            autocomplete="off"
+                            hx-get="/ui/notes/search"
+                            hx-target="#notes-results"
+                            hx-swap="innerHTML"
+                            hx-trigger="input changed delay:250ms, search"
+                        />
+                        <button class="hero-search-clear" type="button" onclick="clearSearch()">Clear</button>
+                    </form>
                 </div>
             </div>
             <span class="badge">BL-05 Active</span>
@@ -743,46 +824,8 @@
                         <button class="mini-btn delete" type="button" onclick="openBulkDeleteModal()">Delete selected</button>
                     </div>
                 </div>
-                {% if not notes %}
-                    <p id="empty-state" class="empty">No notes yet. Create your first note.</p>
-                {% endif %}
-                <div class="notes-panel-body">
-                    <div id="today-group" class="note-group" {% if not today_notes %}hidden{% endif %}>
-                        <div class="group-head">Today</div>
-                        <ul id="today-note-list" class="group-list">
-                            {% if today_notes %}
-                                {% for note in today_notes %}
-                                    {% include "partials/note_list_item.html" %}
-                                {% endfor %}
-                            {% endif %}
-                        </ul>
-                    </div>
-
-                    <div class="note-group">
-                        <div class="group-head">Previous 7 days</div>
-                        <ul id="note-list" class="group-list">
-                            {% if recent_notes %}
-                                {% for note in recent_notes %}
-                                    {% include "partials/note_list_item.html" %}
-                                {% endfor %}
-                            {% endif %}
-
-                            {% if last_month_notes %}
-                                <li class="group-head">{{ last_month_label }}</li>
-                                {% for note in last_month_notes %}
-                                    {% include "partials/note_list_item.html" %}
-                                {% endfor %}
-                            {% endif %}
-
-                            {% if this_year_notes %}
-                                <li class="group-head">{{ this_year_label }}</li>
-                                {% for note in this_year_notes %}
-                                    {% include "partials/note_list_item.html" %}
-                                {% endfor %}
-                            {% endif %}
-                        </ul>
-                    </div>
-                </div>
+                <div id="notes-results">
+                    {% include "partials/note_list_results.html" %}
                 </div>
             </article>
 
@@ -1112,6 +1155,19 @@
             item.classList.remove('selected');
         });
         syncWorkbenchEditorState();
+    }
+
+    function clearSearch() {
+        const searchInput = document.getElementById('note-search');
+        if (!searchInput) {
+            return;
+        }
+        searchInput.value = '';
+        if (window.htmx) {
+            htmx.ajax('GET', '/ui/notes/search?query=', { target: '#notes-results', swap: 'innerHTML' });
+            return;
+        }
+        window.location.reload();
     }
 
     function submitEditorForm(noteId) {

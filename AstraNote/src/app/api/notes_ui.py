@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, Response
 
 from src.app.api.error_mapping import map_note_error_message, map_note_error_status
@@ -89,6 +89,28 @@ def _build_note_groups(notes):
     }
 
 
+def _build_search_context(note_service: NoteService, query: str) -> dict:
+    """Prepare list-group and empty-state context for BL-05 search rendering."""
+    all_notes = note_service.list_notes()
+    normalized_query = (query or "").strip()
+    notes = note_service.search(normalized_query)
+
+    empty_state_message = None
+    if not notes:
+        if not all_notes:
+            empty_state_message = "No notes yet. Create your first note."
+        elif normalized_query:
+            empty_state_message = "No notes match your search."
+
+    return {
+        "notes": notes,
+        "note_count": len(notes),
+        "search_query": normalized_query,
+        "empty_state_message": empty_state_message,
+        **_build_note_groups(notes),
+    }
+
+
 @router.get("/", response_class=HTMLResponse)
 def notes_page(
     request: Request,
@@ -96,17 +118,31 @@ def notes_page(
 ) -> HTMLResponse:
     """Render initial notes page with create form and notes list."""
     templates = get_templates()
-    notes = note_service.list_notes()
-    note_groups = _build_note_groups(notes)
+    search_context = _build_search_context(note_service, "")
     return templates.TemplateResponse(
         request,
         "index.html",
         {
-            "notes": notes,
-            "note_count": len(notes),
             "error_message": None,
-            **note_groups,
+            **search_context,
         },
+    )
+
+
+@router.get("/ui/notes/search", response_class=HTMLResponse)
+def search_notes_htmx(
+    request: Request,
+    note_service: Annotated[NoteService, Depends(get_note_service)],
+    query: str = Query(default=""),
+) -> HTMLResponse:
+    """Return filtered note-list markup for BL-05 live search."""
+    templates = get_templates()
+    search_context = _build_search_context(note_service, query)
+    return templates.TemplateResponse(
+        request,
+        "partials/note_list_results.html",
+        search_context,
+        status_code=200,
     )
 
 

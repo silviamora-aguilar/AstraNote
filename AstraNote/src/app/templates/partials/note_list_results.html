@@ -1,0 +1,40 @@
+{% if empty_state_message %}
+    <p id="empty-state" class="empty">{{ empty_state_message }}</p>
+{% endif %}
+<div class="notes-panel-body">
+    <div id="today-group" class="note-group" {% if not today_notes %}hidden{% endif %}>
+        <div class="group-head">Today</div>
+        <ul id="today-note-list" class="group-list">
+            {% if today_notes %}
+                {% for note in today_notes %}
+                    {% include "partials/note_list_item.html" %}
+                {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+
+    <div class="note-group">
+        <div class="group-head">Previous 7 days</div>
+        <ul id="note-list" class="group-list">
+            {% if recent_notes %}
+                {% for note in recent_notes %}
+                    {% include "partials/note_list_item.html" %}
+                {% endfor %}
+            {% endif %}
+
+            {% if last_month_notes %}
+                <li class="group-head">{{ last_month_label }}</li>
+                {% for note in last_month_notes %}
+                    {% include "partials/note_list_item.html" %}
+                {% endfor %}
+            {% endif %}
+
+            {% if this_year_notes %}
+                <li class="group-head">{{ this_year_label }}</li>
+                {% for note in this_year_notes %}
+                    {% include "partials/note_list_item.html" %}
+                {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+</div>
