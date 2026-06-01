@@ -14,12 +14,12 @@
 - Saved note appears in the notes list immediately.
 
 ### REQ-02 — Title and Body Validation
-**Requirement**: The note title shall accept Unicode letters, numbers, spaces, and common punctuation `. , - ' " @ # & : ; ! ? ( ) [ ] / + _`, and shall reject control characters, unsupported symbols, and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
+**Requirement**: The note title shall accept Unicode letters (including accented characters such as á, é, í, ó, ú, ñ, ü), numbers, spaces, and common punctuation `. , - ' " @ # & : ; ! ? ( ) [ ] / + _ ¿ ¡`, and shall reject control characters, unsupported symbols, and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
 
 **User Story**: As a user, I want the app to validate my note title so that invalid characters are caught before saving.
 
 **Acceptance Criteria**:
-- Title accepts Unicode letters (any language), numbers, spaces, and `. , - ' " @ # & : ; ! ? ( ) [ ] / + _`.
+- Title accepts Unicode letters (any language, including accented Spanish characters: á é í ó ú ñ ü and inverted punctuation ¿ ¡), numbers, spaces, and `. , - ' " @ # & : ; ! ? ( ) [ ] / + _ ¿ ¡`.
 - Title rejects unsupported symbols and newlines with a clear validation message.
 - Title exceeding 255 characters is rejected.
 - Body exceeding 10,000 characters is rejected.
@@ -191,7 +191,7 @@
 ## List Notes
 
 ### REQ-12 — List Display and Format
-**Requirement**: The app shall display all notes in a scrollable list ordered by creation date (newest first), showing each note's title (truncated at 40 characters server-side, with ellipsis appended). In the editor panel, under the Created timestamp, the app shall show `Modified: Month DD, YYYY HH:MM PST/PDT`. A body preview shall appear under each title, truncated by CSS single-line ellipsis.
+**Requirement**: The app shall display all notes in a scrollable list ordered by creation date (newest first), showing each note's title (truncated at 40 characters server-side, with ellipsis appended). In the editor panel, under the Created timestamp, the app shall show `Modified: Month DD, YYYY HH:MM AM/PM PST/PDT`. A body preview shall appear under each title, truncated by CSS single-line ellipsis.
 
 > **Revision note (2026-05-19)**: Truncation cap revised from 60 to 40 characters to fit the two-panel workbench layout determined during BL-04 UI implementation. The full title is preserved in storage and surfaced via instant hover tooltip.
 
@@ -201,7 +201,7 @@
 - All notes displayed in a scrollable list, newest first.
 - Each list item shows title truncated server-side at 40 characters (37 chars + "…") with the full title available on hover via tooltip.
 - Each list item shows a one-line body preview truncated by CSS ellipsis.
-- Editor panel shows `Modified: Month DD, YYYY HH:MM PST/PDT` directly under `Created:`.
+- Editor panel shows `Modified: Month DD, YYYY HH:MM AM/PM PST/PDT` directly under `Created:`.
 
 ### REQ-13 — List Empty State
 **Requirement**: When no notes exist, the app shall display an empty state message prompting the user to create their first note.
@@ -240,7 +240,7 @@
 
 ## Search Notes
 
-### REQ-15 — Basic Search
+### REQ-15 ✅ — Basic Search
 **Requirement**: The app shall allow the user to filter notes by entering a query that matches against note titles and body content, case-insensitively. Minimum query length is 1 non-whitespace character. Special characters in the search query are treated as literal text and do not cause errors.
 
 **User Story**: As a user, I want to search my notes by title or content so I can locate specific information efficiently.
@@ -252,7 +252,7 @@
 - Special characters in search query (e.g., @, #) are treated as literal search text and do not cause errors.
 - Clearing the search bar resets to the full note list.
 
-### REQ-16 — Search Edge Cases
+### REQ-16 ✅ — Search Edge Cases
 **Requirement**: The app shall handle empty, whitespace-only, and no-result search inputs by displaying specific feedback messages in place of the notes list, with no errors or crashes occurring.
 
 **User Story**: As a user, I want clear feedback when my search returns no results so I'm not confused by a blank screen.
@@ -278,7 +278,7 @@
 
 ## Lists in Notes
 
-### REQ-17 — Bullet and Checkbox Lists
+### REQ-17 ✅ — Bullet and Checkbox Lists
 **Requirement**: The app shall allow the user to create and edit unordered bullet lists and checkbox lists inside the note body.
 
 **User Story**: As a user, I want to structure my notes with bullet and checkbox lists so I can organize tasks and ideas clearly.
@@ -288,7 +288,7 @@
 - User can edit existing list item text without breaking list structure.
 - Ordered (numbered) lists are out of scope for MVP.
 
-### REQ-18 — List Persistence and Rendering
+### REQ-18 ✅ — List Persistence and Rendering
 **Requirement**: List content shall be persisted in note storage and rendered consistently after save, close, and reopen. Nested lists deeper than 2 levels are not required for MVP.
 
 **User Story**: As a user, I want my list formatting to stay intact after reopening the app so I do not lose note structure.
@@ -298,7 +298,7 @@
 - After reopening the app, previously saved lists render the same as before close.
 - Nesting up to 2 levels is preserved; deeper nesting behavior is not required for MVP.
 
-### REQ-19 — Checkbox State Persistence
+### REQ-19 ✅ — Checkbox State Persistence
 **Requirement**: The app shall allow the user to toggle checkbox list items between checked and unchecked states, and persist each state change immediately.
 
 **User Story**: As a user, I want to check and uncheck tasks so I can track progress directly in my notes.
@@ -310,7 +310,7 @@
 
 ## Text Formatting
 
-### REQ-20 — Apply Basic Formatting
+### REQ-20 ✅ — Apply Basic Formatting
 **Requirement**: The app shall allow the user to apply bold, italic, and underline formatting to selected text in the note body.
 
 **User Story**: As a user, I want to format text for emphasis so my notes are easier to scan.
@@ -320,7 +320,7 @@
 - Formatting applies only to current selection.
 - If no text is selected, formatting action does not modify note content.
 
-### REQ-21 — Formatting Integrity
+### REQ-21 ✅ — Formatting Integrity
 **Requirement**: Formatting actions shall not modify note title content and shall preserve existing surrounding text without data loss when multiple formats are combined.
 
 **User Story**: As a user, I want formatting tools to be safe so they do not corrupt unrelated text.
@@ -330,7 +330,7 @@
 - Applying multiple formats to overlapping text does not delete nearby characters.
 - Undo/redo of formatting changes restores exact previous/next body content states.
 
-### REQ-22 — Formatting Storage Rules
+### REQ-22 ✅ — Formatting Storage Rules
 **Requirement**: Bold and italic shall be stored using Markdown-compatible markers, and underline shall be stored using a consistent format supported by the renderer.
 
 **User Story**: As a user, I want formatting to render consistently so saved notes look the same across sessions.

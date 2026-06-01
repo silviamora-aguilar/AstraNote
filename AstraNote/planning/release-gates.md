@@ -1,7 +1,7 @@
 # Release Gates — AstraNotes MVP
 
-**Version**: 1.0  
-**Date**: 2026-05-18
+**Version**: 1.1  
+**Date**: 2026-06-01
 
 A release gate is a mandatory pass/fail check that must be satisfied before any code is shipped. Every item below must be ✅ before an MVP release is cut. No exceptions.
 
@@ -19,10 +19,10 @@ All MVP backlog items must be complete and verified:
 | BL-03.1: Bulk delete selected notes (extension) | REQ-09–11 (multi-select UX extension) | ✅ |
 | BL-04: List notes | REQ-12–14 | ✅ |
 | BL-05: Search | REQ-15–16 | ✅ |
-| BL-06: Lists in notes | REQ-17–19 | ☐ |
-| BL-07: Text formatting | REQ-20–22 | ☐ |
-| BL-08: Note capacity | REQ-23–24 | ☐ |
-| BL-09: Privacy state and preview suppression | REQ-25–27 | ☐ |
+| BL-06: Lists in notes | REQ-17–19 | ✅ |
+| BL-07: Text formatting | REQ-20–22 | ✅ |
+| BL-08: Note capacity | REQ-23–24 | ✅ |
+| BL-09: Privacy state and preview suppression | REQ-25–27 | ✅ |
 | BL-10: Performance verification | NFR-06–09 | ☐ |
 | BL-12: Architecture boundaries | NFR-13–16 | ☐ |
 | BL-13: Security stack | SRG-01, 02, 04, 05, 07, 08, 10, 11, 13–26 | ☐ |
@@ -132,3 +132,23 @@ Performance results recorded in Gate 4: ☐ Yes
 Security checks individually verified in Gate 3: ☐ Yes
 Signed off by: _______________
 ```
+
+---
+
+## Current Delivery Checkpoint (2026-06-01)
+
+### Completed Backlog Slices
+
+- ✅ BL-01 through BL-09 are implemented and reflected in requirement status markers.
+- ✅ BL-06/BL-07 UI stabilization completed for list editing behavior (multi-line bullet/checklist formatting, checklist Enter/caret positioning, checklist toggle without forced panel refresh).
+- ✅ List preview rendering now uses the first non-empty line and preserves visual formatting for checklist/bullet/inline text.
+
+### Requirement and Implementation Alignment
+
+- ✅ REQ-01 through REQ-27 are implemented in current codebase scope.
+- ✅ Recent integration runs passed for BL-02/04/05/06/07/09 behaviors (including preview regressions).
+
+### Readiness for Next BL
+
+- ✅ Ready to begin **BL-10 Performance verification**.
+- Remaining gate-critical work is measurement evidence for NFR-06 through NFR-09 latency/durability targets.

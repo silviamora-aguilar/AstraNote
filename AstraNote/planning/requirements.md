@@ -4,7 +4,7 @@
 
 Status markers in this document track repository-backed delivery progress.
 
-- `✅` = implemented and verified in code/tests as of 2026-05-18.
+- `✅` = implemented and verified in code/tests as of 2026-06-01.
 - Unmarked = not yet fully implemented or not yet verified end-to-end.
 - `[Post-MVP]` remains a scope marker, not an implementation marker.
 
@@ -197,7 +197,7 @@ Scope: All SMR requirements are [MVP] unless explicitly marked otherwise. These 
 
 ### Create Note
 - **REQ-01 ✅**: The app shall allow the user to create a note with a required title and an optional body.
-- **REQ-02 ✅**: The note title shall accept Unicode letters, numbers, spaces, and common punctuation `. , - ' " @ # & : ; ! ? ( ) [ ] / + _`, and shall reject control characters, unsupported symbols, and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
+- **REQ-02 ✅**: The note title shall accept Unicode letters (including accented characters such as á, é, í, ó, ú, ñ, ü), numbers, spaces, and common punctuation `. , - ' " @ # & : ; ! ? ( ) [ ] / + _ ¿ ¡`, and shall reject control characters, unsupported symbols, and newlines. Title length shall be 1–255 characters. Body length shall be 0–10,000 characters.
 - **REQ-03 ✅**: If the entered title already exists, the app shall auto-assign the next available numeric suffix (Title, Title1, Title2, ...).
 - **REQ-04 ✅**: Each created note shall be assigned a unique ID and creation timestamp, and persisted to server-side storage.
 
@@ -219,23 +219,23 @@ Scope: All SMR requirements are [MVP] unless explicitly marked otherwise. These 
 - **REQ-11** ✅: After a note is deleted, the app shall update the notes list immediately and display an empty state if no notes remain.
 
 ### List Notes
-- **REQ-12 ✅**: The app shall display all notes in a scrollable list ordered by creation date (newest first), showing each note's title (truncated at 60 characters with ellipsis if longer). In the editor panel, under the Created timestamp, the app shall show `Modified: Month DD, YYYY HH:MM PST/PDT`.
+- **REQ-12 ✅**: The app shall display all notes in a scrollable list ordered by creation date (newest first), showing each note's title (truncated at 40 characters with ellipsis if longer; full title preserved in storage and shown via hover tooltip). The body preview shall render from the first non-empty line only (not multiple lines), preserving supported visual formatting (e.g., checklist marker, bullet marker, inline emphasis) instead of raw markdown syntax. In the editor panel, under the Created timestamp, the app shall show `Modified: Month DD, YYYY HH:MM AM/PM PST/PDT`.
 - **REQ-13 ✅**: When no notes exist, the app shall display an empty state message prompting the user to create their first note.
 - **REQ-14 ✅**: The notes list shall refresh automatically after any create, edit, or delete operation to reflect the current state of storage.
 
 ### Search Notes
-- **REQ-15**: The app shall allow the user to filter notes by entering a query that matches against note titles and body content, case-insensitively. Minimum query length is 1 non-whitespace character. Special characters in the search query are treated as literal text and do not cause errors.
-- **REQ-16**: The app shall handle empty, whitespace-only, and no-result search inputs by displaying specific feedback messages in place of the notes list, with no errors or crashes occurring.
+- **REQ-15 ✅**: The app shall allow the user to filter notes by entering a query that matches against note titles and body content, case-insensitively. Minimum query length is 1 non-whitespace character. Special characters in the search query are treated as literal text and do not cause errors.
+- **REQ-16 ✅**: The app shall handle empty, whitespace-only, and no-result search inputs by displaying specific feedback messages in place of the notes list, with no errors or crashes occurring.
 
 ### Lists in Notes
-- **REQ-17**: The app shall allow the user to create and edit unordered bullet lists and checkbox lists inside the note body.
-- **REQ-18**: List content shall be persisted in note storage and rendered consistently after save, close, and reopen. Nested lists deeper than 2 levels are not required for MVP.
-- **REQ-19**: The app shall allow the user to toggle checkbox list items between checked and unchecked states, and persist each state change immediately.
+- **REQ-17 ✅**: The app shall allow the user to create and edit unordered bullet lists and checkbox lists inside the note body.
+- **REQ-18 ✅**: List content shall be persisted in note storage and rendered consistently after save, close, and reopen. Nested lists deeper than 2 levels are not required for MVP.
+- **REQ-19 ✅**: The app shall allow the user to toggle checkbox list items between checked and unchecked states, and persist each state change immediately.
 
 ### Text Formatting
-- **REQ-20**: The app shall allow the user to apply bold, italic, and underline formatting to selected text in the note body.
-- **REQ-21**: Formatting actions shall not modify note title content and shall preserve existing surrounding text without data loss when multiple formats are combined.
-- **REQ-22**: Bold and italic shall be stored using Markdown-compatible markers, and underline shall be stored using a consistent format supported by the renderer.
+- **REQ-20 ✅**: The app shall allow the user to apply bold, italic, and underline formatting to selected text in the note body.
+- **REQ-21 ✅**: Formatting actions shall not modify note title content and shall preserve existing surrounding text without data loss when multiple formats are combined.
+- **REQ-22 ✅**: Bold and italic shall be stored using Markdown-compatible markers, and underline shall be stored using a consistent format supported by the renderer.
 
 ### Note Capacity
 - **REQ-23 ✅**: The app shall allow up to 10,000 notes in a single user data store.

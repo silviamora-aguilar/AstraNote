@@ -23,13 +23,21 @@
         hx-post="/ui/notes"
         hx-target="#today-note-list"
         hx-swap="afterbegin"
-        hx-on::after-request="if(event.detail.successful){this.reset(); document.getElementById('empty-state')?.remove(); document.getElementById('form-errors').innerHTML=''; closeEditorPanel();} else {document.getElementById('form-errors').innerHTML = event.detail.xhr.responseText;}"
+        hx-on::after-request="if(event.detail.successful){document.getElementById('body').innerHTML=''; document.getElementById('body-hidden').value=''; document.getElementById('empty-state')?.remove(); document.getElementById('form-errors').innerHTML=''; document.getElementById('title').value=''; closeEditorPanel();} else {document.getElementById('form-errors').innerHTML = event.detail.xhr.responseText;}"
     >
         <label for="title" class="label">Title</label>
         <input id="title" name="title" type="text" required maxlength="255" placeholder="Example: Sprint check-in summary" />
 
         <label for="body" class="label">Body</label>
-        <textarea id="body" name="body" maxlength="10000" placeholder="Add details, context, and next steps..."></textarea>
+        <div class="format-toolbar" role="toolbar" aria-label="Body formatting tools">
+            <button type="button" class="format-btn" data-format-action="bullet" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('bullet', 'body')">Bullets</button>
+            <button type="button" class="format-btn" data-format-action="checklist" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('checklist', 'body')">Checklist</button>
+            <button type="button" class="format-btn" data-format-action="bold" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('bold', 'body')"><strong>B</strong></button>
+            <button type="button" class="format-btn" data-format-action="italic" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('italic', 'body')"><em>I</em></button>
+            <button type="button" class="format-btn" data-format-action="underline" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('underline', 'body')"><span style="text-decoration: underline;">U</span></button>
+        </div>
+        <input type="hidden" id="body-hidden" name="body" />
+        <div id="body" class="body-wysiwyg" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Body" data-placeholder="Add details, context, and next steps..." data-hidden-id="body-hidden"></div>
 
         <div class="row">
             <label class="toggle">

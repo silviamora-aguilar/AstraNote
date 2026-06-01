@@ -42,9 +42,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want to create a new note so that I can capture ideas quickly.*
 
 **Acceptance Checklist:**
-- [ ] I can create a note by entering a title; body is optional
-- [ ] A note with no title is rejected with a clear validation message
-- [ ] The note appears in my notes list immediately after saving
+- [x] I can create a note by entering a title; body is optional
+- [x] A note with no title is rejected with a clear validation message
+- [x] The note appears in my notes list immediately after saving
 
 **Sign-off:** _________________________ Date: _________
 
@@ -54,10 +54,10 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want the app to validate my note title so that invalid characters are caught before saving.*
 
 **Acceptance Checklist:**
-- [ ] Titles accept letters (including accented/Unicode), numbers, spaces, and . , - ' "
-- [ ] Titles reject @ # $ % & and newlines with a clear message
-- [ ] Titles over 255 characters are rejected
-- [ ] Note bodies over 10,000 characters are rejected
+- [x] Titles accept letters (including accented/Unicode), numbers, spaces, and . , - ' " @ # & : ; ! ? ( ) [ ] / + _ ¿ ¡
+- [x] Titles reject unsupported symbols and newlines with a clear message
+- [x] Titles over 255 characters are rejected
+- [x] Note bodies over 10,000 characters are rejected
 
 **Sign-off:** _________________________ Date: _________
 
@@ -67,9 +67,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want the app to handle duplicate note titles automatically so that I don't lose a new note because a title already exists.*
 
 **Acceptance Checklist:**
-- [ ] If "Plan" already exists and I save another note called "Plan", it saves as "Plan1"
-- [ ] If "Plan" and "Plan1" exist, the next is saved as "Plan2"
-- [ ] I am not shown an error — the renaming happens silently
+- [x] If "Plan" already exists and I save another note called "Plan", it saves as "Plan1"
+- [x] If "Plan" and "Plan1" exist, the next is saved as "Plan2"
+- [x] I am not shown an error — the renaming happens silently
 
 **Sign-off:** _________________________ Date: _________
 
@@ -79,9 +79,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want my notes to be saved reliably so that I can access them after closing the app.*
 
 **Acceptance Checklist:**
-- [ ] Notes are still present after closing and reopening the app
-- [ ] Each note has a unique identity that never changes
-- [ ] If saving fails, the app shows an error and does not save corrupted data
+- [x] Notes are still present after closing and reopening the app
+- [x] Each note has a unique identity that never changes
+- [x] If saving fails, the app shows an error and does not save corrupted data
 
 **Sign-off:** _________________________ Date: _________
 
@@ -93,9 +93,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want to edit an existing note so that I can update its content.*
 
 **Acceptance Checklist:**
-- [ ] I can open an existing note and change its title and/or body
-- [ ] Saving without making changes is allowed and does not alter the note
-- [ ] The updated note appears correctly in the list after saving
+- [x] I can open an existing note and change its title and/or body
+- [x] Saving without making changes is allowed and does not alter the note
+- [x] The updated note appears correctly in the list after saving
 
 **Sign-off:** _________________________ Date: _________
 
@@ -105,8 +105,8 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want the same title validation rules applied during editing so that my notes stay consistent.*
 
 **Acceptance Checklist:**
-- [ ] The same character and length rules from creation apply when editing a title
-- [ ] Clearing the title and saving is rejected with a clear message
+- [x] The same character and length rules from creation apply when editing a title
+- [x] Clearing the title and saving is rejected with a clear message
 
 **Sign-off:** _________________________ Date: _________
 
@@ -116,8 +116,8 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want the app to handle title conflicts during editing automatically so that my edits don't overwrite another note's identity.*
 
 **Acceptance Checklist:**
-- [ ] If I rename a note to a title that another note already has, a suffix is added automatically
-- [ ] Saving a note with its current unchanged title is not treated as a duplicate
+- [x] If I rename a note to a title that another note already has, a suffix is added automatically
+- [x] Saving a note with its current unchanged title is not treated as a duplicate
 
 **Sign-off:** _________________________ Date: _________
 
@@ -127,9 +127,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want my edits saved reliably so that changes persist after closing the app.*
 
 **Acceptance Checklist:**
-- [ ] Edited content is present after closing and reopening the app
-- [ ] The note's original creation date does not change after editing
-- [ ] If saving fails, the previous version of the note is preserved
+- [x] Edited content is present after closing and reopening the app
+- [x] The note's original creation date does not change after editing
+- [x] If saving fails, the previous version of the note is preserved
 
 **Sign-off:** _________________________ Date: _________
 
@@ -141,9 +141,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want to be asked to confirm before a note is deleted so that I don't accidentally lose my work.*
 
 **Acceptance Checklist:**
-- [ ] Deleting a note shows a confirmation dialog displaying the note's title
-- [ ] The dialog states the action cannot be undone
-- [ ] Cancelling the dialog leaves the note untouched
+- [x] Deleting a note shows a confirmation dialog displaying the note's title
+- [x] The dialog states the action cannot be undone
+- [x] Cancelling the dialog leaves the note untouched
 
 **Sign-off:** _________________________ Date: _________
 
@@ -153,9 +153,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want a confirmed deletion to remove the note immediately and permanently so that my storage stays clean.*
 
 **Acceptance Checklist:**
-- [ ] After confirmation, the note is removed from storage completely
-- [ ] If deletion fails, the note remains intact and I see an error message
-- [ ] The app does not crash if I try to delete a note that no longer exists
+- [x] After confirmation, the note is removed from storage completely
+- [x] If deletion fails, the note remains intact and I see an error message
+- [x] The app does not crash if I try to delete a note that no longer exists
 
 **Sign-off:** _________________________ Date: _________
 
@@ -165,9 +165,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want the notes list to update immediately after deletion so that I always see an accurate view.*
 
 **Acceptance Checklist:**
-- [ ] The deleted note disappears from the list immediately
-- [ ] If I deleted the last note, I see an empty-state message
-- [ ] If other notes remain, the list shows them without requiring a manual refresh
+- [x] The deleted note disappears from the list immediately
+- [x] If I deleted the last note, I see an empty-state message
+- [x] If other notes remain, the list shows them without requiring a manual refresh
 
 **Sign-off:** _________________________ Date: _________
 
@@ -179,9 +179,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want to see all my notes in a clear, ordered list so I can quickly scan and find what I need.*
 
 **Acceptance Checklist:**
-- [ ] Notes are displayed newest first
-- [ ] Titles longer than 60 characters are truncated with "…"
-- [ ] In the editor panel, directly under `Created:`, display `Modified: Month DD, YYYY HH:MM PST/PDT`
+- [x] Notes are displayed newest first
+- [x] Titles longer than 40 characters are truncated with "…" (full title available via tooltip)
+- [x] In the editor panel, directly under `Created:`, display `Modified: Month DD, YYYY HH:MM AM/PM PST/PDT`
 
 **Sign-off:** _________________________ Date: _________
 
@@ -191,8 +191,8 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want to see a helpful message when I have no notes so that I am guided to create one.*
 
 **Acceptance Checklist:**
-- [ ] When no notes exist, the list area shows: "No notes yet. Create your first note."
-- [ ] After creating the first note, the empty state is replaced by the note list
+- [x] When no notes exist, the list area shows: "No notes yet. Create your first note."
+- [x] After creating the first note, the empty state is replaced by the note list
 
 **Sign-off:** _________________________ Date: _________
 
@@ -202,8 +202,8 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want the notes list to always reflect the latest state so I never see stale data.*
 
 **Acceptance Checklist:**
-- [ ] After creating, editing, or deleting a note, the list updates without requiring a manual refresh
-- [ ] The newest-first sort order is reapplied after each update
+- [x] After creating, editing, or deleting a note, the list updates without requiring a manual refresh
+- [x] The newest-first sort order is reapplied after each update
 
 **Sign-off:** _________________________ Date: _________
 
@@ -215,10 +215,10 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want to search my notes by title or content so I can locate specific information efficiently.*
 
 **Acceptance Checklist:**
-- [ ] Typing in the search bar filters notes that match in title or body (case-insensitive)
-- [ ] The results update as I type
-- [ ] Typing symbols like @ or # in the search does not cause errors
-- [ ] Clearing the search bar restores the full list
+- [x] Typing in the search bar filters notes that match in title or body (case-insensitive)
+- [x] The results update as I type
+- [x] Typing symbols like @ or # in the search does not cause errors
+- [x] Clearing the search bar restores the full list
 
 **Sign-off:** _________________________ Date: _________
 
@@ -228,9 +228,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want clear feedback when my search returns no results so I'm not confused by a blank screen.*
 
 **Acceptance Checklist:**
-- [ ] Searching with only spaces shows the full note list (treated as no search)
-- [ ] A search with no matches shows: "No notes match your search."
-- [ ] Searching when no notes exist shows the empty-state message, not a "no results" message
+- [x] Searching with only spaces shows the full note list (treated as no search)
+- [x] A search with no matches shows: "No notes match your search."
+- [x] Searching when no notes exist shows the empty-state message, not a "no results" message
 
 **Sign-off:** _________________________ Date: _________
 
@@ -242,9 +242,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want to structure my notes with bullet and checkbox lists so I can organize tasks and ideas clearly.*
 
 **Acceptance Checklist:**
-- [ ] I can add bullet list items to a note body
-- [ ] I can add checkbox list items to a note body
-- [ ] I can edit the text of existing list items without breaking the list
+- [x] I can add bullet list items to a note body
+- [x] I can add checkbox list items to a note body
+- [x] I can edit the text of existing list items without breaking the list
 
 **Sign-off:** _________________________ Date: _________
 
@@ -254,8 +254,8 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want my list formatting to stay intact after reopening the app so I do not lose note structure.*
 
 **Acceptance Checklist:**
-- [ ] Bullet and checkbox lists look the same after saving, closing, and reopening the app
-- [ ] Nesting up to 2 levels is preserved
+- [x] Bullet and checkbox lists look the same after saving, closing, and reopening the app
+- [x] Nesting up to 2 levels is preserved
 
 **Sign-off:** _________________________ Date: _________
 
@@ -265,9 +265,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want to check and uncheck tasks so I can track progress directly in my notes.*
 
 **Acceptance Checklist:**
-- [ ] Clicking a checkbox toggles it between checked and unchecked
-- [ ] The toggled state is saved immediately and is still present after app restart
-- [ ] Toggling one checkbox does not affect other list items
+- [x] Clicking a checkbox toggles it between checked and unchecked
+- [x] The toggled state is saved immediately and is still present after app restart
+- [x] Toggling one checkbox does not affect other list items
 
 **Sign-off:** _________________________ Date: _________
 
@@ -279,9 +279,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want to format text for emphasis so my notes are easier to scan.*
 
 **Acceptance Checklist:**
-- [ ] I can apply bold, italic, and underline to selected text in the note body
-- [ ] Formatting applies only to the selected text
-- [ ] If no text is selected, formatting does not change the note
+- [x] I can apply bold, italic, and underline to selected text in the note body
+- [x] Formatting applies only to the selected text
+- [x] If no text is selected, formatting does not change the note
 
 **Sign-off:** _________________________ Date: _________
 
@@ -291,9 +291,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want formatting tools to be safe so they do not corrupt unrelated text.*
 
 **Acceptance Checklist:**
-- [ ] Applying formatting to body text does not alter the note title
-- [ ] Applying multiple overlapping formats does not delete surrounding text
-- [ ] Undo/redo of formatting restores the exact previous content
+- [x] Applying formatting to body text does not alter the note title
+- [x] Applying multiple overlapping formats does not delete surrounding text
+- [x] Undo/redo of formatting restores the exact previous content
 
 **Sign-off:** _________________________ Date: _________
 
@@ -303,9 +303,9 @@ Every user story in this document is considered **Done** only when ALL of the fo
 > *As a user, I want formatting to render consistently so saved notes look the same across sessions.*
 
 **Acceptance Checklist:**
-- [ ] Bold text renders as bold after save and reopen
-- [ ] Italic text renders as italic after save and reopen
-- [ ] Underline text renders consistently after save and reopen
+- [x] Bold text renders as bold after save and reopen
+- [x] Italic text renders as italic after save and reopen
+- [x] Underline text renders consistently after save and reopen
 
 **Sign-off:** _________________________ Date: _________
 

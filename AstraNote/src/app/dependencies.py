@@ -7,6 +7,7 @@ from pathlib import Path
 
 from starlette.templating import Jinja2Templates
 
+from src.app.presentation import render_note_preview_html
 from src.app.repositories import SqlNoteRepository
 from src.app.services import NoteService
 
@@ -26,4 +27,6 @@ def get_note_service() -> NoteService:
 def get_templates() -> Jinja2Templates:
     """Provide Jinja2 template environment for HTML routes."""
     templates_dir = Path(__file__).resolve().parent / "templates"
-    return Jinja2Templates(directory=str(templates_dir))
+    templates = Jinja2Templates(directory=str(templates_dir))
+    templates.env.globals["render_note_preview_html"] = render_note_preview_html
+    return templates

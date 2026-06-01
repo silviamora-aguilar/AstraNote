@@ -92,3 +92,22 @@ def test_htmx_create_note_returns_503_for_persistence_failure(client) -> None:
 
     assert response.status_code == 503
     assert 'Storage temporarily unavailable' in response.text
+
+
+@pytest.mark.integration
+def test_notes_page_includes_wysiwyg_enter_key_handler(client) -> None:
+    response = client.get('/')
+
+    assert response.status_code == 200
+    assert 'function handleWysiwygEnterKey(event)' in response.text
+    assert "if (event.key !== 'Enter') return;" in response.text
+    assert "const checklistLi = node.closest && node.closest('.editor-checklist > li');" in response.text
+
+
+@pytest.mark.integration
+def test_notes_page_includes_wysiwyg_enter_key_exit_behavior(client) -> None:
+    response = client.get('/')
+
+    assert response.status_code == 200
+    assert 'if (!content)' in response.text
+    assert 'function handleWysiwygEnterKey' in response.text

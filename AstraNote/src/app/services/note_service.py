@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from src.app.models.note import Note
 from src.app.repositories.note_repository import (
     NoteRepository,
@@ -15,6 +17,8 @@ MAX_TITLE_LENGTH = 255
 MAX_BODY_LENGTH = 10_000
 CAPACITY_ERROR_MESSAGE = "Note limit reached (10,000). Delete notes to create a new one."
 ALLOWED_TITLE_PUNCTUATION = {" ", ".", ",", "-", "'", '"', "@", "#", "&", ":", ";", "!", "?", "(", ")", "[", "]", "/", "+", "_", "¿", "¡"}
+CHECKLIST_LINE_RE = re.compile(r"^(\s*[-*+]\s+\[)( |x|X)(\]\s.*)$")
+UNICODE_CHECKLIST_LINE_RE = re.compile(r"^(\s*)(☐|☑)\s+(.*)$")
 
 
 class NoteValidationError(ValueError):
@@ -119,6 +123,43 @@ class NoteService:
             raise NoteNotFoundError("Note not found") from exc
         except NoteRepositoryError as exc:
             raise NotePersistenceError("Could not persist note") from exc
+
+    def toggle_checklist_item(self, note_id: str, line_index: int, checked: bool) -> Note:
+        """Toggle a checklist item (`- [ ]`/`- [x]`) and persist immediately."""
+        note = self.get_note(note_id)
+        if note is None:
+            raise NoteNotFoundError("Note not found")
+        if line_index < 0:
+            raise NoteValidationError("Checklist item index must be non-negative")
+
+        lines = note.body.split("\n")
+        checklist_line_positions: list[int] = []
+        for idx, line in enumerate(lines):
+            if CHECKLIST_LINE_RE.match(line) or UNICODE_CHECKLIST_LINE_RE.match(line):
+                checklist_line_positions.append(idx)
+
+        if line_index >= len(checklist_line_positions):
+            raise NoteValidationError("Checklist item index is out of range")
+
+        target_line_idx = checklist_line_positions[line_index]
+        line = lines[target_line_idx]
+        line_match = CHECKLIST_LINE_RE.match(line)
+        unicode_match = UNICODE_CHECKLIST_LINE_RE.match(line)
+        if line_match is not None:
+            replacement_mark = "x" if checked else " "
+            lines[target_line_idx] = f"{line_match.group(1)}{replacement_mark}{line_match.group(3)}"
+        elif unicode_match is not None:
+            replacement_mark = "☑" if checked else "☐"
+            lines[target_line_idx] = f"{unicode_match.group(1)}{replacement_mark} {unicode_match.group(3)}"
+        else:
+            raise NoteValidationError("Checklist item format is invalid")
+        updated_body = "\n".join(lines)
+        return self.update(
+            note_id=note.note_id,
+            title=note.title,
+            body=updated_body,
+            is_private=note.is_private,
+        )
 
     def _validate_title(self, title: str) -> str:
         if title is None:

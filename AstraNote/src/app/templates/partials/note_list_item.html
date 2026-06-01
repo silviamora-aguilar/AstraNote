@@ -3,7 +3,7 @@
     id="note-{{ note.note_id }}"
     {% if oob_swap %}hx-swap-oob="outerHTML"{% endif %}
 >
-    {% set preview_text = (note.body or '') | trim %}
+    {% set preview_html = render_note_preview_html(note.body or '') %}
     {% if note.title|length > 40 %}
         {% set title_display = note.title[:37] ~ '...' %}
     {% else %}
@@ -21,8 +21,8 @@
         hx-swap="innerHTML"
     >
         <span class="note-title">{{ title_display }}</span>
-        {% if preview_text and not note.is_private %}
-            <span class="note-preview">{{ preview_text }}</span>
+        {% if preview_html and not note.is_private %}
+            <span class="note-preview">{{ preview_html }}</span>
         {% elif note.is_private %}
             <span class="note-preview" aria-label="Private note preview hidden">Private note</span>
         {% else %}

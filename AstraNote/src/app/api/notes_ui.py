@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from zoneinfo import ZoneInfo
@@ -18,6 +19,8 @@ router = APIRouter(tags=["notes-ui"])
 
 
 PACIFIC_TZ = ZoneInfo("America/Los_Angeles")
+CHECKLIST_LINE_RE = re.compile(r"^\s*[-*+]\s+\[( |x|X)\]\s+(.*)$")
+UNICODE_CHECKLIST_LINE_RE = re.compile(r"^\s*(☐|☑)\s+(.*)$")
 
 
 def _format_created_pacific(created_at: datetime) -> str:
@@ -111,6 +114,32 @@ def _build_search_context(note_service: NoteService, query: str) -> dict:
     }
 
 
+def _extract_checklist_items(body: str) -> list[dict]:
+    """Extract checklist lines from note body in display order."""
+    items: list[dict] = []
+    for line in (body or "").split("\n"):
+        match = CHECKLIST_LINE_RE.match(line)
+        unicode_match = UNICODE_CHECKLIST_LINE_RE.match(line)
+        if match is not None:
+            items.append(
+                {
+                    "index": len(items),
+                    "checked": match.group(1).lower() == "x",
+                    "label": match.group(2).strip(),
+                }
+            )
+            continue
+        if unicode_match is not None:
+            items.append(
+                {
+                    "index": len(items),
+                    "checked": unicode_match.group(1) == "☑",
+                    "label": unicode_match.group(2).strip(),
+                }
+            )
+    return items
+
+
 @router.get("/", response_class=HTMLResponse)
 def notes_page(
     request: Request,
@@ -198,6 +227,7 @@ def get_note_editor_panel(
             "note": note,
             "created_display": _format_created_pacific(note.created_at),
             "modified_display": _format_modified_pacific(note.updated_at),
+            "checklist_items": _extract_checklist_items(note.body),
             "edit_error_message": None,
             "oob_note": note,
             "selected_note_id": note.note_id,
@@ -245,6 +275,7 @@ def update_note_editor_panel(
                 "note": current_note,
                 "created_display": _format_created_pacific(current_note.created_at),
                 "modified_display": _format_modified_pacific(current_note.updated_at),
+                "checklist_items": _extract_checklist_items(resolved_body),
                 "edit_error_message": map_note_error_message(exc),
                 "oob_note": current_note,
                 "selected_note_id": current_note.note_id,
@@ -262,6 +293,43 @@ def update_note_editor_panel(
             "note": note,
             "created_display": _format_created_pacific(note.created_at),
             "modified_display": _format_modified_pacific(note.updated_at),
+            "checklist_items": _extract_checklist_items(note.body),
+            "edit_error_message": None,
+            "oob_note": note,
+            "selected_note_id": note.note_id,
+        },
+        status_code=200,
+    )
+
+
+@router.post("/ui/notes/{note_id}/checklist-toggle", response_class=HTMLResponse)
+def toggle_checklist_item_htmx(
+    request: Request,
+    note_id: str,
+    note_service: Annotated[NoteService, Depends(get_note_service)],
+    line_index: int = Form(...),
+    checked: bool = Form(False),
+) -> HTMLResponse:
+    """Toggle a checklist item and persist state immediately for BL-06."""
+    templates = get_templates()
+    try:
+        note = note_service.toggle_checklist_item(note_id=note_id, line_index=line_index, checked=checked)
+    except Exception as exc:
+        return templates.TemplateResponse(
+            request,
+            "partials/error_message.html",
+            {"error_message": map_note_error_message(exc)},
+            status_code=map_note_error_status(exc),
+        )
+
+    return templates.TemplateResponse(
+        request,
+        "partials/editor_panel.html",
+        {
+            "note": note,
+            "created_display": _format_created_pacific(note.created_at),
+            "modified_display": _format_modified_pacific(note.updated_at),
+            "checklist_items": _extract_checklist_items(note.body),
             "edit_error_message": None,
             "oob_note": note,
             "selected_note_id": note.note_id,

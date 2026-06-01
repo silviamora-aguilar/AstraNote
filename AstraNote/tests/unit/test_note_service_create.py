@@ -317,3 +317,54 @@ def test_update_note_rejects_title_above_max_length() -> None:
 
     with pytest.raises(NoteValidationError, match='Title must be 1-255 characters'):
         service.update(note_id=created.note_id, title='a' * 256, body='x')
+
+
+@pytest.mark.unit
+def test_toggle_checklist_item_persists_checked_state_immediately() -> None:
+    repo = FakeNoteRepository()
+    service = NoteService(repo)
+    note = service.create(
+        title='Checklist',
+        body='- [ ] first task\n- [x] second task',
+    )
+
+    updated = service.toggle_checklist_item(note.note_id, line_index=0, checked=True)
+
+    assert '- [x] first task' in updated.body
+    reloaded = service.get_note(note.note_id)
+    assert reloaded is not None
+    assert '- [x] first task' in reloaded.body
+
+
+@pytest.mark.unit
+def test_toggle_checklist_item_persists_unchecked_state_immediately() -> None:
+    repo = FakeNoteRepository()
+    service = NoteService(repo)
+    note = service.create(title='Checklist', body='- [x] done task')
+
+    updated = service.toggle_checklist_item(note.note_id, line_index=0, checked=False)
+
+    assert updated.body == '- [ ] done task'
+
+
+@pytest.mark.unit
+def test_toggle_checklist_item_rejects_out_of_range_index() -> None:
+    repo = FakeNoteRepository()
+    service = NoteService(repo)
+    note = service.create(title='Checklist', body='- [ ] first task')
+
+    with pytest.raises(NoteValidationError, match='out of range'):
+        service.toggle_checklist_item(note.note_id, line_index=2, checked=True)
+
+
+@pytest.mark.unit
+def test_toggle_checklist_item_supports_unicode_checkbox_lines() -> None:
+    repo = FakeNoteRepository()
+    service = NoteService(repo)
+    note = service.create(title='Checklist', body='☐ first task\n☑ second task')
+
+    checked = service.toggle_checklist_item(note.note_id, line_index=0, checked=True)
+    assert checked.body.split('\n')[0].startswith('☑ ')
+
+    unchecked = service.toggle_checklist_item(note.note_id, line_index=1, checked=False)
+    assert unchecked.body.split('\n')[1].startswith('☐ ')

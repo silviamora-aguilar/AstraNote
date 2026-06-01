@@ -78,3 +78,22 @@ def test_update_note_endpoint_returns_404_for_missing_note(client) -> None:
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Note not found"
+
+
+@pytest.mark.integration
+def test_update_note_endpoint_preserves_combined_formatting_markers(client) -> None:
+    create_response = client.post(
+        "/api/notes",
+        json={"title": f"Formatting Seed {uuid4()}", "body": "before", "is_private": False},
+    )
+    assert create_response.status_code == 201
+    note_id = create_response.json()["note_id"]
+
+    formatted_body = "- [ ] **Sprint** item\n- bullet line\n<u>*focus*</u>"
+    update_response = client.put(
+        f"/api/notes/{note_id}",
+        json={"title": "Formatting Saved", "body": formatted_body, "is_private": False},
+    )
+
+    assert update_response.status_code == 200
+    assert update_response.json()["body"] == formatted_body

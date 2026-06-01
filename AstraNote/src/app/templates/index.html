@@ -268,11 +268,12 @@
         .editor-panel {
             animation-delay: 320ms;
             height: 100%;
+            overflow-y: auto;
+            box-sizing: border-box;
         }
 
         .create-panel,
-        .notes-panel,
-        .editor-panel {
+        .notes-panel {
             box-sizing: border-box;
         }
 
@@ -333,6 +334,109 @@
             align-items: center;
             gap: 0.8rem;
             flex-wrap: wrap;
+        }
+
+        .format-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-top: 0.1rem;
+            margin-bottom: -0.1rem;
+        }
+
+        .format-btn {
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--ink);
+            box-shadow: none;
+            border-radius: 10px;
+            font: 700 0.78rem/1 "Manrope", sans-serif;
+            padding: 0.45rem 0.62rem;
+            min-width: 2.2rem;
+        }
+
+        .format-btn:hover {
+            transform: translateY(0);
+            box-shadow: none;
+            border-color: rgba(15, 118, 110, 0.5);
+            background: rgba(15, 118, 110, 0.08);
+        }
+
+        .body-wysiwyg {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            padding: 0.7rem 0.75rem;
+            min-height: 120px;
+            color: var(--ink);
+            font-size: 0.92rem;
+            line-height: 1.55;
+            outline: none;
+            cursor: text;
+            overflow-y: auto;
+        }
+
+        .body-wysiwyg:focus {
+            border-color: var(--accent);
+        }
+
+        .body-wysiwyg:empty::before {
+            content: attr(data-placeholder);
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        .body-wysiwyg > div,
+        .body-wysiwyg > p {
+            margin: 0.18rem 0;
+        }
+
+        .body-wysiwyg ul {
+            margin: 0.2rem 0 0.2rem 1.2rem;
+            padding: 0;
+        }
+
+        .body-wysiwyg li {
+            margin: 0.12rem 0;
+        }
+
+        .body-wysiwyg ul.editor-checklist {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .body-wysiwyg ul.editor-checklist > li {
+            display: flex;
+            align-items: center;
+            gap: 0.48rem;
+        }
+
+        .body-wysiwyg ul.editor-checklist > li > span {
+            flex: 1;
+            min-width: 1ch;
+            display: inline-block;
+        }
+
+        .body-wysiwyg ul.editor-checklist input[type="checkbox"] {
+            appearance: none;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #1a1e24;
+            border-radius: 2px;
+            background: #fff;
+            margin: 0;
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        .body-wysiwyg ul.editor-checklist input[type="checkbox"]:checked {
+            background: #1a1e24;
+        }
+
+        .body-wysiwyg ul.editor-checklist > li.is-checked > span {
+            text-decoration: line-through;
+            color: var(--muted);
         }
 
         .toggle {
@@ -587,6 +691,48 @@
             overflow: hidden;
             text-overflow: ellipsis;
             display: block;
+        }
+
+        .note-preview-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            max-width: 100%;
+            min-width: 0;
+            vertical-align: baseline;
+        }
+
+        .note-preview-text {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .note-preview-bullet {
+            display: inline-block;
+            color: var(--muted);
+            line-height: 1;
+            transform: translateY(-0.02em);
+        }
+
+        .note-preview-checkbox {
+            display: inline-block;
+            width: 0.82rem;
+            height: 0.82rem;
+            border: 2px solid #1a1e24;
+            border-radius: 2px;
+            background: #fff;
+            box-sizing: border-box;
+            flex: 0 0 auto;
+        }
+
+        .note-preview-checkbox.is-checked {
+            background: #1a1e24;
+        }
+
+        .note-preview-text.is-checked {
+            text-decoration: line-through;
         }
 
         .note-meta {
@@ -1186,6 +1332,480 @@
         form.requestSubmit();
     }
 
+    // ── WYSIWYG Editor ─────────────────────────────────────────────────────
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function applyInlineFormattingHtml(text) {
+        // Convert storage inline markers to visible HTML for the editor
+        let result = escapeHtml(text);
+        result = result.replace(/&lt;u&gt;(.*?)&lt;\/u&gt;/g, '<u>$1</u>');
+        result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        result = result.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        return result;
+    }
+
+    function buildEditorHtml(storageText) {
+        if (!storageText || !storageText.trim()) return '';
+        const lines = storageText.split('\n');
+        const html = [];
+        let idx = 0;
+
+        while (idx < lines.length) {
+            const line = lines[idx];
+            const uMatch = line.match(/^\s*(☐|☑)\s+(.*)$/);
+            const mMatch = line.match(/^\s*[-*+]\s+\[( |x|X)\]\s+(.*)$/);
+            const checklistMatch = uMatch || mMatch;
+            const bulletMatch = !checklistMatch && line.match(/^\s*(?:•|[-*+])\s+(?!\[(?: |x|X)\]\s+)(.*)$/);
+
+            if (checklistMatch) {
+                html.push('<ul class="editor-checklist">');
+                while (idx < lines.length) {
+                    const inner = lines[idx];
+                    const u = inner.match(/^\s*(☐|☑)\s+(.*)$/);
+                    const m = inner.match(/^\s*[-*+]\s+\[( |x|X)\]\s+(.*)$/);
+                    if (!u && !m) break;
+                    const checked = u ? u[1] === '☑' : m[1].toLowerCase() === 'x';
+                    const label = u ? u[2] : m[2];
+                    html.push(
+                        `<li${checked ? ' class="is-checked"' : ''}>`
+                        + `<input type="checkbox" contenteditable="false"${checked ? ' checked' : ''}>`
+                        + `<span>${applyInlineFormattingHtml(label)}</span>`
+                        + '</li>',
+                    );
+                    idx += 1;
+                }
+                html.push('</ul>');
+                continue;
+            }
+
+            if (bulletMatch) {
+                html.push('<ul class="editor-bullets">');
+                while (idx < lines.length) {
+                    const inner = lines[idx];
+                    const b = inner.match(/^\s*(?:•|[-*+])\s+(?!\[(?: |x|X)\]\s+)(.*)$/);
+                    if (!b) break;
+                    html.push(`<li>${applyInlineFormattingHtml(b[1])}</li>`);
+                    idx += 1;
+                }
+                html.push('</ul>');
+                continue;
+            }
+
+            if (line.trim().length === 0) {
+                html.push('<div><br></div>');
+                idx += 1;
+                continue;
+            }
+
+            html.push(`<div>${applyInlineFormattingHtml(line)}</div>`);
+            idx += 1;
+        }
+
+        return html.join('');
+    }
+
+    function serializeInlineNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) return node.textContent;
+        const tag = node.nodeName.toLowerCase();
+        if (tag === 'br') return '';
+        const inner = Array.from(node.childNodes).map(serializeInlineNode).join('');
+        if (tag === 'strong' || tag === 'b') return inner ? `**${inner}**` : '';
+        if (tag === 'em' || tag === 'i') return inner ? `*${inner}*` : '';
+        if (tag === 'u') return inner ? `<u>${inner}</u>` : '';
+        return inner;
+    }
+
+    function serializeWysiwygToStorage(editorDiv) {
+        const lines = [];
+
+        function processBlock(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const t = node.textContent;
+                if (t) lines.push(t);
+                return;
+            }
+            const tag = node.nodeName.toLowerCase();
+
+            if (tag === 'br') {
+                lines.push('');
+                return;
+            }
+
+            if (tag === 'ul' && node.classList.contains('editor-checklist')) {
+                node.querySelectorAll(':scope > li').forEach((li) => {
+                    const cb = li.querySelector('input[type="checkbox"]');
+                    const checked = cb && cb.checked;
+                    const parts = Array.from(li.childNodes)
+                        .filter((n) => n !== cb)
+                        .map(serializeInlineNode)
+                        .join('')
+                        .trim();
+                    lines.push(`${checked ? '☑' : '☐'} ${parts}`);
+                });
+                return;
+            }
+
+            if (tag === 'ul' || tag === 'ol') {
+                node.querySelectorAll(':scope > li').forEach((li) => {
+                    const text = Array.from(li.childNodes).map(serializeInlineNode).join('').trim();
+                    lines.push(`• ${text}`);
+                });
+                return;
+            }
+
+            if (tag === 'div' || tag === 'p') {
+                if (node.innerHTML === '<br>' || node.innerHTML.trim() === '') {
+                    lines.push('');
+                    return;
+                }
+                lines.push(Array.from(node.childNodes).map(serializeInlineNode).join(''));
+                return;
+            }
+
+            // Inline element at block level — treat as line
+            const text = Array.from(node.childNodes).map(serializeInlineNode).join('');
+            if (text) lines.push(text);
+        }
+
+        editorDiv.childNodes.forEach(processBlock);
+
+        while (lines.length > 0 && !lines[lines.length - 1].trim()) {
+            lines.pop();
+        }
+
+        return lines.join('\n');
+    }
+
+    function syncWysiwygToHidden(editorId) {
+        const editor = document.getElementById(editorId);
+        if (!editor) return;
+        const hidden = editor.dataset.hiddenId ? document.getElementById(editor.dataset.hiddenId) : null;
+        if (hidden) hidden.value = serializeWysiwygToStorage(editor);
+    }
+
+    function syncWysiwygBeforeSubmit(editorId) {
+        syncWysiwygToHidden(editorId);
+    }
+
+    function placeCursorAtEnd(el) {
+        const sel = window.getSelection();
+        if (!sel) return;
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+    function placeCursorAtStart(el) {
+        const sel = window.getSelection();
+        if (!sel) return;
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+    function getCaretBlockInEditor(editor) {
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return null;
+        let node = sel.getRangeAt(0).startContainer;
+        if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+        while (node && node.parentElement !== editor) {
+            node = node.parentElement;
+        }
+        return (node && node !== editor) ? node : null;
+    }
+
+    function createChecklistLi(contentHtml, checked) {
+        const li = document.createElement('li');
+        if (checked) li.classList.add('is-checked');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.contentEditable = 'false';
+        if (checked) cb.checked = true;
+        cb.addEventListener('change', handleWysiwygCheckboxChange);
+        const span = document.createElement('span');
+        span.innerHTML = contentHtml && contentHtml.trim() ? contentHtml : '<br>';
+        li.appendChild(cb);
+        li.appendChild(span);
+        return li;
+    }
+
+    function handleWysiwygCheckboxChange(event) {
+        const cb = event.target;
+        const li = cb.closest('li');
+        if (!li) return;
+        li.classList.toggle('is-checked', cb.checked);
+        const editor = cb.closest('.body-wysiwyg');
+        if (!editor) return;
+        syncWysiwygToHidden(editor.id);
+    }
+
+    function applyWysiwygBullet(editor) {
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+
+        // Convert multi-line selection into bullet items.
+        if (!sel.isCollapsed) {
+            const selectedLines = sel.toString()
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter((line) => line.length > 0);
+
+            if (selectedLines.length > 0) {
+                const ul = document.createElement('ul');
+                ul.className = 'editor-bullets';
+                selectedLines.forEach((line) => {
+                    const li = document.createElement('li');
+                    li.textContent = line;
+                    ul.appendChild(li);
+                });
+
+                range.deleteContents();
+                range.insertNode(ul);
+
+                const lastLi = ul.querySelector('li:last-child');
+                if (lastLi) {
+                    placeCursorAtEnd(lastLi);
+                }
+                return;
+            }
+        }
+
+        let node = sel.getRangeAt(0).startContainer;
+        if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+
+        // Toggle off if already in a bullet list
+        const bulletLi = node.closest && node.closest('.editor-bullets > li');
+        if (bulletLi) {
+            const ul = bulletLi.closest('ul');
+            const div = document.createElement('div');
+            div.innerHTML = bulletLi.innerHTML || '<br>';
+            if (ul.querySelectorAll(':scope > li').length === 1) {
+                ul.replaceWith(div);
+            } else {
+                ul.insertAdjacentElement('afterend', div);
+                bulletLi.remove();
+            }
+            placeCursorAtEnd(div);
+            return;
+        }
+
+        // Convert checklist item to bullet
+        const checklistLi = node.closest && node.closest('.editor-checklist > li');
+        if (checklistLi) {
+            const span = checklistLi.querySelector('span');
+            const li = document.createElement('li');
+            li.innerHTML = span ? span.innerHTML : '';
+            const ul = checklistLi.closest('ul');
+            if (ul.querySelectorAll(':scope > li').length === 1) {
+                const newUl = document.createElement('ul');
+                newUl.className = 'editor-bullets';
+                newUl.appendChild(li);
+                ul.replaceWith(newUl);
+            } else {
+                checklistLi.replaceWith(li);
+            }
+            placeCursorAtEnd(li);
+            return;
+        }
+
+        // Wrap current block in a bullet list
+        const block = getCaretBlockInEditor(editor);
+        const ul = document.createElement('ul');
+        ul.className = 'editor-bullets';
+        const li = document.createElement('li');
+        if (block) {
+            li.innerHTML = (block.innerHTML === '<br>' || !block.innerHTML) ? '' : block.innerHTML;
+            ul.appendChild(li);
+            block.replaceWith(ul);
+        } else {
+            li.innerHTML = '';
+            ul.appendChild(li);
+            editor.appendChild(ul);
+        }
+        placeCursorAtEnd(li);
+    }
+
+    function applyWysiwygChecklist(editor) {
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+
+        // Convert multi-line selection into checklist items.
+        if (!sel.isCollapsed) {
+            const selectedLines = sel.toString()
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter((line) => line.length > 0);
+
+            if (selectedLines.length > 0) {
+                const ul = document.createElement('ul');
+                ul.className = 'editor-checklist';
+                selectedLines.forEach((line) => {
+                    ul.appendChild(createChecklistLi(escapeHtml(line), false));
+                });
+
+                range.deleteContents();
+                range.insertNode(ul);
+
+                const firstSpan = ul.querySelector('li > span');
+                if (firstSpan) {
+                    placeCursorAtStart(firstSpan);
+                }
+                return;
+            }
+        }
+
+        let node = sel.getRangeAt(0).startContainer;
+        if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+
+        // Toggle off if already in a checklist
+        const checklistLi = node.closest && node.closest('.editor-checklist > li');
+        if (checklistLi) {
+            const span = checklistLi.querySelector('span');
+            const div = document.createElement('div');
+            div.innerHTML = span ? span.innerHTML : '';
+            const ul = checklistLi.closest('ul');
+            if (ul.querySelectorAll(':scope > li').length === 1) {
+                ul.replaceWith(div);
+            } else {
+                ul.insertAdjacentElement('afterend', div);
+                checklistLi.remove();
+            }
+            placeCursorAtEnd(div);
+            return;
+        }
+
+        // Convert bullet item to checklist
+        const bulletLi = node.closest && node.closest('.editor-bullets > li');
+        if (bulletLi) {
+            const li = createChecklistLi(bulletLi.innerHTML, false);
+            const ul = bulletLi.closest('ul');
+            if (ul.querySelectorAll(':scope > li').length === 1) {
+                const newUl = document.createElement('ul');
+                newUl.className = 'editor-checklist';
+                newUl.appendChild(li);
+                ul.replaceWith(newUl);
+            } else {
+                bulletLi.replaceWith(li);
+            }
+            const span = li.querySelector('span');
+            if (span) placeCursorAtEnd(span);
+            return;
+        }
+
+        // Wrap current block in a checklist
+        const block = getCaretBlockInEditor(editor);
+        const ul = document.createElement('ul');
+        ul.className = 'editor-checklist';
+        const content = block
+            ? ((block.innerHTML === '<br>' || !block.innerHTML) ? '' : block.innerHTML)
+            : '';
+        const li = createChecklistLi(content, false);
+        ul.appendChild(li);
+        if (block) {
+            block.replaceWith(ul);
+        } else {
+            editor.appendChild(ul);
+        }
+        const span = li.querySelector('span');
+        if (span) placeCursorAtEnd(span);
+    }
+
+    function applyWysiwygFormat(action, editorId) {
+        const editor = document.getElementById(editorId);
+        if (!editor || !editor.isContentEditable) return;
+        editor.focus();
+        if (action === 'bold') {
+            document.execCommand('bold', false, null);
+        } else if (action === 'italic') {
+            document.execCommand('italic', false, null);
+        } else if (action === 'underline') {
+            document.execCommand('underline', false, null);
+        } else if (action === 'bullet') {
+            applyWysiwygBullet(editor);
+        } else if (action === 'checklist') {
+            applyWysiwygChecklist(editor);
+        }
+        syncWysiwygToHidden(editorId);
+    }
+
+    function handleWysiwygEnterKey(event) {
+        if (event.key !== 'Enter') return;
+        const editor = event.target.closest && event.target.closest('.body-wysiwyg');
+        if (!editor) return;
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return;
+        let node = sel.getRangeAt(0).startContainer;
+        if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+
+        const checklistLi = node.closest && node.closest('.editor-checklist > li');
+        const bulletLi = !checklistLi && node.closest && node.closest('.editor-bullets > li');
+        if (!checklistLi && !bulletLi) return;
+
+        event.preventDefault();
+        const li = checklistLi || bulletLi;
+        const isChecklist = Boolean(checklistLi);
+        const content = isChecklist
+            ? ((li.querySelector('span') || li).textContent.trim())
+            : li.textContent.trim();
+
+        if (!content) {
+            // Exit list: replace with empty div
+            const ul = li.closest('ul');
+            const div = document.createElement('div');
+            div.innerHTML = '<br>';
+            if (ul.querySelectorAll(':scope > li').length === 1) {
+                ul.replaceWith(div);
+            } else {
+                ul.insertAdjacentElement('afterend', div);
+                li.remove();
+            }
+            placeCursorAtEnd(div);
+            return;
+        }
+
+        // Continue list with new empty item
+        const newLi = isChecklist ? createChecklistLi('', false) : document.createElement('li');
+        li.insertAdjacentElement('afterend', newLi);
+        const target = isChecklist ? newLi.querySelector('span') : newLi;
+        if (target) {
+            if (isChecklist) {
+                placeCursorAtStart(target);
+            } else {
+                placeCursorAtEnd(target);
+            }
+        }
+        event.stopPropagation();
+    }
+
+    function initWysiwygEditor(editorDiv) {
+        const hidden = editorDiv.dataset.hiddenId
+            ? document.getElementById(editorDiv.dataset.hiddenId)
+            : null;
+        const storageText = hidden ? (hidden.value || '') : '';
+        editorDiv.innerHTML = buildEditorHtml(storageText);
+        editorDiv.querySelectorAll('.editor-checklist input[type="checkbox"]').forEach((cb) => {
+            cb.addEventListener('change', handleWysiwygCheckboxChange);
+        });
+    }
+
+    function initAllWysiwygEditors() {
+        document.querySelectorAll('.body-wysiwyg').forEach(initWysiwygEditor);
+    }
+
     function getSelectedNoteIds() {
         return Array.from(document.querySelectorAll('.note-bulk-check:checked')).map((node) => node.value);
     }
@@ -1229,7 +1849,7 @@
 
         heading.textContent = `Delete ${selectedIds.length} notes?`;
         titleEl.textContent = `${selectedIds.length} selected notes`;
-        body.textContent = 'You are about to permanently delete selected notes. This action cannot be undone.';
+        body.textContent = 'This action cannot be undone.';
         confirmBtn.dataset.mode = 'bulk';
         confirmBtn.dataset.noteIds = JSON.stringify(selectedIds);
         modal.style.display = 'flex';
@@ -1265,6 +1885,7 @@
         syncNoteCount();
         syncTodayGroupState();
         syncBulkActionsState();
+        initAllWysiwygEditors();
 
         const confirmBtn = document.getElementById('delete-modal-confirm');
         if (confirmBtn) {
@@ -1302,6 +1923,7 @@
         });
 
         document.addEventListener('keydown', (e) => {
+            handleWysiwygEnterKey(e);
             if (e.key === 'Escape') closeDeleteModal();
         });
     });
@@ -1317,6 +1939,18 @@
         syncNoteCount();
         syncTodayGroupState();
         syncBulkActionsState();
+        initAllWysiwygEditors();
+    });
+
+    // Inject serialized WYSIWYG body into HTMX request parameters before send.
+    // htmx:configRequest fires after HTMX has collected form data but before the
+    // XHR is sent, so detail.parameters can be modified here.
+    document.body.addEventListener('htmx:configRequest', (event) => {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement)) return;
+        const editor = form.querySelector('.body-wysiwyg');
+        if (!editor) return;
+        event.detail.parameters['body'] = serializeWysiwygToStorage(editor);
     });
 </script>
 
