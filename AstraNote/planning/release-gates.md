@@ -1,7 +1,7 @@
 # Release Gates — AstraNotes MVP
 
-**Version**: 1.1  
-**Date**: 2026-06-01
+**Version**: 1.2  
+**Date**: 2026-06-02
 
 A release gate is a mandatory pass/fail check that must be satisfied before any code is shipped. Every item below must be ✅ before an MVP release is cut. No exceptions.
 
@@ -152,3 +152,10 @@ Signed off by: _______________
 
 - ✅ BL-10 Performance verification completed via `tests/performance/test_performance.py` on dataset size 5,000.
 - ✅ Measured evidence captured for NFR-06 through NFR-09 latency/durability targets in Gate 4.
+
+## BL-10 Closure Checkpoint (2026-06-02)
+
+- ✅ Branch `bl10-performance` pushed with BL-10 implementation and evidence updates.
+- ✅ Full regression suite passed: 93 passed, 0 failed.
+- ✅ Requirements and traceability documentation aligned for NFR-06 through NFR-09 completion.
+- ✅ Ready to proceed to **BL-11** planning/execution.

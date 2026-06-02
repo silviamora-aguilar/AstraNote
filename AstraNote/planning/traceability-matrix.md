@@ -1,7 +1,7 @@
 # Requirements Traceability Matrix
 
 **Project**: AstraNotes  
-**Last Updated**: 2026-05-18  
+**Last Updated**: 2026-06-02  
 **Total Requirements**: 94 (REQ-01–REQ-27, NFR-01–NFR-18, SRG-01–SRG-26, SMR-01–SMR-12, WEB-01–WEB-11)  
 **UML Source**: Lucid document `83846df4-c365-4466-83ae-ea4703514eca`, Page 2 (`C0fSJIjDhK~F`)
 
@@ -58,10 +58,10 @@
 | NFR-03 | Concurrency latency targets (p95/p99) | — | — | — | ❌ Weakly Traced | Pending artifact: NFR verification plan with latency benchmarks |
 | NFR-04 | Optimistic concurrency / version field | `Note` (version), `ResultError` (STALE_VERSION) | Activity: conflict/save error branch | — | ✅ Fully Traced | |
 | NFR-05 | Overload throttle; ≤1% failure rate | — | — | — | ❌ Weakly Traced | Pending artifact: overload-policy verification in NFR plan |
-| NFR-06 | Web mode: up to 5,000 notes per account | `SqlNoteRepository` (planned), owner scoping | — | Shared DB node | ⚠️ Partially Traced | Planned architecture present; owner-scoped data shape is not yet represented in UML |
-| NFR-07 | API latency targets (p95/p99) | — | — | API runtime node | ❌ Weakly Traced | Pending artifact: API latency benchmark evidence |
-| NFR-08 | API measurement boundary | — | — | — | ❌ Weakly Traced | Pending artifact: API measurement-boundary methodology |
-| NFR-09 | API write durability before success | `NoteRepository` (persist contract) | Activity: save/commit branch | — | ⚠️ Partially Traced | Durability intent is implied by contract; explicit verification evidence is pending |
+| NFR-06 | Web mode: up to 5,000 notes per account | `SqlNoteRepository`, `tests/performance/test_performance.py` (5,000-note seed) | BL-10 performance verification workflow | Shared DB node | ✅ Fully Traced | Verified in BL-10 with dataset size 5,000 |
+| NFR-07 | API latency targets (p95/p99) | `tests/performance/test_performance.py` latency assertions | BL-10 benchmark run (read/search + update operations) | API runtime node | ✅ Fully Traced | Measured results: read p95 35.00 ms, write p95 1.34 ms, all-ops p99 35.99 ms |
+| NFR-08 | API measurement boundary | `tests/performance/test_performance.py` API-route timing (`/api/notes/search`, `/api/notes/{id}`) | BL-10 service-boundary measurement procedure | API runtime node | ✅ Fully Traced | Browser rendering excluded; request/response boundary timing captured |
+| NFR-09 | API write durability before success | `tests/performance/test_performance.py` immediate read-after-success verification | BL-10 durability check on update operations | Shared DB node | ✅ Fully Traced | Immediate read-after-success validation on 60 updates with zero failures |
 | NFR-10 | Browser keyboard-only workflows | — | UC: (all core use cases) | Web UI node | ⚠️ Partially Traced | Pending evidence: keyboard-only interaction model and accessibility checks |
 | NFR-11 | Mobile touch-only workflows [Post-MVP] | — | — | — | ❌ Weakly Traced | Post-MVP scope; coverage intentionally deferred |
 | NFR-12 | Tab/touch reachability + focus indicator | — | — | — | ❌ Weakly Traced | Pending artifact: accessibility verification for focus and reachability |
