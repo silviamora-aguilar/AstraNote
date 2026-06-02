@@ -78,10 +78,10 @@ Course requirement update: AstraNotes must ship as a web-based multi-user applic
 - **NFR-05**: For load above 100 active sessions, the system may throttle new requests, but shall not corrupt stored notes. During NFR-02 test conditions, non-user-cancelled request failures shall be <= 1%.
 
 ### Web Operation Performance
-- **NFR-06**: In web deployment mode, the system shall support a dataset of up to 5,000 notes per user account.
-- **NFR-07**: With up to 5,000 notes for the active account, operation latency targets shall be p95 <= 120 ms for read operations (open, list, search), p95 <= 180 ms for create/update operations, and p99 <= 300 ms for all API operations measured at the service boundary.
-- **NFR-08**: API latency measurements shall be recorded at the server service boundary from request entry to durable storage commit, excluding browser rendering time.
-- **NFR-09**: For create and update API operations, successful completion shall guarantee durable persistence before success is returned.
+- **NFR-06 ✅**: In web deployment mode, the system shall support a dataset of up to 5,000 notes per user account.
+- **NFR-07 ✅**: With up to 5,000 notes for the active account, operation latency targets shall be p95 <= 120 ms for read operations (open, list, search), p95 <= 180 ms for create/update operations, and p99 <= 300 ms for all API operations measured at the service boundary.
+- **NFR-08 ✅**: API latency measurements shall be recorded at the server service boundary from request entry to durable storage commit, excluding browser rendering time.
+- **NFR-09 ✅**: For create and update API operations, successful completion shall guarantee durable persistence before success is returned.
 
 ### Keyboard-First UX
 - **NFR-10**: On desktop web browsers, the UI shall support keyboard-only completion of core workflows: create note, open note, edit title/body, save, search, navigate note list, toggle checklist items, and delete with confirmation.
