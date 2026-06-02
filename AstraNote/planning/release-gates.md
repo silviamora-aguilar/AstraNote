@@ -23,7 +23,7 @@ All MVP backlog items must be complete and verified:
 | BL-07: Text formatting | REQ-20–22 | ✅ |
 | BL-08: Note capacity | REQ-23–24 | ✅ |
 | BL-09: Privacy state and preview suppression | REQ-25–27 | ✅ |
-| BL-10: Performance verification | NFR-06–09 | ☐ |
+| BL-10: Performance verification | NFR-06–09 | ✅ |
 | BL-12: Architecture boundaries | NFR-13–16 | ☐ |
 | BL-13: Security stack | SRG-01, 02, 04, 05, 07, 08, 10, 11, 13–26 | ☐ |
 | BL-21: Serviceability/manageability | SMR-01–12 | ☐ |
@@ -42,7 +42,7 @@ All test suites must pass with zero failures:
 | Unit — Security Layer | tests/unit/test_security.py | ☐ |
 | Integration | tests/integration/test_flows.py | ☐ |
 | Security Validation | tests/security/test_security_validation.py | ☐ |
-| Performance | tests/performance/test_performance.py | ☐ |
+| Performance | tests/performance/test_performance.py | ✅ |
 | Web Multi-User | tests/integration/test_web_multi_user.py | ☐ |
 
 No test may be skipped or marked `xfail` without an approved written justification.
@@ -73,10 +73,10 @@ Measured at the service boundary (NFR-08), with 5,000-note dataset:
 
 | Metric | Target | Measured | Status |
 |---|---|---|---|
-| Read p95 latency | ≤ 120 ms | — | ☐ |
-| Write p95 latency | ≤ 180 ms | — | ☐ |
-| All operations p99 latency | ≤ 300 ms | — | ☐ |
-| Write success returned only after storage commit | Verified | — | ☐ |
+| Read p95 latency | ≤ 120 ms | 35.00 ms | ✅ |
+| Write p95 latency | ≤ 180 ms | 1.34 ms | ✅ |
+| All operations p99 latency | ≤ 300 ms | 35.99 ms | ✅ |
+| Write success returned only after storage commit | Verified | Immediate read-after-success verification on 60 updates (0 failures) | ✅ |
 
 Fill in the **Measured** column with actual benchmark results before checking off.
 
@@ -150,5 +150,5 @@ Signed off by: _______________
 
 ### Readiness for Next BL
 
-- ✅ Ready to begin **BL-10 Performance verification**.
-- Remaining gate-critical work is measurement evidence for NFR-06 through NFR-09 latency/durability targets.
+- ✅ BL-10 Performance verification completed via `tests/performance/test_performance.py` on dataset size 5,000.
+- ✅ Measured evidence captured for NFR-06 through NFR-09 latency/durability targets in Gate 4.
