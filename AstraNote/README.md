@@ -9,7 +9,7 @@ AstraNotes/
 ├── src/                 # Main application source code
 ├── tests/               # Unit, integration, and security tests
 ├── docs/                # Architecture and design documentation
-├── data/                # Runtime data (notes.json, audit-log.jsonl, security-state.json, config.json)
+├── data/                # Runtime data (notes.json, audit-log.jsonl, config.json)
 ├── planning/            # Requirements, user stories, backlog, sprint plans, test plan, release gates
 ├── README.md            # This file
 ├── requirements.txt     # Python dependencies

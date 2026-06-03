@@ -66,3 +66,63 @@ def render_note_preview_html(body: str) -> Markup:
         )
 
     return Markup(f"<span class=\"note-preview-text\">{_render_inline_formatting(first_line)}</span>")
+
+
+def render_note_body_html(body: str) -> Markup:
+    """Render full note body with checklist/bullet/inline formatting for read-only display."""
+    lines = (body or "").split("\n")
+    html: list[str] = []
+    idx = 0
+
+    while idx < len(lines):
+        line = lines[idx]
+        checklist_match = CHECKLIST_LINE_RE.match(line) or UNICODE_CHECKLIST_LINE_RE.match(line)
+        bullet_match = None if checklist_match else BULLET_LINE_RE.match(line)
+
+        if checklist_match is not None:
+            html.append('<ul class="editor-checklist">')
+            while idx < len(lines):
+                inner = lines[idx]
+                markdown_match = CHECKLIST_LINE_RE.match(inner)
+                unicode_match = UNICODE_CHECKLIST_LINE_RE.match(inner)
+                if markdown_match is None and unicode_match is None:
+                    break
+
+                if markdown_match is not None:
+                    checked = markdown_match.group(1).lower() == "x"
+                    label = _render_inline_formatting(markdown_match.group(2).strip())
+                else:
+                    checked = unicode_match.group(1) == "☑"
+                    label = _render_inline_formatting(unicode_match.group(2).strip())
+
+                html.append(
+                    f'<li{" class=\"is-checked\"" if checked else ""}>'
+                    f'<input type="checkbox" contenteditable="false"{" checked" if checked else ""} disabled>'
+                    f"<span>{label}</span>"
+                    "</li>"
+                )
+                idx += 1
+            html.append("</ul>")
+            continue
+
+        if bullet_match is not None:
+            html.append('<ul class="editor-bullets">')
+            while idx < len(lines):
+                inner = lines[idx]
+                bullet_line_match = BULLET_LINE_RE.match(inner)
+                if bullet_line_match is None:
+                    break
+                html.append(f"<li>{_render_inline_formatting(bullet_line_match.group(1).strip())}</li>")
+                idx += 1
+            html.append("</ul>")
+            continue
+
+        if line.strip() == "":
+            html.append("<div><br></div>")
+            idx += 1
+            continue
+
+        html.append(f"<div>{_render_inline_formatting(line)}</div>")
+        idx += 1
+
+    return Markup("".join(html))

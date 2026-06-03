@@ -1,0 +1,36 @@
+<article class="card editor-panel" id="editor-panel">
+    <div class="editor-header">
+        <button
+            type="button"
+            class="panel-close-btn"
+            aria-label="Close editor"
+            title="Close editor"
+            onclick="closeEditorPanel()"
+        >
+            ×
+        </button>
+        <h2 style="margin-left: 0.4rem; flex: 1;">Trash Note</h2>
+    </div>
+
+    <p class="panel-subtitle">This note is in Trash and is read-only. Restore it to make edits.</p>
+
+    {% if note.is_private %}
+        <div class="microcopy" style="margin-bottom: 0.35rem; font-weight: 700; color: var(--accent-deep);">Private Note</div>
+    {% endif %}
+
+    <label class="label">Title</label>
+    <div class="readonly-note-field">{{ note.title }}</div>
+
+    <div class="readonly-note-meta">
+        <div>Created: {{ created_display }}</div>
+        <div>Modified: {{ modified_display }}</div>
+        <div>Deleted: {{ deleted_display }}</div>
+    </div>
+
+    <label class="label">Body</label>
+    {% if note.body and note.body.strip() %}
+        <div class="readonly-note-body body-wysiwyg body-wysiwyg-readonly">{{ rendered_body_html }}</div>
+    {% else %}
+        <div class="microcopy">Note is empty.</div>
+    {% endif %}
+</article>

@@ -2,6 +2,44 @@
     <p id="empty-state" class="empty">{{ empty_state_message }}</p>
 {% endif %}
 <div class="notes-panel-body">
+    {% if trash_mode %}
+        <div class="note-group">
+            <div class="group-head">Trash (auto-purged after 15 days)</div>
+            <ul id="note-list" class="group-list">
+                {% for note in notes %}
+                    <li class="note-item trash-item" id="note-{{ note.note_id }}">
+                        {% set preview_html = render_note_preview_html(note.body or '') %}
+                        {% if note.title|length > 40 %}
+                            {% set title_display = note.title[:37] ~ '...' %}
+                        {% else %}
+                            {% set title_display = note.title %}
+                        {% endif %}
+                        <label class="note-bulk-check-wrap" aria-label="Select {{ note.title }} for bulk actions">
+                            <input class="note-bulk-check" type="checkbox" value="{{ note.note_id }}" />
+                        </label>
+                        <button
+                            class="note-select"
+                            type="button"
+                            data-full-title="{{ note.title }}"
+                            hx-get="/ui/notes/{{ note.note_id }}/trash-viewer"
+                            hx-target="#editor-slot"
+                            hx-swap="innerHTML"
+                        >
+                            <span class="note-title">{{ title_display }}</span>
+                            {% if preview_html and not note.is_private %}
+                                <span class="note-preview">{{ preview_html }}</span>
+                            {% elif note.is_private %}
+                                <span class="note-preview" aria-label="Private note preview hidden">Private note</span>
+                            {% else %}
+                                <span class="note-preview">Note is empty</span>
+                            {% endif %}
+                            <span class="note-preview">Deleted {{ note.deleted_at.strftime('%b %d, %Y') if note.deleted_at else 'recently' }}</span>
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
     <div id="today-group" class="note-group" {% if not today_notes %}hidden{% endif %}>
         <div class="group-head">Today</div>
         <ul id="today-note-list" class="group-list">
@@ -37,4 +75,5 @@
             {% endif %}
         </ul>
     </div>
+    {% endif %}
 </div>

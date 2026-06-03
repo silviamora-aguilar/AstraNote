@@ -21,11 +21,11 @@ Read the project in this order before coding:
 ## 2. Go / No-Go Checklist
 
 ### Scope and Decisions
-- [ ] Scope track is finalized as web multi-user
+- [x] Scope track is finalized as single-user local web MVP
 - [ ] Backend framework decision is approved
 - [ ] Frontend rendering strategy is approved
 - [ ] Persistence strategy is approved
-- [ ] Auth/session strategy is approved
+- [ ] Private-note security strategy is approved (encryption + 4-digit unlock)
 
 ### Planning Consistency
 - [ ] Requirements, user stories, backlog, traceability, and test plan are synchronized
@@ -54,20 +54,21 @@ Read the project in this order before coding:
 - Confirm Python environment and dependency plan
 - Confirm FastAPI + Jinja2 + HTMX baseline
 - Confirm SQLite + migrations approach
-- Confirm server-side session + CSRF model
+- Confirm private-note unlock and encryption model
 - Review sprint sequencing and first implementation slice
 
 ## 4. Week 1 Checkpoint
 
 By the end of Week 1, the project should be able to answer yes to the following:
 
-- [ ] Auth/session scaffolding exists
+- [ ] Private-note unlock/session scaffolding exists
 - [ ] Protected route boundary exists
 - [ ] Repository interface exists
+- [ ] Private-note security scaffolding exists
 - [ ] First persistence-backed note flow is scaffolded
 - [ ] Traceability and tests can point to at least one implemented slice
 - [ ] No document contradictions remain in the active baseline
 
 ## 5. Current Recommendation
 
-Based on the current document set, AstraNotes is ready to begin development scaffolding. The only explicitly deferred documentation task is Lucid diagram realignment to the approved web multi-user baseline.
+Based on the current document set, AstraNotes is ready to begin implementation under the single-user local web pivot. The only explicitly deferred documentation task is Lucid diagram realignment to the updated pivot baseline.

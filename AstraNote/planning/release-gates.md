@@ -1,6 +1,6 @@
 # Release Gates — AstraNotes MVP
 
-**Version**: 1.2  
+**Version**: 1.3  
 **Date**: 2026-06-02
 
 A release gate is a mandatory pass/fail check that must be satisfied before any code is shipped. Every item below must be ✅ before an MVP release is cut. No exceptions.
@@ -24,10 +24,15 @@ All MVP backlog items must be complete and verified:
 | BL-08: Note capacity | REQ-23–24 | ✅ |
 | BL-09: Privacy state and preview suppression | REQ-25–27 | ✅ |
 | BL-10: Performance verification | NFR-06–09 | ✅ |
+| BL-11: Input model and accessibility parity | NFR-10, NFR-12 | ☐ |
 | BL-12: Architecture boundaries | NFR-13–16 | ☐ |
 | BL-13: Security stack | SRG-01, 02, 04, 05, 07, 08, 10, 11, 13–26 | ☐ |
+| BL-23: Interface localization toggle | REQ-28 | ☐ |
 | BL-21: Serviceability/manageability | SMR-01–12 | ☐ |
-| BL-22: Web multi-user foundation | WEB-01–08 | ☐ |
+| BL-22: Web multi-user foundation | WEB-01–11 | Deferred [Post-MVP] |
+| BL-24: Nested list depth (3 levels) | REQ-29 | Deferred [Post-MVP] |
+| BL-25: Image paste in note body | REQ-30 | Deferred [Post-MVP] |
+| BL-26: Concurrency/load verification | NFR-01–05 | Deferred [Post-MVP] |
 
 ---
 
@@ -37,13 +42,13 @@ All test suites must pass with zero failures:
 
 | Suite | File | Status |
 |---|---|---|
-| Unit — NoteService | tests/unit/test_note_service.py | ☐ |
-| Unit — SqlNoteRepository | tests/unit/test_sql_repository.py | ☐ |
-| Unit — Security Layer | tests/unit/test_security.py | ☐ |
-| Integration | tests/integration/test_flows.py | ☐ |
-| Security Validation | tests/security/test_security_validation.py | ☐ |
+| Unit — NoteService | tests/unit/test_note_service_create.py, tests/unit/test_note_service_delete.py | ☐ |
+| Unit — Repository/Storage | tests/integration/test_create_note_api.py, tests/integration/test_update_note_api.py, tests/integration/test_concurrency_routes.py | ☐ |
+| Unit — Security Layer | tests/unit (dedicated security unit suite pending) | ☐ |
+| Integration — API/UI flows | tests/integration/test_*_api.py, tests/integration/test_*_ui.py, tests/integration/test_ui_wiring.py | ☐ |
+| Security Validation | tests (SRG validation currently distributed; dedicated tests/security/* suite pending) | ☐ |
 | Performance | tests/performance/test_performance.py | ✅ |
-| Web Multi-User | tests/integration/test_web_multi_user.py | ☐ |
+| Web Multi-User | tests/integration/test_web_multi_user.py | Deferred [Post-MVP] |
 
 No test may be skipped or marked `xfail` without an approved written justification.
 
@@ -57,13 +62,13 @@ Each item must be individually verified and checked off by the developer before 
 |---|---|---|---|
 | Persistence store contains no plaintext title/body/version_content | SRG-25 | TP-SV01: inspect raw persisted record post-write | ☐ |
 | Audit log contains no plaintext private note content | SRG-07 | TP-SV02: parse audit-log.jsonl | ☐ |
-| Lockout state persists across app restart | SRG-23 | TP-SV03: reinitialize from security-state.json | ☐ |
+| Lockout state resets on app restart | SRG-23 | TP-SV03: reinitialize manager and verify unlocked state is cleared | ☐ |
 | Wrong passphrase and internal error responses are identical | SRG-24 | TP-S13, TP-SV04 | ☐ |
 | Raw passphrase absent from all persisted files | SRG-26 | TP-SV05: grep data files | ☐ |
 | Encryption uses AES-256-GCM or ChaCha20-Poly1305 | SRG-01 | Code review of SecureNote implementation | ☐ |
 | PBKDF2-HMAC-SHA256 ≥ 260,000 iterations confirmed in code | SRG-26 | Code review + TP-S01 | ☐ |
 | No content-transmitting feature ships without TLS confirmed | SRG-17 | Code review: confirm no network path exists in MVP; if one exists, TLS 1.2+ must be verified | ☐ |
-| Session cookie security flags and CSRF enforcement active on write endpoints | WEB-05, WEB-06 | TP-W07 + endpoint security tests | ☐ |
+| Session cookie security flags and CSRF enforcement active on write endpoints | WEB-05, WEB-06 | TP-W07 + endpoint security tests | Deferred [Post-MVP] |
 
 ---
 
@@ -92,7 +97,7 @@ Fill in the **Measured** column with actual benchmark results before checking of
 | No unhandled exceptions reachable through any user input path (SRG-14) | ☐ |
 | All error responses use ResultError with machine-readable codes (SRG-14) | ☐ |
 | All writes use transaction commit/rollback safety (SRG-15) | ☐ |
-| Owner scoping enforced for all note reads/writes (WEB-02, WEB-06) | ☐ |
+| Owner scoping enforced for all note reads/writes (WEB-02, WEB-06) | Deferred [Post-MVP] |
 
 ---
 
@@ -159,3 +164,12 @@ Signed off by: _______________
 - ✅ Full regression suite passed: 93 passed, 0 failed.
 - ✅ Requirements and traceability documentation aligned for NFR-06 through NFR-09 completion.
 - ✅ Ready to proceed to **BL-11** planning/execution.
+
+## Pivot Baseline Checkpoint (2026-06-02)
+
+- ✅ Scope pivot approved: MVP delivery mode is single-user web on localhost.
+- ✅ Completed BL-01 through BL-10 evidence remains accepted and unchanged.
+- ✅ Multi-user/auth/session backlog (BL-22, WEB-01..11) is deferred to Post-MVP.
+- ✅ MVP adds localization scope (BL-23 / REQ-28).
+- ✅ Nested list depth expansion and image paste are deferred to Post-MVP (BL-24, BL-25).
+- ✅ SRG-04/SRG-17 clarified: non-local transport must use TLS before release.

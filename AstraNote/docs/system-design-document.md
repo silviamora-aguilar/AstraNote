@@ -40,10 +40,10 @@ This separation is required to preserve testability, ownership enforcement, and 
 - ResultError standardizes user-safe failures
 
 ### Data/Security Tier
-- SqlNoteRepository stores notes, soft-delete state, audit records, user/session data, and security-state records
+- SqlNoteRepository stores notes, soft-delete state, audit records, and user/session data
 - KeyDerivationService derives keys for private-note protection
 - SecureNote performs authenticated encryption/decryption for sensitive content
-- UnlockSessionManager handles private-note unlock timeout and lockout logic
+- UnlockSessionManager handles private-note unlock timeout and lockout logic in memory
 
 ## 5. Data Design
 

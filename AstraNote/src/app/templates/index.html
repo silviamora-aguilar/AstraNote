@@ -67,6 +67,7 @@
             gap: 0.8rem;
             opacity: 0;
             animation: rise 520ms ease-out forwards;
+            position: relative;
         }
 
         .hero h1 {
@@ -377,6 +378,49 @@
             overflow-y: auto;
         }
 
+        .readonly-note-field {
+            border: 1px solid rgba(86, 97, 113, 0.28);
+            border-radius: 12px;
+            background: #f6f8fb;
+            padding: 0.72rem 0.8rem;
+            color: var(--ink);
+            font: 500 0.93rem/1.35 "Manrope", sans-serif;
+            cursor: default;
+        }
+
+        .readonly-note-body {
+            border: 1px solid rgba(86, 97, 113, 0.28);
+            border-radius: 12px;
+            background: #f6f8fb;
+            padding: 0.72rem 0.8rem;
+            color: var(--ink);
+            font: 500 0.92rem/1.5 "Manrope", sans-serif;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 55vh;
+            overflow: auto;
+            cursor: default;
+        }
+
+        .body-wysiwyg-readonly {
+            min-height: 0;
+            cursor: default;
+            outline: none;
+        }
+
+        .body-wysiwyg-readonly ul.editor-checklist input[type="checkbox"] {
+            pointer-events: none;
+        }
+
+        .readonly-note-meta {
+            display: grid;
+            gap: 0.18rem;
+            margin-top: -0.05rem;
+            margin-bottom: 0.05rem;
+            color: var(--muted);
+            font-size: 0.84rem;
+        }
+
         .body-wysiwyg:focus {
             border-color: var(--accent);
         }
@@ -462,6 +506,78 @@
         button:hover {
             transform: translateY(-1px);
             box-shadow: 0 11px 24px rgba(15, 118, 110, 0.3);
+        }
+
+        .hero-quick-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.45rem;
+            position: relative;
+        }
+
+        .lock-button {
+            padding: 0.72rem 1.05rem;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .trash-toggle-button {
+            height: 2.05rem;
+            padding: 0.5rem 0.92rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.42rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            line-height: 1;
+            border: 1px solid var(--accent-deep);
+            background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(15, 118, 110, 0.25);
+            position: relative;
+            z-index: 2;
+            white-space: nowrap;
+        }
+
+        .trash-toggle-button:hover {
+            background: linear-gradient(135deg, #34b8a5, #0d6f69);
+        }
+
+        .trash-toggle-button.active {
+            border-color: rgba(176, 44, 0, 0.7);
+            background: linear-gradient(135deg, #cf5f2f, #8d3513);
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(141, 53, 19, 0.32);
+        }
+
+        .quick-hint::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -2.2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 30, 36, 0.9);
+            color: white;
+            padding: 0.4rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 400;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 150ms ease;
+            z-index: 50;
+            visibility: hidden;
+        }
+
+        .quick-hint:hover::after {
+            opacity: 1;
+            visibility: visible;
         }
 
         .microcopy {
@@ -581,6 +697,15 @@
         .note-item.selected {
             border-left-color: var(--accent-deep);
             box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+        }
+
+        .note-item.trash-item {
+            border-left-color: var(--danger-ink);
+        }
+
+        .note-item.trash-item.selected {
+            border-left-color: var(--danger-ink);
+            box-shadow: 0 0 0 2px rgba(163, 50, 41, 0.18);
         }
 
         .note-select {
@@ -790,6 +915,117 @@
             min-height: 200px;
         }
 
+        /* PIN Input Component Styling */
+        .pin-input-wrapper {
+            --pin-circle-size: 29px;
+            --pin-circle-gap: 0.42rem;
+            --pin-pad-key-size: 60px;
+            --pin-pad-gap: 0.36rem;
+            --pin-pad-padding: 0.48rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.54rem;
+            margin: 0.24rem 0;
+        }
+
+        .pin-circles-container {
+            display: flex;
+            justify-content: center;
+            gap: var(--pin-circle-gap);
+            margin: 0.48rem 0;
+        }
+
+        .pin-circle {
+            width: var(--pin-circle-size);
+            height: var(--pin-circle-size);
+            border: 1.2px solid rgba(15, 118, 110, 0.3);
+            border-radius: 50%;
+            background: white;
+            transition: all 180ms ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .pin-circle.filled {
+            background: var(--accent);
+            border-color: var(--accent-deep);
+            box-shadow: 0 2px 6px rgba(15, 118, 110, 0.2);
+            transform: scale(1.03);
+        }
+
+        .numerical-pad {
+            display: grid;
+            grid-template-columns: repeat(3, var(--pin-pad-key-size));
+            gap: var(--pin-pad-gap);
+            padding: var(--pin-pad-padding);
+            background: rgba(15, 118, 110, 0.04);
+            border-radius: 8px;
+            border: 1px solid rgba(15, 118, 110, 0.12);
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .num-pad-btn {
+            aspect-ratio: 1;
+            border: 1px solid rgba(15, 118, 110, 0.25);
+            background: white;
+            color: var(--ink);
+            border-radius: 6px;
+            font: 700 0.66rem/1 "Manrope", sans-serif;
+            cursor: pointer;
+            transition: all 130ms ease;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+            width: var(--pin-pad-key-size);
+            height: var(--pin-pad-key-size);
+            min-height: var(--pin-pad-key-size);
+        }
+
+        .num-pad-btn:hover {
+            border-color: var(--accent);
+            background: rgba(15, 118, 110, 0.06);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(15, 118, 110, 0.12);
+        }
+
+        .num-pad-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(15, 118, 110, 0.08);
+        }
+
+        .num-pad-btn.num-pad-special {
+            border-color: rgba(163, 50, 41, 0.2);
+            color: var(--danger-ink);
+            font-size: 0.54rem;
+            opacity: 0.75;
+        }
+
+        @media (min-width: 1400px) {
+            .pin-input-wrapper {
+                --pin-circle-size: 26px;
+                --pin-circle-gap: 0.34rem;
+                --pin-pad-key-size: 55px;
+                --pin-pad-gap: 0.3rem;
+                --pin-pad-padding: 0.4rem;
+            }
+        }
+
+        .num-pad-btn.num-pad-special:hover {
+            background: rgba(163, 50, 41, 0.06);
+            border-color: var(--danger-ink);
+            opacity: 1;
+        }
+
+        .unlock-submit-btn {
+            display: none;
+        }
+
         .editor-idle-panel {
             animation-delay: 320ms;
             min-height: 0;
@@ -899,6 +1135,10 @@
                 align-items: flex-start;
             }
 
+            .hero-quick-actions {
+                align-items: flex-start;
+            }
+
             .hero-search {
                 width: 100%;
             }
@@ -914,6 +1154,21 @@
 
             .editor-form textarea {
                 min-height: 140px;
+            }
+
+            .pin-input-wrapper {
+                --pin-circle-size: 31px;
+                --pin-circle-gap: 0.46rem;
+                --pin-pad-key-size: 64px;
+                --pin-pad-gap: 0.42rem;
+                --pin-pad-padding: 0.56rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pin-input-wrapper {
+                --pin-circle-size: 28px;
+                --pin-pad-key-size: 60px;
             }
         }
 
@@ -946,6 +1201,7 @@
                         hx-swap="innerHTML"
                     >
                         <label for="note-search" class="sr-only">Search notes</label>
+                        <input id="note-view" name="view" type="hidden" value="{{ view_mode or 'active' }}" />
                         <input
                             id="note-search"
                             name="query"
@@ -959,23 +1215,53 @@
                             hx-trigger="input changed delay:250ms, search"
                         />
                         <button class="hero-search-clear" type="button" onclick="clearSearch()">Clear</button>
+                        <button
+                            id="trash-toggle-btn"
+                            type="button"
+                            class="trash-toggle-button"
+                            aria-label="View Trash"
+                            aria-pressed="{{ 'true' if trash_mode else 'false' }}"
+                            onclick="toggleTrashView()"
+                        >
+                            <span aria-hidden="true">🗑</span>
+                            <span>View Trash</span>
+                        </button>
                     </form>
                 </div>
             </div>
-            <span class="badge">BL-10 Active</span>
+            <div class="hero-quick-actions">
+                <button
+                    type="button"
+                    class="lock-button quick-hint"
+                    data-tooltip="Default pin is 1234 until changed"
+                    aria-label="Default pin is 1234 until changed"
+                    hx-get="/ui/security/pin"
+                    hx-target="#editor-slot"
+                    hx-swap="innerHTML"
+                >
+                    🔒 Change Private Pin
+                </button>
+            </div>
         </section>
+
+        {% if error_message %}
+            <div style="margin-bottom: 0.65rem;">
+                {% include "partials/error_message.html" %}
+            </div>
+        {% endif %}
 
         <section class="workbench with-editor">
             <article class="card notes-panel">
                 <div class="list-head">
-                    <h2>Notes</h2>
+                    <h2 id="notes-panel-title">{% if trash_mode %}Notes in Trash{% else %}Notes{% endif %}</h2>
                     <span class="microcopy">Newest first</span>
                 </div>
-                <div id="bulk-actions" class="bulk-actions" hidden>
+                <div id="bulk-actions" class="bulk-actions">
                     <div class="left"><span id="bulk-selected-count">0</span> selected</div>
                     <div class="right">
                         <button id="bulk-toggle-select-btn" class="mini-btn" type="button" onclick="toggleSelectAllVisibleNotes()">Select all</button>
-                        <button class="mini-btn delete" type="button" onclick="openBulkDeleteModal()">Delete selected</button>
+                        <button id="bulk-delete-btn" class="mini-btn delete" type="button" onclick="openBulkDeleteModal()">{% if trash_mode %}Delete Forever{% else %}Delete selected{% endif %}</button>
+                        <button id="bulk-restore-btn" class="mini-btn" type="button" onclick="restoreSelectedNotes()" {% if not trash_mode %}hidden{% endif %}>Restore</button>
                     </div>
                 </div>
                 <div id="notes-results">
@@ -1179,6 +1465,10 @@
     }
 
     function openCreatePanel() {
+        if (isTrashViewActive()) {
+            loadActiveView();
+        }
+
         const editorSlot = document.getElementById('editor-slot');
         const template = document.getElementById('create-panel-template');
         if (!editorSlot || !template) {
@@ -1272,8 +1562,13 @@
             const errors = document.getElementById('form-errors');
 
             if (response.ok) {
+                const createdFromTrashView = isTrashViewActive();
+                if (createdFromTrashView) {
+                    loadActiveView();
+                }
+
                 const todayList = document.getElementById('today-note-list');
-                if (todayList) {
+                if (todayList && !createdFromTrashView) {
                     todayList.insertAdjacentHTML('afterbegin', html);
                 }
                 form.reset();
@@ -1313,15 +1608,74 @@
 
     function clearSearch() {
         const searchInput = document.getElementById('note-search');
+        const viewInput = document.getElementById('note-view');
         if (!searchInput) {
             return;
         }
         searchInput.value = '';
+        const viewMode = viewInput?.value === 'trash' ? 'trash' : 'active';
         if (window.htmx) {
-            htmx.ajax('GET', '/ui/notes/search?query=', { target: '#notes-results', swap: 'innerHTML' });
+            htmx.ajax('GET', `/ui/notes/search?query=&view=${viewMode}`, { target: '#notes-results', swap: 'innerHTML' });
             return;
         }
-        window.location.reload();
+        window.location.href = viewMode === 'trash' ? '/?view=trash' : '/';
+    }
+
+    function setViewMode(view) {
+        const viewInput = document.getElementById('note-view');
+        const trashToggleBtn = document.getElementById('trash-toggle-btn');
+        const notesPanelTitle = document.getElementById('notes-panel-title');
+        const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+        const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+        if (viewInput) {
+            viewInput.value = view;
+        }
+        if (trashToggleBtn) {
+            const isTrash = view === 'trash';
+            trashToggleBtn.classList.toggle('active', isTrash);
+            trashToggleBtn.setAttribute('aria-pressed', isTrash ? 'true' : 'false');
+        }
+        if (notesPanelTitle) {
+            notesPanelTitle.textContent = view === 'trash' ? 'Notes in Trash' : 'Notes';
+        }
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.textContent = view === 'trash' ? 'Delete Forever' : 'Delete selected';
+        }
+        if (bulkRestoreBtn) {
+            bulkRestoreBtn.hidden = view !== 'trash';
+        }
+        syncBulkActionsState();
+    }
+
+    function toggleTrashView() {
+        const currentView = (document.getElementById('note-view')?.value === 'trash') ? 'trash' : 'active';
+        if (currentView === 'trash') {
+            loadActiveView();
+            return;
+        }
+        loadTrashView();
+    }
+
+    function loadActiveView() {
+        const searchInput = document.getElementById('note-search');
+        const query = searchInput ? encodeURIComponent(searchInput.value || '') : '';
+        setViewMode('active');
+        if (window.htmx) {
+            htmx.ajax('GET', `/ui/notes/search?query=${query}&view=active`, { target: '#notes-results', swap: 'innerHTML' });
+            return;
+        }
+        window.location.href = '/';
+    }
+
+    function loadTrashView() {
+        const searchInput = document.getElementById('note-search');
+        const query = searchInput ? encodeURIComponent(searchInput.value || '') : '';
+        setViewMode('trash');
+        if (window.htmx) {
+            htmx.ajax('GET', `/ui/notes/search?query=${query}&view=trash`, { target: '#notes-results', swap: 'innerHTML' });
+            return;
+        }
+        window.location.href = '/?view=trash';
     }
 
     function submitEditorForm(noteId) {
@@ -1803,11 +2157,15 @@
     }
 
     function initAllWysiwygEditors() {
-        document.querySelectorAll('.body-wysiwyg').forEach(initWysiwygEditor);
+        document.querySelectorAll('.body-wysiwyg:not(.body-wysiwyg-readonly)').forEach(initWysiwygEditor);
     }
 
     function getSelectedNoteIds() {
         return Array.from(document.querySelectorAll('.note-bulk-check:checked')).map((node) => node.value);
+    }
+
+    function isTrashViewActive() {
+        return document.getElementById('note-view')?.value === 'trash';
     }
 
     function syncBulkActionsState() {
@@ -1817,12 +2175,20 @@
         const bulkActions = document.getElementById('bulk-actions');
         const selectedCount = document.getElementById('bulk-selected-count');
         const toggleSelectBtn = document.getElementById('bulk-toggle-select-btn');
-        if (!bulkActions || !selectedCount || !toggleSelectBtn) {
+        const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+        const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+        if (!bulkActions || !selectedCount || !toggleSelectBtn || !bulkDeleteBtn) {
             return;
         }
         selectedCount.textContent = String(selected.length);
-        bulkActions.hidden = selected.length === 0;
+        bulkActions.hidden = allCheckboxes.length === 0;
         toggleSelectBtn.textContent = allSelected ? 'Unselect all' : 'Select all';
+        toggleSelectBtn.disabled = allCheckboxes.length === 0;
+        bulkDeleteBtn.disabled = selected.length === 0;
+        if (bulkRestoreBtn) {
+            bulkRestoreBtn.hidden = !isTrashViewActive();
+            bulkRestoreBtn.disabled = selected.length === 0;
+        }
         document.body.classList.toggle('bulk-selection-active', selected.length > 0);
     }
 
@@ -1840,6 +2206,7 @@
         if (selectedIds.length === 0) {
             return;
         }
+        const trashMode = isTrashViewActive();
         const modal = document.getElementById('delete-confirm-modal');
         const heading = document.getElementById('delete-modal-heading');
         const body = document.getElementById('delete-modal-body');
@@ -1847,13 +2214,34 @@
         const confirmBtn = document.getElementById('delete-modal-confirm');
         if (!modal || !heading || !body || !titleEl || !confirmBtn) return;
 
-        heading.textContent = `Delete ${selectedIds.length} notes?`;
+        heading.textContent = trashMode
+            ? `Delete ${selectedIds.length} notes forever?`
+            : `Move ${selectedIds.length} notes to trash?`;
         titleEl.textContent = `${selectedIds.length} selected notes`;
-        body.textContent = 'This action cannot be undone.';
-        confirmBtn.dataset.mode = 'bulk';
+        body.textContent = trashMode
+            ? 'This permanently deletes selected notes and cannot be undone.'
+            : 'You can restore notes from Trash for 15 days.';
+        confirmBtn.dataset.mode = trashMode ? 'bulk-permanent' : 'bulk';
         confirmBtn.dataset.noteIds = JSON.stringify(selectedIds);
         modal.style.display = 'flex';
         modal.querySelector('.modal-cancel').focus();
+    }
+
+    async function restoreSelectedNotes() {
+        const selectedIds = getSelectedNoteIds();
+        if (selectedIds.length === 0 || !isTrashViewActive()) {
+            return;
+        }
+        const formData = new URLSearchParams();
+        selectedIds.forEach((noteId) => formData.append('note_ids', noteId));
+        const response = await fetch('/ui/notes/trash/bulk-restore', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+            body: formData.toString(),
+        });
+        if (response.ok) {
+            window.location.href = '/?view=trash';
+        }
     }
 
     function openDeleteModal(noteId, noteTitle) {
@@ -1863,10 +2251,27 @@
         const titleEl = document.getElementById('delete-modal-title');
         const confirmBtn = document.getElementById('delete-modal-confirm');
         if (!modal || !heading || !body || !titleEl || !confirmBtn) return;
-        heading.textContent = 'Delete note?';
+        heading.textContent = 'Move note to trash?';
         titleEl.textContent = noteTitle;
-        body.textContent = 'This action cannot be undone.';
+        body.textContent = 'You can restore this note from Trash for 15 days.';
         confirmBtn.dataset.mode = 'single';
+        confirmBtn.dataset.noteId = noteId;
+        delete confirmBtn.dataset.noteIds;
+        modal.style.display = 'flex';
+        modal.querySelector('.modal-cancel').focus();
+    }
+
+    function openDeleteForeverModal(noteId, noteTitle) {
+        const modal = document.getElementById('delete-confirm-modal');
+        const heading = document.getElementById('delete-modal-heading');
+        const body = document.getElementById('delete-modal-body');
+        const titleEl = document.getElementById('delete-modal-title');
+        const confirmBtn = document.getElementById('delete-modal-confirm');
+        if (!modal || !heading || !body || !titleEl || !confirmBtn) return;
+        heading.textContent = 'Delete forever?';
+        titleEl.textContent = noteTitle;
+        body.textContent = 'This permanently deletes the note and cannot be undone.';
+        confirmBtn.dataset.mode = 'permanent';
         confirmBtn.dataset.noteId = noteId;
         delete confirmBtn.dataset.noteIds;
         modal.style.display = 'flex';
@@ -1907,10 +2312,33 @@
                     return;
                 }
 
+                if (mode === 'bulk-permanent') {
+                    const noteIds = JSON.parse(confirmBtn.dataset.noteIds || '[]');
+                    const formData = new URLSearchParams();
+                    noteIds.forEach((noteId) => formData.append('note_ids', noteId));
+                    const response = await fetch('/ui/notes/trash/bulk-purge', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                        body: formData.toString(),
+                    });
+                    if (response.ok) {
+                        window.location.href = '/?view=trash';
+                    }
+                    return;
+                }
+
+                if (mode === 'permanent') {
+                    const noteId = confirmBtn.dataset.noteId;
+                    htmx.ajax('DELETE', `/ui/notes/${noteId}/purge`, { target: 'body' });
+                    return;
+                }
+
                 const noteId = confirmBtn.dataset.noteId;
                 htmx.ajax('DELETE', `/ui/notes/${noteId}`, { target: 'body' });
             });
         }
+
+        setViewMode((document.getElementById('note-view')?.value === 'trash') ? 'trash' : 'active');
 
         document.body.addEventListener('change', (event) => {
             if (event.target.matches('.note-bulk-check')) {
@@ -1979,8 +2407,8 @@
     ">
         <h3 id="delete-modal-heading" style="margin: 0; font-size: 1.15rem; color: var(--ink);">Delete note?</h3>
         <p style="margin: 0; color: var(--muted); font-size: 0.95rem;">
-            You are about to permanently delete <strong id="delete-modal-title" style="color: var(--ink);"></strong>.
-            <span id="delete-modal-body">This action cannot be undone.</span>
+            <strong id="delete-modal-title" style="color: var(--ink);"></strong>
+            <span id="delete-modal-body">You can restore this note from Trash for 15 days.</span>
         </p>
         <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.4rem;">
             <button
@@ -2014,5 +2442,35 @@
     </div>
 </div>
 
+<script>
+    (function () {
+        function isEditableElement(el) {
+            if (!el) return false;
+            if (el.isContentEditable) return true;
+
+            const tag = el.tagName ? el.tagName.toLowerCase() : "";
+            if (tag === "textarea") return true;
+            if (tag !== "input") return false;
+
+            const type = (el.getAttribute("type") || "text").toLowerCase();
+            return !["button", "submit", "reset", "checkbox", "radio", "file", "color", "range"].includes(type);
+        }
+
+        document.addEventListener("focusin", function (event) {
+            const target = event.target;
+            if (!isEditableElement(target) || target.__deleteKeyGuardBound) {
+                return;
+            }
+
+            target.addEventListener("keydown", function (keyEvent) {
+                if (keyEvent.key === "Backspace" || keyEvent.key === "Delete") {
+                    keyEvent.stopPropagation();
+                }
+            });
+
+            target.__deleteKeyGuardBound = true;
+        });
+    })();
+</script>
 </body>
 </html>

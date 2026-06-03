@@ -62,7 +62,7 @@ Wraps encrypted note content. Responsible for encryption/decryption using the se
 Derives encryption keys from user passphrase via PBKDF2-HMAC-SHA256 (≥260,000 iterations, 16-byte random salt, 256-bit output key). Raw passphrase is never stored (SRG-26).
 
 ### UnlockSessionManager
-Manages per-session unlock state. Enforces: session-scoped unlock (SRG-20), 15-minute inactivity expiry (SRG-21), 5-failure rate limiting (SRG-22), exponential-backoff lockout persisted across restarts (SRG-23), and anti-enumeration uniform error responses (SRG-24). Persists state to `/data/security-state.json`.
+Manages per-note unlock state. Enforces: session-scoped unlock (SRG-20), 15-minute inactivity expiry (SRG-21), 5-failure rate limiting (SRG-22), exponential-backoff lockout during the active app session (SRG-23), and anti-enumeration uniform error responses (SRG-24). State is kept in memory and resets on app restart.
 
 ### AuthService (web-only)
 Authenticates users, issues sessions/tokens, and supplies authenticated `user_id` context to all service operations. All note and audit operations require authenticated identity.
