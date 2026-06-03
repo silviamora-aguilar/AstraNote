@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from typing import Protocol
 
 from src.app.models.note import Note
 from src.app.repositories.note_repository import (
@@ -20,6 +21,19 @@ CAPACITY_ERROR_MESSAGE = "Note limit reached (10,000). Delete notes to create a 
 ALLOWED_TITLE_PUNCTUATION = {" ", ".", ",", "-", "'", '"', "@", "#", "&", ":", ";", "!", "?", "(", ")", "[", "]", "/", "+", "_", "¿", "¡"}
 CHECKLIST_LINE_RE = re.compile(r"^(\s*[-*+]\s+\[)( |x|X)(\]\s.*)$")
 UNICODE_CHECKLIST_LINE_RE = re.compile(r"^(\s*)(☐|☑)\s+(.*)$")
+
+
+class _AuditSink(Protocol):
+    def append(
+        self,
+        *,
+        actor: str,
+        action: str,
+        note_id: str,
+        outcome: str,
+        correlation_id: str | None = None,
+        error_code: str | None = None,
+    ) -> object: ...
 
 
 class NoteValidationError(ValueError):
@@ -41,23 +55,47 @@ class NoteNotFoundError(ValueError):
 class NoteService:
     """Business rules for note operations."""
 
-    def __init__(self, repository: NoteRepository) -> None:
+    def __init__(self, repository: NoteRepository, audit_logger: _AuditSink | None = None) -> None:
         self.repository = repository
+        self._audit_logger = audit_logger
+
+    def _audit(self, action: str, note_id: str, outcome: str, error_code: str | None = None) -> None:
+        if self._audit_logger is None:
+            return
+        try:
+            self._audit_logger.append(
+                actor="local-user",
+                action=action,
+                note_id=note_id,
+                outcome=outcome,
+                error_code=error_code,
+            )
+        except Exception:
+            # Audit logging is best-effort and should not break note workflows.
+            return
 
     def create(self, title: str, body: str = "", is_private: bool = False) -> Note:
         """Create and persist a new note using BL-01 rules."""
-        cleaned_title = self._validate_title(title)
-        cleaned_body = self._validate_body(body)
         try:
-            return self.repository.create_note_atomic(
+            cleaned_title = self._validate_title(title)
+            cleaned_body = self._validate_body(body)
+        except NoteValidationError:
+            self._audit("create", "(pending)", "failure", "VALIDATION_ERROR")
+            raise
+        try:
+            created = self.repository.create_note_atomic(
                 title=cleaned_title,
                 body=cleaned_body,
                 is_private=is_private,
                 max_notes=MAX_NOTES,
             )
+            self._audit("create", created.note_id, "success")
+            return created
         except NoteRepositoryCapacityError as exc:
+            self._audit("create", "(pending)", "failure", "CAPACITY_EXCEEDED")
             raise NoteCapacityError(CAPACITY_ERROR_MESSAGE) from exc
         except NoteRepositoryError as exc:
+            self._audit("create", "(pending)", "failure", "SAVE_ERROR")
             raise NotePersistenceError("Could not persist note") from exc
 
     def list_notes(self) -> list[Note]:
@@ -77,22 +115,32 @@ class NoteService:
         self._purge_expired_deleted_notes()
         note = self.repository.get(note_id)
         if note is None or note.is_deleted:
+            self._audit("read", note_id, "failure", "NOT_FOUND")
             return None
+        self._audit("read", note_id, "success")
         return note
 
     def get_note_any(self, note_id: str) -> Note | None:
         """Get a note by id including soft-deleted notes."""
         self._purge_expired_deleted_notes()
-        return self.repository.get(note_id)
+        note = self.repository.get(note_id)
+        if note is None:
+            self._audit("read", note_id, "failure", "NOT_FOUND")
+            return None
+        self._audit("read", note_id, "success")
+        return note
 
     def delete(self, note_id: str) -> None:
         """Soft-delete a note by id (BL-03)."""
         note = self.repository.get(note_id)
         if note is None or note.is_deleted:
+            self._audit("delete", note_id, "failure", "NOT_FOUND")
             raise NoteNotFoundError("Note not found")
         try:
             self.repository.soft_delete(note_id)
+            self._audit("delete", note_id, "success")
         except NoteRepositoryError as exc:
+            self._audit("delete", note_id, "failure", "SAVE_ERROR")
             raise NotePersistenceError("Could not delete note") from exc
 
     def bulk_delete(self, note_ids: list[str]) -> int:
@@ -139,13 +187,17 @@ class NoteService:
     def restore(self, note_id: str) -> None:
         """Restore a soft-deleted note by id."""
         if not hasattr(self.repository, "restore"):
+            self._audit("restore", note_id, "failure", "SAVE_ERROR")
             raise NotePersistenceError("Restore is not supported")
         try:
             restored = self.repository.restore(note_id)
         except NoteRepositoryError as exc:
+            self._audit("restore", note_id, "failure", "SAVE_ERROR")
             raise NotePersistenceError("Could not restore note") from exc
         if not restored:
+            self._audit("restore", note_id, "failure", "NOT_FOUND")
             raise NoteNotFoundError("Note not found in trash")
+        self._audit("restore", note_id, "success")
 
     def bulk_restore(self, note_ids: list[str]) -> int:
         """Restore multiple soft-deleted notes from trash."""
@@ -196,18 +248,26 @@ class NoteService:
 
     def update(self, note_id: str, title: str, body: str = "", is_private: bool = False) -> Note:
         """Update title/body using BL-02 rules."""
-        cleaned_title = self._validate_title(title)
-        cleaned_body = self._validate_body(body)
         try:
-            return self.repository.update_note_atomic(
+            cleaned_title = self._validate_title(title)
+            cleaned_body = self._validate_body(body)
+        except NoteValidationError:
+            self._audit("update", note_id, "failure", "VALIDATION_ERROR")
+            raise
+        try:
+            updated = self.repository.update_note_atomic(
                 note_id=note_id,
                 title=cleaned_title,
                 body=cleaned_body,
                 is_private=is_private,
             )
+            self._audit("update", note_id, "success")
+            return updated
         except NoteRepositoryNotFoundError as exc:
+            self._audit("update", note_id, "failure", "NOT_FOUND")
             raise NoteNotFoundError("Note not found") from exc
         except NoteRepositoryError as exc:
+            self._audit("update", note_id, "failure", "SAVE_ERROR")
             raise NotePersistenceError("Could not persist note") from exc
 
     def toggle_checklist_item(self, note_id: str, line_index: int, checked: bool) -> Note:

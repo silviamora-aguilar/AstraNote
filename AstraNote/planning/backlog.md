@@ -15,9 +15,9 @@
 
 ## Medium Priority (MVP Quality and Reliability)
 - BL-10 ✅: Web/API performance verification harness (NFR-06, NFR-07, NFR-08, NFR-09).
-- BL-11: Input model and accessibility parity for active MVP platforms (NFR-10, NFR-12).
+- BL-11 [Post-MVP]: Input model and accessibility parity for active MVP platforms (NFR-10, NFR-12).
 - BL-12: Architecture boundary and testability guardrails (NFR-13, NFR-14, NFR-15, NFR-16).
-- BL-13: MVP security and governance implementation (SRG-01, SRG-02, SRG-04, SRG-05, SRG-07, SRG-08, SRG-10, SRG-11, SRG-13, SRG-14, SRG-15, SRG-16, SRG-17, SRG-18, SRG-19, SRG-20, SRG-21, SRG-22, SRG-23, SRG-24, SRG-25, SRG-26).
+- BL-13 ✅: MVP security and governance implementation (SRG-01, SRG-02, SRG-04, SRG-05, SRG-07, SRG-08, SRG-10, SRG-11, SRG-12, SRG-13, SRG-14, SRG-15, SRG-16, SRG-17, SRG-18, SRG-19, SRG-20, SRG-21, SRG-22, SRG-23, SRG-24, SRG-25, SRG-26).
 - BL-21: Serviceability and manageability foundation for 3-tier architecture (SMR-01, SMR-02, SMR-03, SMR-04, SMR-05, SMR-06, SMR-07, SMR-08, SMR-09, SMR-10, SMR-11, SMR-12).
 - BL-23: Interface localization toggle (English/Spanish UI text only) (REQ-28).
 - BL-24 [Post-MVP]: Nested list depth expansion to 3 levels for bullets/checklists (REQ-29).

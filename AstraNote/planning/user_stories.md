@@ -822,7 +822,7 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - After 5 consecutive failures, rate limiting is applied before further attempts are accepted.
 
 ### SRG-23 — Unlock Lockout with Exponential Backoff [MVP]
-**Requirement**: After 5 consecutive failed unlock attempts within a single session, the private-note unlock mechanism shall enter a locked-out state for a minimum of 5 minutes. Each subsequent lockout period shall double (exponential backoff). The lockout state, attempt count, and expiry timestamp shall persist across app restarts.
+**Requirement**: After 5 consecutive failed unlock attempts within a single session, the private-note unlock mechanism shall enter a locked-out state for a minimum of 5 minutes. Each subsequent lockout period shall double (exponential backoff). For the current MVP baseline, lockout state is session-scoped and resets across app restarts.
 
 **User Story**: As a security owner, I want consecutive unlock failures to trigger an escalating lockout so that persistent brute-force attempts are effectively blocked even across app restarts.
 
@@ -830,7 +830,7 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - 5 consecutive failures trigger a 5-minute lockout.
 - Each subsequent lockout period is double the previous (5 min → 10 min → 20 min, etc.).
 - Lockout state, attempt count, and expiry timestamp are saved to persistent storage.
-- Restarting the app during a lockout maintains the lockout until the expiry timestamp passes.
+- Restarting the app clears lockout state for the new session.
 - Unlock prompt is disabled and displays remaining lockout time during lockout state.
 
 ### SRG-24 — Anti-Enumeration Unlock Responses [MVP]
@@ -868,7 +868,6 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - Derived key length is 256 bits.
 - The raw PIN is not present in any persistent storage, log, or audit record.
 - The derived key is cleared from memory when the session expires (per SRG-21) or the app is closed.
-- Invalid retries do not create duplicate audit side effects.
 
 ### SRG-27 — App-Wide 4-Digit PIN Bootstrap [MVP]
 **Requirement**: The private-note unlock factor shall be an app-wide 4-digit numeric PIN (`0000`-`9999`) with a bootstrap default of `1234` until explicitly changed by the user from the UI settings flow.

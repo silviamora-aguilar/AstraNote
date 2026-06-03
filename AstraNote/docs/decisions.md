@@ -86,7 +86,7 @@ TODO: Create Github Project and link issues.
 
 - **Decision**: Login password and private note passphrase are completely separate secrets.
   - **Login password**: Strong account credential, hashed with bcrypt or Argon2, enforced by account security policy (e.g., 12+ chars, complexity rules).
-  - **Private note passphrase**: 4-digit numerical PIN (0000–9999), derived into an encryption key with PBKDF2-HMAC-SHA256 (100,000+ iterations, SHA256).
+  - **Private note passphrase**: 4-digit numerical PIN (0000–9999), derived into an encryption key with PBKDF2-HMAC-SHA256 (>=260,000 iterations, SHA256).
 - **Rationale**: 
   - Separates account security from note encryption strength. Login password controls account access; passphrase controls individual note locks.
   - 4-digit PIN is simple and memorable (users are familiar from ATMs, phone locks, etc.).
@@ -96,7 +96,7 @@ TODO: Create Github Project and link issues.
 - **Architecture impact**: 
   - `User.password_hash` stores the bcrypt/Argon2 hash of the login password.
   - `SecureNote.passphrase_salt` and `SecureNote.ciphertext` store the salt and encrypted body. Passphrase is derived on unlock only; never stored plaintext or hashed.
-  - `KeyDerivationService` uses PBKDF2-HMAC-SHA256 with 100,000+ iterations to derive AES-256-GCM key from the 4-digit PIN + salt.
+  - `KeyDerivationService` uses PBKDF2-HMAC-SHA256 with >=260,000 iterations to derive AES-256-GCM key from the 4-digit PIN + salt.
 - **Trade-offs**: Users manage two secrets, but they are radically different in mental load (account password vs. 4-digit PIN). The separation simplifies password rotation and future note-sharing features.
 - **Security note**: A 4-digit space (10,000 possible values) is small, so the salt and high iteration count are critical. Never use these passphrases without a strong key derivation function.
 - **Alternatives considered**: Single password for both (coupling security policies), no per-note encryption (weaker security baseline).

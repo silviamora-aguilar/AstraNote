@@ -65,9 +65,9 @@
 | NFR-07 | API latency targets (p95/p99) | `tests/performance/test_performance.py` latency assertions | BL-10 benchmark run (read/search + update operations) | API runtime node | ✅ Fully Traced | Measured results: read p95 35.00 ms, write p95 1.34 ms, all-ops p99 35.99 ms |
 | NFR-08 | API measurement boundary | `tests/performance/test_performance.py` API-route timing (`/api/notes/search`, `/api/notes/{id}`) | BL-10 service-boundary measurement procedure | API runtime node | ✅ Fully Traced | Browser rendering excluded; request/response boundary timing captured |
 | NFR-09 | API write durability before success | `tests/performance/test_performance.py` immediate read-after-success verification | BL-10 durability check on update operations | Shared DB node | ✅ Fully Traced | Immediate read-after-success validation on 60 updates with zero failures |
-| NFR-10 | Browser keyboard-only workflows | — | UC: (all core use cases) | Web UI node | ⚠️ Partially Traced | Pending evidence: keyboard-only interaction model and accessibility checks |
+| NFR-10 | Browser keyboard-only workflows [Post-MVP] | — | UC: (all core use cases) | Web UI node | ❌ Weakly Traced | Deferred to Post-MVP for single-user demo timeline; keyboard-only parity evidence intentionally deferred |
 | NFR-11 | Mobile touch-only workflows [Post-MVP] | — | — | — | ❌ Weakly Traced | Post-MVP scope; coverage intentionally deferred |
-| NFR-12 | Tab/touch reachability + focus indicator | — | — | — | ❌ Weakly Traced | Pending artifact: accessibility verification for focus and reachability |
+| NFR-12 | Tab/touch reachability + focus indicator [Post-MVP] | — | — | — | ❌ Weakly Traced | Deferred to Post-MVP for single-user demo timeline; focus-indicator parity evidence intentionally deferred |
 | NFR-13 | UI/storage/security dependency separation | `NoteRepository` (interface), `NoteService`, `SqlNoteRepository` | — | AstraNotes Application | ✅ Fully Traced | |
 | NFR-14 | Interface-based testability (test doubles) | `NoteRepository` (interface), `KeyDerivationService` | — | — | ✅ Fully Traced | |
 | NFR-15 | Automated tests for UI/security/storage | pytest integration/unit suites (`tests/unit`, `tests/integration`) | Route-layer and service-layer test scenarios | CI test workflow artifact | ⚠️ Partially Traced | Implemented test baseline; pending security-slice test completion |
@@ -96,8 +96,8 @@
 | SRG-13 | Restore: preserve ID, history, audit entry | `NoteService`, `VersionHistory`, `AuditEntry` | — | — | ✅ Fully Traced | |
 | SRG-14 | Structured error handling (no crashes) | `ResultError`, route error mapping module | Activity: save error branch | API and UI route parity tests | ✅ Fully Traced | Implemented shared error mapping with route-level tests |
 | SRG-15 | Atomic commit/rollback on failure | `NoteRepository` (persist contract), `SqlNoteRepository.create_note_atomic()` | Activity: save error branch | SQLite transaction and integrity-error retry path | ✅ Fully Traced | Concurrency tests validate conflict-safe create behavior |
-| SRG-16 | Consistent error codes on repeated invalid requests | `ResultError` | — | — | ⚠️ Partially Traced | Behavior is implemented in shared error contracts; explicit flow evidence is pending |
-| SRG-17 | TLS release gate (no content transmission without SRG-04) | — | — | Deployment constraint note | ⚠️ Partially Traced | Process gate is documented; release-control evidence is pending |
+| SRG-16 | Consistent error codes on repeated invalid requests | `ResultError`, `map_note_error_code()` | Activity: invalid request error branch | API error header evidence (`X-Error-Code`) | ✅ Fully Traced | Implemented with deterministic mapping and validated by unit + API integration coverage (`tests/unit/test_error_mapping.py`, `tests/integration/test_create_note_api.py`) |
+| SRG-17 | TLS release gate (no content transmission without SRG-04) | — | — | Deployment constraint note | ✅ Fully Traced | Code review confirms the MVP codebase has no outbound content-transmitting network path |
 | SRG-18 | PIN unlock required for private notes | `UnlockSessionManager`, `KeyDerivationService` | Activity: Prompt PIN → validate | — | ✅ Fully Traced | |
 | SRG-19 | Private content hidden until auth succeeds | `SecureNote`, `UnlockSessionManager` | Activity: PIN valid? decision | — | ✅ Fully Traced | |
 | SRG-20 | Unlock required once per session | `UnlockSessionManager` | Activity: PIN flow | — | ✅ Fully Traced | |
@@ -206,6 +206,6 @@
 | Group | Requirements | Recommended Artifact |
 |---|---|---|
 | Concurrency / performance targets | NFR-01, NFR-02, NFR-03, NFR-05, NFR-07, NFR-08 | NFR Verification Plan (`nfr-verification-plan.md`) |
-| Mobile / accessibility (out of MVP scope) | NFR-11, NFR-12, NFR-17, NFR-18 | Explicitly mark Post-MVP in requirements; note in this matrix |
+| Mobile / accessibility (out of MVP scope) | NFR-10, NFR-11, NFR-12, NFR-17, NFR-18 | Explicitly mark Post-MVP in requirements; note in this matrix |
 | Automated test coverage | NFR-15 | Test plan / test strategy document |
 | Post-MVP security hardening | SRG-03, SRG-06, SRG-09, SRG-12 | Already tagged `[Post-MVP]`; no action needed for MVP |

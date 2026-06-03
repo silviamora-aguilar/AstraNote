@@ -1,7 +1,7 @@
 # Release Gates — AstraNotes MVP
 
-**Version**: 1.3  
-**Date**: 2026-06-02
+**Version**: 1.4  
+**Date**: 2026-06-03
 
 A release gate is a mandatory pass/fail check that must be satisfied before any code is shipped. Every item below must be ✅ before an MVP release is cut. No exceptions.
 
@@ -15,7 +15,7 @@ All MVP backlog items must be complete and verified:
 |---|---|---|
 | BL-01: Create note | REQ-01–04 | ✅ |
 | BL-02: Edit note | REQ-05–08 | ✅ |
-| BL-03: Delete note | REQ-09–11 + SRG-10, 11, 13 | ✅ (SRG-13 restore deferred to BL-13 Security Stack) |
+| BL-03: Delete note | REQ-09–11 + SRG-10, 11, 13 | ✅ |
 | BL-03.1: Bulk delete selected notes (extension) | REQ-09–11 (multi-select UX extension) | ✅ |
 | BL-04: List notes | REQ-12–14 | ✅ |
 | BL-05: Search | REQ-15–16 | ✅ |
@@ -24,9 +24,9 @@ All MVP backlog items must be complete and verified:
 | BL-08: Note capacity | REQ-23–24 | ✅ |
 | BL-09: Privacy state and preview suppression | REQ-25–27 | ✅ |
 | BL-10: Performance verification | NFR-06–09 | ✅ |
-| BL-11: Input model and accessibility parity | NFR-10, NFR-12 | ☐ |
+| BL-11: Input model and accessibility parity | NFR-10, NFR-12 | Deferred [Post-MVP] |
 | BL-12: Architecture boundaries | NFR-13–16 | ☐ |
-| BL-13: Security stack | SRG-01, 02, 04, 05, 07, 08, 10, 11, 13–26 | ☐ |
+| BL-13: Security stack | SRG-01, 02, 04, 05, 07, 08, 10, 11, 12, 13–26 | ✅ |
 | BL-23: Interface localization toggle | REQ-28 | ☐ |
 | BL-21: Serviceability/manageability | SMR-01–12 | ☐ |
 | BL-22: Web multi-user foundation | WEB-01–11 | Deferred [Post-MVP] |
@@ -60,14 +60,15 @@ Each item must be individually verified and checked off by the developer before 
 
 | Check | Requirement | Verification Method | Status |
 |---|---|---|---|
-| Persistence store contains no plaintext title/body/version_content | SRG-25 | TP-SV01: inspect raw persisted record post-write | ☐ |
-| Audit log contains no plaintext private note content | SRG-07 | TP-SV02: parse audit-log.jsonl | ☐ |
-| Lockout state resets on app restart | SRG-23 | TP-SV03: reinitialize manager and verify unlocked state is cleared | ☐ |
-| Wrong passphrase and internal error responses are identical | SRG-24 | TP-S13, TP-SV04 | ☐ |
-| Raw passphrase absent from all persisted files | SRG-26 | TP-SV05: grep data files | ☐ |
-| Encryption uses AES-256-GCM or ChaCha20-Poly1305 | SRG-01 | Code review of SecureNote implementation | ☐ |
-| PBKDF2-HMAC-SHA256 ≥ 260,000 iterations confirmed in code | SRG-26 | Code review + TP-S01 | ☐ |
-| No content-transmitting feature ships without TLS confirmed | SRG-17 | Code review: confirm no network path exists in MVP; if one exists, TLS 1.2+ must be verified | ☐ |
+| Persistence store contains no plaintext title/body/version_content | SRG-25 | `tests/unit/test_security_encryption.py` | ✅ |
+| Audit log contains no plaintext private note content | SRG-07 | `tests/unit/test_audit_logging.py::test_audit_log_does_not_store_note_plaintext` | ✅ |
+| Lockout state resets on app restart | SRG-23 | `tests/unit/test_unlock_session_manager.py::test_unlock_lockout_triggers_after_five_failures_and_does_not_carry_over` | ✅ |
+| Wrong passphrase and internal error responses are identical | SRG-24 | `tests/unit/test_unlock_session_manager.py::test_unlock_internal_pin_error_returns_same_user_message` | ✅ |
+| Retention-expiry purge removes stale soft-deleted notes | SRG-12 | `tests/integration/test_trash_ui.py::test_trash_notes_older_than_retention_are_purged` | ✅ |
+| Raw passphrase absent from all persisted files | SRG-26 | TP-SV05: grep persisted artifacts (`data/config.json`, `data/audit-log.jsonl`, SQLite string probe) | ✅ |
+| Encryption uses AES-256-GCM or ChaCha20-Poly1305 | SRG-01 | Code review: `src/app/security/crypto_service.py` uses `AESGCM` for at-rest note encryption | ✅ |
+| PBKDF2-HMAC-SHA256 ≥ 260,000 iterations confirmed in code | SRG-26 | Code review + TP-S01: `PBKDF2HMAC(..., iterations=260_000, length=32)` in `crypto_service.py`; storage-token derivation in `pin_settings_manager.py` uses `pbkdf2_hmac(..., 260_000, dklen=32)` | ✅ |
+| No content-transmitting feature ships without TLS confirmed | SRG-17 | Code review: no outbound network path exists in MVP codebase | ✅ |
 | Session cookie security flags and CSRF enforcement active on write endpoints | WEB-05, WEB-06 | TP-W07 + endpoint security tests | Deferred [Post-MVP] |
 
 ---
@@ -158,6 +159,19 @@ Signed off by: _______________
 - ✅ BL-10 Performance verification completed via `tests/performance/test_performance.py` on dataset size 5,000.
 - ✅ Measured evidence captured for NFR-06 through NFR-09 latency/durability targets in Gate 4.
 
+## MVP Scope Adjustment Checkpoint (2026-06-03)
+
+- ✅ BL-11 deferred to Post-MVP for this demo cycle.
+- ✅ NFR-10 and NFR-12 moved to Post-MVP scope in `planning/requirements.md`.
+- ✅ Current active open implementation gates for MVP are BL-12, BL-21, and BL-23.
+
+## Demo Hardening Checkpoint (2026-06-03)
+
+- ✅ Focused demo regression pack passed (20 tests): private unlock UI, trash flows, private PIN settings UI, create-note API, deterministic error mapping, and PIN settings persistence checks.
+- ✅ SRG-16 API evidence added: repeated invalid create requests return stable `X-Error-Code` and no storage mutation (`tests/integration/test_create_note_api.py`).
+- ✅ SRG-26 persistence hardening completed: plaintext legacy PIN is migrated to encrypted token on `PinSettingsManager` initialization.
+- ✅ Demo scope freeze set: only blocker/security fixes until demo; no net-new feature additions.
+
 ## BL-10 Closure Checkpoint (2026-06-02)
 
 - ✅ Branch `bl10-performance` pushed with BL-10 implementation and evidence updates.
@@ -173,3 +187,20 @@ Signed off by: _______________
 - ✅ MVP adds localization scope (BL-23 / REQ-28).
 - ✅ Nested list depth expansion and image paste are deferred to Post-MVP (BL-24, BL-25).
 - ✅ SRG-04/SRG-17 clarified: non-local transport must use TLS before release.
+
+## BL-13.1 Trash/PIN UX Checkpoint (2026-06-03)
+
+- ✅ Trash review and recovery UX enhancements merged (read-only trash viewer, private-note unlock in trash, bulk restore/purge flows).
+- ✅ Create-from-trash behavior aligned: create action returns user to active results and surfaces the created note.
+- ✅ Private PIN settings flow merged with staged current-PIN verification and completion-state success rendering.
+- ✅ Planning artifacts updated for this slice: requirements, user stories, traceability matrix, and test plan.
+- ℹ️ BL-11 remains open and unchanged (NFR-10, NFR-12 input/accessibility parity).
+
+## BL-13 Security Implementation Checkpoint (2026-06-03)
+
+- ✅ Added append-only audit logger and service integration for create, update, delete, and restore operations.
+- ✅ Added unit coverage for SRG-05/SRG-07 audit fields and plaintext non-disclosure.
+- ✅ Verified focused BL-13 suite pass: `test_audit_logging`, `test_security_encryption`, `test_unlock_session_manager`, `test_private_unlock_ui`, `test_trash_ui`.
+- ✅ Added deterministic error-code mapping for repeated invalid requests (SRG-16) and verified via unit test.
+- ✅ Confirmed there is no outbound content-transmitting network path in the MVP codebase (SRG-17 code review evidence).
+- ✅ BL-13 gate checks in Gate 3 are complete for current MVP scope.

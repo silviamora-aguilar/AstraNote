@@ -37,6 +37,7 @@ data/*.sqlite
 data/*.sqlite3
 data/*.log
 data/*.jsonl
+data/config.json
 
 # Alembic runtime artifacts
 alembic/versions/__pycache__/

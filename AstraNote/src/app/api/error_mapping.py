@@ -27,3 +27,16 @@ def map_note_error_message(exc: Exception) -> str:
     if isinstance(exc, NotePersistenceError):
         return "Storage temporarily unavailable. Please try again."
     return "Unexpected error while processing note request."
+
+
+def map_note_error_code(exc: Exception) -> str:
+    """Return a deterministic machine-readable error code."""
+    if isinstance(exc, NoteValidationError):
+        return "VALIDATION_ERROR"
+    if isinstance(exc, NoteCapacityError):
+        return "CAPACITY_EXCEEDED"
+    if isinstance(exc, NoteNotFoundError):
+        return "NOT_FOUND"
+    if isinstance(exc, NotePersistenceError):
+        return "SAVE_ERROR"
+    return "INTERNAL_ERROR"

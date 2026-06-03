@@ -51,7 +51,12 @@ class UnlockSessionManager:
             remaining = int((state.lockout_until - now).total_seconds())
             return False, f"Enter correct pin to unlock private note. Try again in {max(1, remaining)}s."
 
-        if not self._crypto_service.verify_pin(pin):
+        try:
+            is_valid_pin = self._crypto_service.verify_pin(pin)
+        except Exception:
+            is_valid_pin = False
+
+        if not is_valid_pin:
             state.failed_attempts += 1
             if state.failed_attempts >= 5:
                 state.lockout_level += 1

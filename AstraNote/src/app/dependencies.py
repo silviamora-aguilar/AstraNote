@@ -11,7 +11,7 @@ from starlette.templating import Jinja2Templates
 
 from src.app.presentation import render_note_body_html, render_note_preview_html
 from src.app.repositories import SqlNoteRepository
-from src.app.security import CryptoService, PinSettingsManager, UnlockSessionManager
+from src.app.security import AuditLogger, CryptoService, PinSettingsManager, UnlockSessionManager
 from src.app.services import NoteService
 
 
@@ -40,11 +40,18 @@ def get_note_repository() -> SqlNoteRepository:
     return SqlNoteRepository(crypto_service=get_crypto_service())
 
 
+@lru_cache(maxsize=1)
+def get_audit_logger() -> AuditLogger:
+    """Provide a singleton append-only audit logger."""
+    return AuditLogger()
+
+
 def get_note_service(
     note_repository: Annotated[SqlNoteRepository, Depends(get_note_repository)],
+    audit_logger: Annotated[AuditLogger, Depends(get_audit_logger)],
 ) -> NoteService:
     """Provide the note service using the configured repository."""
-    return NoteService(note_repository)
+    return NoteService(note_repository, audit_logger=audit_logger)
 
 
 @lru_cache(maxsize=1)

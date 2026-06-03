@@ -24,7 +24,7 @@ def test_unlock_requires_valid_pin_and_sets_session_timeout(tmp_path: Path) -> N
 
     other_note_unlocked, other_note_error = manager.attempt_unlock("note-b", "0000")
     assert other_note_unlocked is False
-    assert other_note_error == "Unable to unlock private note."
+    assert other_note_error == "Enter correct pin to unlock private note."
     assert manager.is_unlocked("note-b") is False
 
 
@@ -36,8 +36,23 @@ def test_unlock_wrong_pin_is_rejected_with_generic_error(tmp_path: Path) -> None
     unlocked, error = manager.attempt_unlock("note-a", "0000")
 
     assert unlocked is False
-    assert error == "Unable to unlock private note."
+    assert error == "Enter correct pin to unlock private note."
     assert manager.is_unlocked("note-a") is False
+
+
+@pytest.mark.unit
+def test_unlock_internal_pin_error_returns_same_user_message(tmp_path: Path) -> None:
+    class _FailingCrypto:
+        def verify_pin(self, _pin: str) -> bool:
+            raise RuntimeError("crypto backend unavailable")
+
+    state_file = tmp_path / "security-state.json"
+    manager = UnlockSessionManager(_FailingCrypto(), state_file=state_file)
+
+    unlocked, error = manager.attempt_unlock("note-a", "1234")
+
+    assert unlocked is False
+    assert error == "Enter correct pin to unlock private note."
 
 
 @pytest.mark.unit

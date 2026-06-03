@@ -283,16 +283,19 @@ Scope note: This section is intentionally retained for future reactivation when 
 - **Setup**: Fake repo raises save error
 - **Expected**: ResultError returned, no partial state change
 
-### TP-U28 — Error handling: repeated invalid requests return consistent code
+### TP-U28 ✅ — Error handling: repeated invalid requests return consistent code
 - **Requirement**: SRG-16
-- **Expected**: Same error code on each retry
+- **Status**: ✅ Implemented (`tests/unit/test_error_mapping.py::test_note_error_codes_are_deterministic`, `tests/integration/test_create_note_api.py::test_repeated_invalid_create_returns_consistent_error_code_and_no_storage_side_effect`)
+- **Expected**: Same machine-readable error code on each retry; invalid retries do not mutate persisted note count
 
-### TP-U29 — Audit: create generates audit entry with required fields
+### TP-U29 ✅ — Audit: create generates audit entry with required fields
 - **Requirement**: SRG-05
+- **Status**: ✅ Implemented (`tests/unit/test_audit_logging.py::test_audit_log_writes_create_update_delete_restore_entries`)
 - **Expected**: AuditEntry has actor, action, note_id, UTC timestamp, outcome, correlation_id
 
-### TP-U30 — Audit: private note content absent from audit entry
+### TP-U30 ✅ — Audit: private note content absent from audit entry
 - **Requirement**: SRG-07
+- **Status**: ✅ Implemented (`tests/unit/test_audit_logging.py::test_audit_log_does_not_store_note_plaintext`)
 - **Expected**: AuditEntry does not contain plaintext title or body
 
 ### TP-U31 — Optimistic concurrency: stale version rejected
@@ -487,6 +490,7 @@ Scope note: This section is intentionally retained for future reactivation when 
 ### TP-SV05 — Raw PIN not present in any persisted file
 - **Requirement**: SRG-26
 - **Method**: After PIN setup, grep all data files for PIN string
+- **Status**: ✅ Verified 2026-06-03 (no plaintext `private_pin`/PIN value found in `data/config.json` or `data/audit-log.jsonl`; SQLite string probe negative for configured PIN value)
 
 ---
 
@@ -662,8 +666,8 @@ Scope note: This section is intentionally retained for future reactivation when 
 
 ### TP-M13 — All five SMR-10 config keys applied at runtime
 - **Requirement**: SMR-10
-- **Method**: Set each of log_level, data_dir, inactivity_timeout_minutes, max_notes, private_pin to non-default valid values; verify each takes effect
-- **Expected**: log_level changes log verbosity; inactivity_timeout_minutes controls session expiry; max_notes controls capacity limit; private_pin controls private-note unlock verification baseline
+- **Method**: Set each of log_level, data_dir, inactivity_timeout_minutes, max_notes; set/update encrypted `private_pin_token` via PIN settings flow; verify each takes effect
+- **Expected**: log_level changes log verbosity; inactivity_timeout_minutes controls session expiry; max_notes controls capacity limit; `private_pin_token` reflects the active private-note unlock baseline without storing raw PIN
 
 ### TP-M14 — App version displayed in About UI and logged on startup
 - **Requirement**: SMR-11

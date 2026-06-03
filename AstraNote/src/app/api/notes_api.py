@@ -6,7 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from src.app.api.error_mapping import map_note_error_message, map_note_error_status
+from src.app.api.error_mapping import map_note_error_code, map_note_error_message, map_note_error_status
 from src.app.api.schemas import (
     BulkDeleteNotesRequest,
     BulkDeleteNotesResponse,
@@ -35,6 +35,7 @@ def search_notes(
         raise HTTPException(
             status_code=map_note_error_status(exc),
             detail=map_note_error_message(exc),
+            headers={"X-Error-Code": map_note_error_code(exc)},
         ) from exc
 
     return [
@@ -67,6 +68,7 @@ def create_note(
         raise HTTPException(
             status_code=map_note_error_status(exc),
             detail=map_note_error_message(exc),
+            headers={"X-Error-Code": map_note_error_code(exc)},
         ) from exc
 
     return CreateNoteResponse(
@@ -92,6 +94,7 @@ def delete_note(
         raise HTTPException(
             status_code=map_note_error_status(exc),
             detail=map_note_error_message(exc),
+            headers={"X-Error-Code": map_note_error_code(exc)},
         ) from exc
 
 
@@ -107,6 +110,7 @@ def bulk_delete_notes(
         raise HTTPException(
             status_code=map_note_error_status(exc),
             detail=map_note_error_message(exc),
+            headers={"X-Error-Code": map_note_error_code(exc)},
         ) from exc
 
     return BulkDeleteNotesResponse(deleted_count=deleted_count)
@@ -130,6 +134,7 @@ def update_note(
         raise HTTPException(
             status_code=map_note_error_status(exc),
             detail=map_note_error_message(exc),
+            headers={"X-Error-Code": map_note_error_code(exc)},
         ) from exc
 
     return UpdateNoteResponse(
