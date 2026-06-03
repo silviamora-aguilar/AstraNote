@@ -1,7 +1,7 @@
 # Sprint 1 Plan (AstraNotes)
 
 ## Sprint Goal
-Deliver a working web multi-user note-taking core: authenticated create, edit, delete, list, and search with owner-scoped persistence, validation, soft-delete, audit logging, and architecture boundaries enforced. Advanced privacy/security hardening remains in Sprint 2.
+Deliver a working single-user local web note-taking core: create, edit, delete, list, and search with validated persistence, soft-delete, audit logging, and architecture boundaries enforced. Advanced privacy/security hardening continues in Sprint 2.
 
 ## Duration
 2 weeks
@@ -14,7 +14,7 @@ Deliver a working web multi-user note-taking core: authenticated create, edit, d
 - S1-02: Implement `NoteRepository` abstract interface (`save`, `get`, `list`, `search`, `soft_delete`, `restore`)
 - S1-03: Implement `SqlNoteRepository.save()` with transactional commit/rollback and SRG-25 plaintext field enforcement
 - S1-04: Implement `NoteService.create()` with title validation (REQ-02), duplicate-title suffix (REQ-03), capacity check (REQ-23/24), unique ID + timestamps (REQ-04)
-- S1-05: Wire web create-note form (Jinja2 + HTMX) to `NoteService.create()` via protected endpoint
+- S1-05: Wire web create-note form (Jinja2 + HTMX) to `NoteService.create()` via note API/UI endpoint
 
 **BL-01 Vertical Slice Traceability Note (2026-05-11):**
 - Requirement IDs realized in this slice: `REQ-01`, `REQ-02`, `REQ-03`, `REQ-04`, `REQ-23`, `REQ-24`.
@@ -28,7 +28,7 @@ Deliver a working web multi-user note-taking core: authenticated create, edit, d
 - Carry-forward residuals (tracked, non-blocking for BL-02 start):
   - UML explicit validation and duplicate-suffix branches still pending artifact updates.
   - Capacity/load verification artifact for the 10,000-note boundary remains pending.
-  - Broader Sprint 1 foundations (BL-21/BL-22) remain open and continue in planned order.
+  - Broader Sprint 1 foundations (BL-21) remain open and continue in planned order.
 
 **Exit criteria:** Creates a note, persists to SQLite store, title constraints enforced, duplicate auto-suffix works, rejects at 10,000-note limit.
 
@@ -38,7 +38,7 @@ Deliver a working web multi-user note-taking core: authenticated create, edit, d
 **Tasks:**
 - S1-06: Implement `NoteService.update()` with same title validation as REQ-02, self-exclusion duplicate check (REQ-07), and updated_at refresh (REQ-08)
 - S1-07: Implement `SqlNoteRepository` update path with transaction boundary
-- S1-08: Wire web edit-note form to `NoteService.update()` via protected endpoint
+- S1-08: Wire web edit-note form to `NoteService.update()` via note API/UI endpoint
 
 **Exit criteria:** Edits persist, original `note_id` and `created_at` preserved, `updated_at` updated, duplicate check excludes current note.
 
@@ -77,7 +77,7 @@ Deliver a working web multi-user note-taking core: authenticated create, edit, d
 ### BL-04 · List Notes (REQ-12, REQ-13, REQ-14)
 **Tasks:**
 - S1-14: Implement `NoteService.list()` returning notes sorted newest-first, excluding soft-deleted
-- S1-15: Implement UI list view: 60-char title truncation with ellipsis; show `Modified: Month DD, YYYY HH:MM PST/PDT` in the editor panel under Created (REQ-12)
+- S1-15: Implement UI list view: 40-char title truncation with ellipsis; show `Modified: Month DD, YYYY HH:MM PST/PDT` in the editor panel under Created (REQ-12)
 - S1-16: Implement empty-state message: "No notes yet. Create your first note." (REQ-13)
 - S1-17: Ensure list refreshes after create, edit, delete (REQ-14)
 
@@ -133,18 +133,9 @@ These tasks must be completed in Sprint 1 because logging, config, and startup i
 
 ---
 
-### BL-22 · Web Multi-User Foundation (WEB-01–WEB-08)
-**Tasks:**
-- S1-43: Implement account authentication flow (sign-in/sign-out) with server-side session cookies (WEB-01)
-- S1-44: Implement session inactivity timeout (default 15 minutes) with server-side enforcement (WEB-05)
-- S1-45: Add CSRF protection to all state-changing endpoints (`POST`, `PUT`, `PATCH`, `DELETE`) (WEB-06)
-- S1-46: Add owner scoping (`owner_user_id`) to all note repository queries and mutations (WEB-02)
-- S1-47: Expose JSON API routes for create/edit/delete/list/search/restore with stable payload contracts (WEB-03)
-- S1-48: Enforce UI-to-API boundary for Jinja2 + HTMX views (WEB-04)
-- S1-49: Add transactional multi-user write integration test workload (WEB-07)
-- S1-50: Add shared deployment smoke checklist and health endpoint validation (WEB-08)
-
-**Exit criteria:** Authenticated sessions required for note operations, per-user isolation proven by tests, API endpoints operational, CSRF enabled for writes, and deployment smoke check documented.
+### BL-22 · Web Multi-User Foundation (WEB-01–WEB-11) [Post-MVP Deferred]
+**Status:** Deferred under 2026-06-02 pivot to single-user local web MVP.
+**Deferred scope note:** Keep WEB requirements documented for later reactivation; no Sprint 1 implementation tasks are active for BL-22.
 
 **Exit criteria:** Diagnostic log written for all operations with required fields; config.json controls log level; corrupt persistence store handled on startup without crash; schema/migration version guard blocks stale writes; app version visible in UI and startup log; shutdown does not interrupt in-flight transaction completion.
 
@@ -170,13 +161,11 @@ S1-01 (Note model) → S1-02 (NoteRepository interface)
   → S1-18 (NoteService.search)    → S1-19–S1-20 (UI search)
 S1-26 (AuditEntry) → S1-27 (integrate into NoteService)
 S1-29 (ResultError) → all NoteService methods
-S1-43 (auth/session) → S1-46 (owner scoping) → all protected note routes
 S1-21–S1-25 (boundaries + tests) — run in parallel with above
 ```
 
 ## Sprint 1 Exit Criteria
 - All tasks S1-01 through S1-31 complete
-- All tasks S1-43 through S1-50 complete
 - Unit tests pass for NoteService (with fake repo) and SqlNoteRepository (with temp DB)
 - Integration test: full create → edit → list → search → soft-delete → restore round-trip passes
 - Persistence layer contains no plaintext title or body fields
@@ -232,10 +221,10 @@ Deliver authoring features (lists, formatting, capacity) and the full private-no
 - S2-13: Implement `SecureNote` encryption/decryption using AES-256-GCM; encrypt `title`, `body`, `version_content` before any write (SRG-01, SRG-02)
 - S2-14: Validate SRG-25 plaintext allowlist: verify persisted records contain no plaintext `title`, `body`, or `version_content`
 - S2-15: Implement `UnlockSessionManager` — session-scoped unlock (SRG-20), 15-min inactivity expiry (SRG-21)
-- S2-16: Implement 5-consecutive-failure rate limiting and exponential-backoff lockout (min 5 min, doubling); persist lockout state + expiry to `security-state.json` across restarts (SRG-22, SRG-23)
+- S2-16: Implement 5-consecutive-failure rate limiting and exponential-backoff lockout (min 5 min, doubling) within the active app session; reset lockout state on restart (SRG-22, SRG-23)
 - S2-17: Implement anti-enumeration: identical error message and response timing for wrong passphrase and internal error (SRG-24)
 - S2-18: Gate content-transmitting features on SRG-04 TLS compliance (SRG-17) — add release gate check (see `release-gates.md`)
-- S2-19: Write security unit tests: encryption round-trip, passphrase wrong → no plaintext exposed (SRG-19), lockout persistence, timeout expiry
+- S2-19: Write security unit tests: encryption round-trip, passphrase wrong → no plaintext exposed (SRG-19), lockout reset on restart, timeout expiry
 
 ---
 

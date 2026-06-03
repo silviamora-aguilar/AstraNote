@@ -1,8 +1,7 @@
-"""Security utilities (authentication, encryption, hashing)."""
+"""Security utilities used by AstraNotes."""
 
-# Import security utilities here as they're created
-# from .password_hash import hash_password, verify_password
-# from .key_derivation import derive_note_key
-# from .session_manager import SessionManager
+from src.app.security.crypto_service import CryptoService
+from src.app.security.pin_settings_manager import PinSettingsManager
+from src.app.security.unlock_session_manager import UnlockSessionManager
 
-__all__ = []
+__all__ = ["CryptoService", "PinSettingsManager", "UnlockSessionManager"]

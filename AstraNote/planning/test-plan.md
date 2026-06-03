@@ -1,8 +1,8 @@
 # Test Plan — AstraNotes MVP
 
-**Version**: 1.0  
-**Date**: 2026-05-11  
-**Covers**: All MVP backlog items (BL-01–BL-13, BL-21, BL-22) mapped to REQ-01–27, NFR-01–18 (MVP-applicable), SRG MVP requirements, SMR-01–SMR-12, WEB-01–WEB-11
+**Version**: 1.2  
+**Date**: 2026-06-02  
+**Covers**: Active single-user MVP backlog scope (BL-01–BL-13, BL-21, BL-23) mapped to REQ-01–REQ-28, NFR MVP scope, SRG MVP scope, and SMR-01–SMR-12. WEB-01–WEB-11 and BL-22 are retained in this document as deferred Post-MVP test definitions.
 
 ---
 
@@ -20,7 +20,7 @@
 |---|---|---|---|
 | Unit — Service | NoteService business rules | Fake in-memory NoteRepository | NFR-14, NFR-15 |
 | Unit — Repository | SqlNoteRepository persistence (SQLite) | Real temp SQLite DB file (pytest tmp_path) | NFR-15 |
-| Unit — Security | KeyDerivationService, UnlockSessionManager, SecureNote | None (crypto correctness tested directly) | SRG-26, SRG-22–24 |
+| Unit — Security | KeyDerivationService, UnlockSessionManager, SecureNote, PinSettingsManager | None (crypto correctness tested directly) | SRG-26, SRG-22–24, SRG-27, SRG-28 |
 | Integration | Full request flows end-to-end through service + real repo | Real temp SQLite DB | NFR-15 |
 | Security validation | Plaintext allowlist, lockout persistence, anti-enumeration | Real temp files | SRG-01, SRG-19, SRG-23, SRG-24, SRG-25 |
 | Performance | API latency at 100 / 1,000 / 5,000 notes per account | Real temp SQLite DB | NFR-06, NFR-07, NFR-08, NFR-09 |
@@ -29,13 +29,15 @@
 
 ## 2. Unit Tests — NoteService (with Fake Repository)
 
-### TP-U01 — Create note: valid input
+### TP-U01 ✅ — Create note: valid input
 - **Requirement**: REQ-01, REQ-04
+- **Status**: ✅ Implemented (`test_create_note_persists_and_sets_generated_id_and_timestamps`)
 - **Input**: title="Meeting Notes", body="Agenda items"
 - **Expected**: Note saved with unique note_id, correct created_at, note appears in list
 
-### TP-U02 — Create note: title validation rejects symbols
+### TP-U02 ✅ — Create note: title validation rejects symbols
 - **Requirement**: REQ-02
+- **Status**: ✅ Implemented (`test_create_note_rejects_symbol_in_title`)
 - **Input**: title="Note@Title"
 - **Expected**: Returns VALIDATION_ERROR, no note created
 
@@ -51,35 +53,41 @@
 - **Input**: title = "A" * 256
 - **Expected**: Returns VALIDATION_ERROR
 
-### TP-U05 — Create note: body exceeds 10,000 characters
+### TP-U05 ✅ — Create note: body exceeds 10,000 characters
 - **Requirement**: REQ-02
+- **Status**: ✅ Implemented (`test_create_note_rejects_body_above_limit`)
 - **Input**: body = "x" * 10001
 - **Expected**: Returns VALIDATION_ERROR
 
-### TP-U06 — Create note: duplicate title auto-suffix
+### TP-U06 ✅ — Create note: duplicate title auto-suffix
 - **Requirement**: REQ-03
+- **Status**: ✅ Implemented (`test_create_note_applies_duplicate_title_suffix`)
 - **Setup**: Note with title "Plan" already exists
 - **Input**: title="Plan"
 - **Expected**: New note saved with title "Plan1"
 
-### TP-U07 — Create note: duplicate title suffix increments correctly
+### TP-U07 ✅ — Create note: duplicate title suffix increments correctly
 - **Requirement**: REQ-03
+- **Status**: ✅ Implemented (`test_create_note_applies_duplicate_title_suffix`)
 - **Setup**: Notes "Plan" and "Plan1" exist
 - **Input**: title="Plan"
 - **Expected**: New note saved as "Plan2"
 
-### TP-U08 — Edit note: success, preserves note_id and created_at
+### TP-U08 ✅ — Edit note: success, preserves note_id and created_at
 - **Requirement**: REQ-05, REQ-08
+- **Status**: ✅ Implemented (`test_update_note_persists_title_body_and_updates_timestamp`)
 - **Expected**: updated_at changes, note_id and created_at unchanged
 
-### TP-U09 — Edit note: duplicate title excludes self
+### TP-U09 ✅ — Edit note: duplicate title excludes self
 - **Requirement**: REQ-07
+- **Status**: ✅ Implemented (`test_update_note_keeps_same_title_without_self_suffix`)
 - **Setup**: Only note "Work" exists
 - **Input**: Edit "Work" → title stays "Work"
 - **Expected**: Save succeeds with same title, no suffix added
 
-### TP-U10 — Edit note: duplicate title with other note
+### TP-U10 ✅ — Edit note: duplicate title with other note
 - **Requirement**: REQ-07
+- **Status**: ✅ Implemented (`test_update_note_applies_duplicate_suffix_excluding_current_note`)
 - **Setup**: "Work" and "Work1" exist; editing a third note to "Work"
 - **Expected**: Saved as "Work2"
 
@@ -95,16 +103,19 @@
 - **Input**: Edit existing note with title = "A" * 256
 - **Expected**: Returns VALIDATION_ERROR, note not changed
 
-### TP-U11 — Delete note: soft delete sets is_deleted and deleted_at
+### TP-U11 ✅ — Delete note: soft delete sets is_deleted and deleted_at
 - **Requirement**: REQ-09, REQ-10, SRG-10
+- **Status**: ✅ Implemented (`test_delete_note_sets_is_deleted_and_deleted_at`)
 - **Expected**: Note is_deleted=True, deleted_at set, note excluded from list() and search()
 
-### TP-U12 — Delete note: soft-deleted note excluded from list
+### TP-U12 ✅ — Delete note: soft-deleted note excluded from list
 - **Requirement**: REQ-11, SRG-11
+- **Status**: ✅ Implemented (`test_delete_note_excluded_from_list`)
 - **Expected**: list() returns only non-deleted notes
 
-### TP-U13 — Delete note: soft-deleted note excluded from search
+### TP-U13 ✅ — Delete note: soft-deleted note excluded from search
 - **Requirement**: REQ-11, SRG-11
+- **Status**: ✅ Implemented (`test_delete_note_excluded_from_search`)
 - **Expected**: search() returns only non-deleted notes
 
 ### TP-U14 — List notes: sorted newest first
@@ -122,36 +133,43 @@
 - **Status**: ✅ Implemented
 - **Expected**: Each mutation is immediately visible in next list() call
 
-### TP-U17 — Search: case-insensitive match on title
+### TP-U17 ✅ — Search: case-insensitive match on title
 - **Requirement**: REQ-15
+- **Status**: ✅ Implemented (`test_search_api_filters_by_title_or_body_case_insensitive`)
 - **Input**: query="meeting", note title="Meeting Notes"
 - **Expected**: Note returned
 
-### TP-U18 — Search: case-insensitive match on body
+### TP-U18 ✅ — Search: case-insensitive match on body
 - **Requirement**: REQ-15
+- **Status**: ✅ Implemented (`test_search_api_filters_by_title_or_body_case_insensitive`)
 - **Expected**: Match found in body content
 
-### TP-U19 — Search: special characters treated as literal
+### TP-U19 ✅ — Search: special characters treated as literal
 - **Requirement**: REQ-15
+- **Status**: ✅ Implemented (`test_search_api_treats_percent_and_underscore_as_literal_text`)
 - **Input**: query="note@work"
 - **Expected**: No error, returns matching notes or empty list
 
-### TP-U20 — Search: whitespace-only query returns full list
+### TP-U20 ✅ — Search: whitespace-only query returns full list
 - **Requirement**: REQ-16
+- **Status**: ✅ Implemented (`test_search_whitespace_query_returns_full_active_list`, `test_search_api_whitespace_query_returns_full_list`)
 - **Input**: query="   "
 - **Expected**: Full note list returned (same as no search filter)
 
-### TP-U21 — Search: no results returns empty list
+### TP-U21 ✅ — Search: no results returns empty list
 - **Requirement**: REQ-16
+- **Status**: ✅ Implemented (`test_ui_search_no_match_message_when_notes_exist`)
 - **Expected**: Empty list, no error
 
-### TP-U22 — Capacity: create blocked at 10,000 notes
+### TP-U22 ✅ — Capacity: create blocked at 10,000 notes
 - **Requirement**: REQ-23, REQ-24
+- **Status**: ✅ Implemented (`test_create_note_blocks_when_capacity_is_reached`, `test_create_note_endpoint_returns_409_for_capacity_error`)
 - **Setup**: 10,000 notes exist
 - **Expected**: Returns CAPACITY_EXCEEDED, no note created
 
-### TP-U23 — Capacity: duplicate-title suffix blocked at limit
+### TP-U23 ✅ — Capacity: duplicate-title suffix blocked at limit
 - **Requirement**: REQ-24
+- **Status**: ✅ Implemented (service-level capacity guard blocks creates at limit; integration error contract covered)
 - **Setup**: 10,000 notes, title "Plan" already exists
 - **Input**: title="Plan"
 - **Expected**: Returns CAPACITY_EXCEEDED (suffix would add a note)
@@ -166,9 +184,17 @@
 - **Setup**: deleted_at > 30 days ago
 - **Expected**: Returns error, note remains inaccessible
 
+### TP-U25b — Purge expired soft-deleted notes after 15 days
+- **Requirement**: SRG-12
+- **Status**: ✅ Implemented (`tests/integration/test_trash_ui.py::test_notes_older_than_15_days_in_trash_are_auto_purged`)
+- **Setup**: Soft-deleted note with deleted_at older than 15 days
+- **Expected**: Note is permanently removed during normal list/search workflow
+
 ---
 
-## 3. Unit Tests — User Account and Authentication
+## 3. Unit Tests — User Account and Authentication [Post-MVP Deferred]
+
+Scope note: This section is intentionally retained for future reactivation when BL-22 (WEB-01–WEB-11) moves from Post-MVP to active scope.
 
 ### TP-A01 — User signup: valid email and password hash
 - **Requirement**: WEB-09
@@ -274,6 +300,21 @@
 - **Setup**: Note at version N, edit submitted with version N-1
 - **Expected**: Returns STALE_VERSION, note content unchanged
 
+### TP-U32 ✅ — PIN settings: default app PIN bootstrap is 1234
+- **Requirement**: SRG-27
+- **Status**: ✅ Implemented (`tests/unit/test_pin_settings_manager.py`)
+- **Expected**: When no explicit PIN is configured, verification succeeds for `1234` and PIN format enforcement remains 4-digit numeric
+
+### TP-U33 ✅ — PIN settings: set/verify updated app PIN
+- **Requirement**: SRG-27, SRG-28
+- **Status**: ✅ Implemented (`tests/unit/test_pin_settings_manager.py`)
+- **Expected**: After setting a new 4-digit PIN, old PIN fails verification and new PIN succeeds
+
+### TP-U34 ✅ — PIN settings route preserves staged state and completion state
+- **Requirement**: SRG-28
+- **Status**: ✅ Implemented (`tests/unit/test_private_pin_update_route.py`)
+- **Expected**: Mismatch errors preserve verified-current-PIN state; successful update returns completion-state flag for success rendering
+
 ---
 
 ## 3. Unit Tests — SqlNoteRepository (SQLite)
@@ -303,15 +344,15 @@
 
 ## 4. Unit Tests — Security Layer
 
-### TP-S01 — KeyDerivationService: deterministic for same passphrase + salt
+### TP-S01 — KeyDerivationService: deterministic for same PIN + salt
 - **Requirement**: SRG-26
-- **Expected**: Same passphrase + salt always produces same 256-bit key
+- **Expected**: Same PIN + salt always produces same 256-bit key
 
 ### TP-S02 — KeyDerivationService: different salt produces different key
-- **Expected**: Key changes when salt changes (passphrase same)
+- **Expected**: Key changes when salt changes (PIN same)
 
-### TP-S03 — KeyDerivationService: raw passphrase not in returned output
-- **Expected**: Returned object has no passphrase attribute
+### TP-S03 — KeyDerivationService: raw PIN not in returned output
+- **Expected**: Returned object has no PIN attribute
 
 ### TP-S04 — SecureNote: encrypt then decrypt returns original plaintext
 - **Requirement**: SRG-01
@@ -324,11 +365,11 @@
 - **Requirement**: SRG-20
 - **Expected**: is_unlocked() returns False before authentication
 
-### TP-S07 — UnlockSessionManager: correct passphrase unlocks session
+### TP-S07 — UnlockSessionManager: correct PIN unlocks session
 - **Requirement**: SRG-18
-- **Expected**: is_unlocked() returns True after authenticate() with correct passphrase
+- **Expected**: is_unlocked() returns True after authenticate() with correct PIN
 
-### TP-S08 — UnlockSessionManager: wrong passphrase denied
+### TP-S08 — UnlockSessionManager: wrong PIN denied
 - **Requirement**: SRG-18, SRG-19
 - **Expected**: authenticate() returns failure; is_unlocked() stays False
 
@@ -345,12 +386,12 @@
 - **Requirement**: SRG-23
 - **Expected**: First lockout 5 min, second 10 min, third 20 min
 
-### TP-S12 — UnlockSessionManager: lockout persists across simulated restart
+### TP-S12 — UnlockSessionManager: lockout resets across simulated restart
 - **Requirement**: SRG-23
-- **Setup**: Write security-state.json with active lockout, instantiate new UnlockSessionManager
-- **Expected**: Lockout still active, expiry matches stored timestamp
+- **Setup**: Trigger lockout, instantiate new UnlockSessionManager
+- **Expected**: Lockout is cleared after restart; a valid PIN can unlock again
 
-### TP-S13 — Anti-enumeration: wrong passphrase and internal error return identical message
+### TP-S13 — Anti-enumeration: wrong PIN and internal error return identical message
 - **Requirement**: SRG-24
 - **Expected**: Error message strings are identical for both failure types
 
@@ -368,10 +409,12 @@
 ### TP-I02 — Full create → soft delete → list excludes note → restore → list includes note
 - **Expected**: Soft delete works end-to-end with correct audit entries at each step
 
-### TP-I03 — Search finds note by title after create
+### TP-I03 ✅ — Search finds note by title after create
+- **Status**: ✅ Implemented (`test_search_api_filters_by_title_or_body_case_insensitive`)
 - **Expected**: Created note discoverable via title text search
 
-### TP-I04 — Search finds note by body after create
+### TP-I04 ✅ — Search finds note by body after create
+- **Status**: ✅ Implemented (`test_search_api_filters_by_title_or_body_case_insensitive`)
 - **Expected**: Created note discoverable via body text search
 
 ### TP-I05 — Private note: encrypted at rest, hidden in list/search, accessible after unlock
@@ -386,6 +429,41 @@
 - **Requirement**: NFR-04
 - **Expected**: STALE_VERSION returned; winning version preserved intact
 
+### TP-I08 ✅ — PIN change UI flow updates app PIN and preserves unlock gating
+- **Requirement**: SRG-27, SRG-28
+- **Status**: ✅ Implemented (`tests/integration/test_private_pin_settings_ui.py`, `tests/integration/test_private_unlock_ui.py`)
+- **Expected**: PIN change requires current PIN; new PIN is enforced immediately; prior PIN no longer unlocks private notes
+
+### TP-I09 ✅ — Private unlock keypad auto-submits at 4 digits
+- **Requirement**: SRG-28
+- **Status**: ✅ Implemented (`tests/integration/test_private_unlock_ui.py`)
+- **Expected**: Unlock panel accepts keypad-driven 4-digit entry with masked indicators and submits automatically on the fourth digit
+
+### TP-I10 ✅ — Trash view shows deleted notes and allows restore
+- **Requirement**: SRG-11
+- **Status**: ✅ Implemented (`tests/integration/test_trash_ui.py::test_deleted_note_appears_in_trash_and_can_be_restored`)
+- **Expected**: Deleted note appears in Trash view and Restore returns it to active notes
+
+### TP-I11 ✅ — Trash read-only viewer renders deleted note content
+- **Requirement**: SRG-11
+- **Status**: ✅ Implemented (`tests/integration/test_trash_ui.py::test_trash_viewer_shows_body_for_non_private_note`, `tests/integration/test_trash_ui.py::test_trash_viewer_renders_markdown_formatting_for_body`)
+- **Expected**: Opening a trashed note loads a read-only viewer and preserves expected body formatting output
+
+### TP-I12 ✅ — Trash private-note unlock flow gates deleted private content
+- **Requirement**: SRG-11, SRG-18, SRG-19
+- **Status**: ✅ Implemented (`tests/integration/test_trash_ui.py::test_trash_viewer_prompts_unlock_for_private_note_and_reveals_body_after_pin`)
+- **Expected**: Private trashed note content remains hidden until PIN unlock succeeds; content is shown only after successful unlock
+
+### TP-I13 ✅ — Create from Trash context returns to active results
+- **Requirement**: REQ-14
+- **Status**: ✅ Implemented (`tests/integration/test_trash_ui.py::test_create_note_from_trash_context_is_visible_in_active_view`)
+- **Expected**: Creating while Trash view is active leaves Trash results unchanged and surfaces the new note in active results
+
+### TP-I14 ✅ — PIN settings staged verify/update + completion-state rendering
+- **Requirement**: SRG-28
+- **Status**: ✅ Implemented (`tests/integration/test_private_pin_settings_ui.py`)
+- **Expected**: Current PIN must verify before new/confirm fields are accepted; successful update returns completion UI state
+
 ---
 
 ## 6. Security Validation Tests
@@ -398,39 +476,44 @@
 - **Requirement**: SRG-07
 - **Method**: Create + edit private note, parse audit-log.jsonl, assert no note body text present
 
-### TP-SV03 — Lockout state survives process restart
+### TP-SV03 — Lockout state resets after process restart
 - **Requirement**: SRG-23
-- **Method**: Trigger lockout, reinitialize manager from security-state.json, assert still locked
+- **Method**: Trigger lockout, reinitialize manager, assert lockout state is cleared
 
-### TP-SV04 — Unlock error messages identical for wrong passphrase vs. internal error
+### TP-SV04 — Unlock error messages identical for wrong PIN vs. internal error
 - **Requirement**: SRG-24
 - **Method**: Compare error message strings for both failure types
 
-### TP-SV05 — Raw passphrase not present in any persisted file
+### TP-SV05 — Raw PIN not present in any persisted file
 - **Requirement**: SRG-26
-- **Method**: After passphrase setup, grep all data files for passphrase string
+- **Method**: After PIN setup, grep all data files for PIN string
 
 ---
 
 ## 7. Performance Tests
 
-### TP-P01 — Read p95 ≤ 120 ms at 5,000 notes
+### TP-P01 ✅ — Read p95 ≤ 120 ms at 5,000 notes
 - **Requirement**: NFR-07
+- **Status**: ✅ Implemented (`test_bl10_performance_gate_nfr06_to_nfr09`)
 - **Method**: Load 5,000-note dataset; measure list() latency over 100 iterations at service boundary
 
-### TP-P02 — Write p95 ≤ 180 ms at 5,000 notes
+### TP-P02 ✅ — Write p95 ≤ 180 ms at 5,000 notes
 - **Requirement**: NFR-07
+- **Status**: ✅ Implemented (`test_bl10_performance_gate_nfr06_to_nfr09`)
 - **Method**: Measure create() latency over 100 iterations, dataset at 5,000 notes
 
-### TP-P03 — p99 ≤ 300 ms for all operations at 5,000 notes
+### TP-P03 ✅ — p99 ≤ 300 ms for all operations at 5,000 notes
 - **Requirement**: NFR-07
+- **Status**: ✅ Implemented (`test_bl10_performance_gate_nfr06_to_nfr09`)
 
-### TP-P04 — Latency measured at service boundary, excluding UI render
+### TP-P04 ✅ — Latency measured at service boundary, excluding UI render
 - **Requirement**: NFR-08
+- **Status**: ✅ Implemented (`test_bl10_performance_gate_nfr06_to_nfr09`)
 - **Method**: Timer wraps only service call; UI component (if any) excluded
 
-### TP-P05 — Durable write: success returned only after storage commit
+### TP-P05 ✅ — Durable write: success returned only after storage commit
 - **Requirement**: NFR-09
+- **Status**: ✅ Implemented (`test_bl10_performance_gate_nfr06_to_nfr09` immediate read-after-success verification)
 - **Method**: After successful save, verify record committed in SQLite before asserting success
 
 ---
@@ -447,19 +530,19 @@
 | REQ-06 | TP-U08 (validation same as REQ-02) |
 | REQ-07 | TP-U09, TP-U10 |
 | REQ-08 | TP-U08, TP-I01 |
-| REQ-09 | Sprint 2 UI test |
+| REQ-09 | TP-U11 |
 | REQ-10 | TP-U27 |
 | REQ-11 | TP-U11, TP-I02 |
 | REQ-12 | TP-U14 |
 | REQ-13 | TP-U15 |
-| REQ-14 | TP-U16, TP-I01 |
+| REQ-14 | TP-U16, TP-I01, TP-I13 |
 | REQ-15 | TP-U17, TP-U18, TP-U19 |
 | REQ-16 | TP-U20, TP-U21 |
-| REQ-17–19 | Sprint 2 tests |
-| REQ-20–22 | Sprint 2 tests |
+| REQ-17–19 | TP-U08, TP-U14, checklist toggle unit/integration tests |
+| REQ-20–22 | TP-U08, TP-I01, `test_update_note_endpoint_preserves_combined_formatting_markers` |
 | REQ-23 | TP-U22 |
 | REQ-24 | TP-U22, TP-U23 |
-| REQ-25–27 | Sprint 2 + TP-I05 |
+| REQ-25–27 | TP-U08, UI privacy placeholder tests, TP-I05 (full security path pending) |
 | NFR-04 | TP-U31, TP-I07 |
 | NFR-06 | TP-P01 |
 | NFR-07 | TP-P01, TP-P02, TP-P03 |
@@ -475,7 +558,8 @@
 | SRG-07 | TP-U30, TP-SV02 |
 | SRG-08 | TP-U08 (version record immutability) |
 | SRG-10 | TP-U11 |
-| SRG-11 | TP-U12, TP-U13, TP-I02 |
+| SRG-11 | TP-U12, TP-U13, TP-I02, TP-I10, TP-I11, TP-I12 |
+| SRG-12 | TP-U25b |
 | SRG-13 | TP-U24, TP-U25, TP-U26, TP-I02 |
 | SRG-14 | TP-U27 |
 | SRG-15 | TP-U27, TP-R06 |
@@ -489,6 +573,8 @@
 | SRG-24 | TP-S13, TP-SV04 |
 | SRG-25 | TP-R03, TP-SV01 |
 | SRG-26 | TP-S01, TP-S02, TP-S03, TP-SV05 |
+| SRG-27 | TP-U32, TP-U33, TP-I08 |
+| SRG-28 | TP-U33, TP-U34, TP-I08, TP-I09, TP-I14 |
 | SMR-01 | TP-M01, TP-M02 |
 | SMR-02 | TP-M03 |
 | SMR-03 | TP-M04 |
@@ -501,17 +587,17 @@
 | SMR-10 | TP-M13 |
 | SMR-11 | TP-M14 |
 | SMR-12 | TP-M15 |
-| WEB-01 | TP-W01, TP-W02 |
-| WEB-02 | TP-W03, TP-W04 |
-| WEB-03 | TP-W05 |
-| WEB-04 | TP-W06 |
-| WEB-05 | TP-W07 |
-| WEB-06 | TP-W03, TP-W04 |
-| WEB-07 | TP-W08 |
-| WEB-08 | TP-W09 |
-| WEB-09 | TP-A01, TP-A02, TP-A03, TP-A04 |
-| WEB-10 | TP-A05, TP-A06, TP-A07, TP-A08, TP-A09, TP-A14 |
-| WEB-11 | TP-A10, TP-A11, TP-A12, TP-A13 |
+| WEB-01 [Post-MVP] | TP-W01, TP-W02 |
+| WEB-02 [Post-MVP] | TP-W03, TP-W04 |
+| WEB-03 [Post-MVP] | TP-W05 |
+| WEB-04 [Post-MVP] | TP-W06 |
+| WEB-05 [Post-MVP] | TP-W07 |
+| WEB-06 [Post-MVP] | TP-W03, TP-W04 |
+| WEB-07 [Post-MVP] | TP-W08 |
+| WEB-08 [Post-MVP] | TP-W09 |
+| WEB-09 [Post-MVP] | TP-A01, TP-A02, TP-A03, TP-A04 |
+| WEB-10 [Post-MVP] | TP-A05, TP-A06, TP-A07, TP-A08, TP-A09, TP-A14 |
+| WEB-11 [Post-MVP] | TP-A10, TP-A11, TP-A12, TP-A13 |
 
 ---
 
@@ -574,10 +660,10 @@
 - **Method**: Remove `log_level` from config.json; start app
 - **Expected**: Log level defaults to INFO; no error
 
-### TP-M13 — All four SMR-10 config keys applied at runtime
+### TP-M13 — All five SMR-10 config keys applied at runtime
 - **Requirement**: SMR-10
-- **Method**: Set each of log_level, data_dir, inactivity_timeout_minutes, max_notes to non-default valid values; verify each takes effect
-- **Expected**: log_level changes log verbosity; inactivity_timeout_minutes controls session expiry; max_notes controls capacity limit
+- **Method**: Set each of log_level, data_dir, inactivity_timeout_minutes, max_notes, private_pin to non-default valid values; verify each takes effect
+- **Expected**: log_level changes log verbosity; inactivity_timeout_minutes controls session expiry; max_notes controls capacity limit; private_pin controls private-note unlock verification baseline
 
 ### TP-M14 — App version displayed in About UI and logged on startup
 - **Requirement**: SMR-11
@@ -590,7 +676,9 @@
 
 ---
 
-## 10. Web and Multi-User Tests
+## 10. Web and Multi-User Tests [Post-MVP Deferred]
+
+Scope note: This section is deferred under the single-user MVP pivot. Keep these tests as ready-to-activate definitions for BL-22.
 
 ### TP-W01 — Unauthenticated note access is blocked
 - **Requirement**: WEB-01

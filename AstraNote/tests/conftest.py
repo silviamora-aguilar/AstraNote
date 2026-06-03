@@ -1,12 +1,23 @@
-"""
-Shared pytest configuration and fixtures for all tests.
-"""
+"""Shared pytest configuration and fixtures for all tests."""
+
+from __future__ import annotations
+
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+
+from src.app.dependencies import (
+    get_crypto_service,
+    get_note_repository,
+    get_note_service,
+    get_pin_settings_manager,
+    get_unlock_session_manager,
+)
+from src.app.repositories import SqlNoteRepository
 
 # Update these as your models are created
 # from src.app.models import Base
@@ -44,25 +55,42 @@ def db_session(db_engine):
 
 
 @pytest.fixture
-def client(db_session):
-    """FastAPI TestClient with dependency override for database."""
-    # Uncomment when app and get_db are available
-    # def override_get_db():
-    #     try:
-    #         yield db_session
-    #     finally:
-    #         db_session.close()
-    #
-    # app.dependency_overrides[get_db] = override_get_db
-    # 
-    # with TestClient(app) as test_client:
-    #     yield test_client
-    #
-    # app.dependency_overrides.clear()
-    
-    # Placeholder: returns TestClient with no overrides yet
+def client(tmp_path):
+    """FastAPI TestClient with a fresh temporary SQLite database per test."""
+    import os
+
     from src.main import app
-    return TestClient(app)
+    from src.app.dependencies import (
+        get_crypto_service as get_crypto_cached,
+        get_note_repository as get_repo_cached,
+        get_pin_settings_manager as get_pin_cached,
+        get_unlock_session_manager as get_unlock_cached,
+    )
+
+    db_path = Path(tmp_path) / "astranote_test.db"
+    config_path = Path(tmp_path) / "config.json"
+    os.environ["ASTRANOTE_CONFIG_PATH"] = str(config_path)
+
+    # Ensure lru-cached providers do not leak state between tests.
+    get_repo_cached.cache_clear()
+    get_crypto_cached.cache_clear()
+    get_unlock_cached.cache_clear()
+    get_pin_cached.cache_clear()
+
+    shared_crypto = get_crypto_cached()
+    repository = SqlNoteRepository(database_url=f"sqlite:///{db_path}", crypto_service=shared_crypto)
+    app.dependency_overrides[get_note_repository] = lambda: repository
+
+    with TestClient(app) as test_client:
+        yield test_client
+
+    app.dependency_overrides.clear()
+    get_repo_cached.cache_clear()
+    get_crypto_cached.cache_clear()
+    get_unlock_cached.cache_clear()
+    get_pin_cached.cache_clear()
+    os.environ.pop("ASTRANOTE_CONFIG_PATH", None)
+    repository.engine.dispose()
 
 
 @pytest.fixture

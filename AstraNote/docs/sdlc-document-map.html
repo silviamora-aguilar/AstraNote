@@ -438,10 +438,10 @@
       <div class="kicker">AstraNotes Course Artifact Guide</div>
       <h1>SDLC document map for everything created so far</h1>
       <p>
-        This page groups the generated class documents by the software development life cycle so students can stop
-        hunting through file names and instead read artifacts in the order they support the project.
+        This page groups the project documents by software development life cycle phase so you can review the updated
+        single-user MVP baseline in a clear reading sequence.
       </p>
-      <div class="hero-pill">Recommended reading flow: Vision -> Requirements -> Design -> Planning -> Testing -> Acceptance</div>
+      <div class="hero-pill">Recommended reading flow: Vision -> Requirements -> Design -> Planning -> Verification -> Acceptance</div>
     </header>
 
     <section class="section">
@@ -462,13 +462,13 @@
     <section class="grid-top">
       <article class="card">
         <h3>What is covered so far</h3>
-        <p class="sub">Web multi-user planning baseline is synchronized across requirements, user stories, backlog, traceability, tests, sprint plans, release gates, and customer acceptance.</p>
+        <p class="sub">Single-user local MVP planning baseline is synchronized across requirements, user stories, backlog, traceability, tests, sprint plans, release gates, and customer acceptance.</p>
         <ul class="coverage-list">
-          <li>Decision lock complete: FastAPI, Jinja2 + HTMX, SQLite (PostgreSQL-ready), server-side sessions + CSRF.</li>
-          <li>Requirement baseline aligned to 94 tracked items: REQ, NFR, SRG, SMR, and WEB.</li>
+          <li>Decision lock complete: FastAPI, Jinja2 + HTMX, SQLite, encrypted note storage, and private note unlock controls.</li>
+          <li>Requirement baseline now split into active MVP and deferred Post-MVP sections with revision history.</li>
           <li>Delivery status: BL-01 through BL-05 are implemented and validated (Create, Edit, Delete, List, Search).</li>
-          <li>BL-22 added and propagated through planning, testing, and release governance artifacts.</li>
-          <li>Acceptance package now includes explicit web multi-user sign-off criteria.</li>
+          <li>BL-10 is completed for NFR-06 through NFR-09 performance and quality checks.</li>
+          <li>Post-MVP deferrals are documented for multi-user web foundations, deep nested lists, image paste, and NFR-01 through NFR-05 load targets.</li>
         </ul>
       </article>
 
@@ -543,7 +543,7 @@
         <article class="doc-card">
           <div class="doc-tag">Master Requirements</div>
           <h4>Requirements Baseline</h4>
-          <p>Canonical requirement set covering REQ, NFR, SRG, SMR, and WEB requirements.</p>
+          <p>Canonical requirement set organized by active MVP and deferred Post-MVP scope, with requirement history retained.</p>
           <p class="fit-note">SDLC fit: Source of truth for acceptance criteria and downstream traceability.</p>
           <div class="actions"><a class="btn primary" href="../planning/requirements.md">Open Markdown</a></div>
         </article>
@@ -601,7 +601,7 @@
         <article class="doc-card">
           <div class="doc-tag">Work Prioritization</div>
           <h4>Product Backlog</h4>
-          <p>Prioritized backlog with BL-01 through BL-22, including web multi-user foundation scope.</p>
+          <p>Prioritized backlog with MVP-first delivery and explicit deferred Post-MVP backlog items.</p>
           <p class="fit-note">SDLC fit: Defines the implementable work inventory for delivery.</p>
           <div class="actions"><a class="btn primary" href="../planning/backlog.md">Open Markdown</a></div>
         </article>
@@ -622,7 +622,7 @@
         <article class="doc-card">
           <div class="doc-tag">Delivery Sprints</div>
           <h4>Sprint One and Two Plan</h4>
-          <p>Detailed tasks, dependencies, and exit criteria including BL-22 implementation tasks.</p>
+          <p>Detailed tasks, dependencies, and exit criteria aligned to the single-user MVP sequence.</p>
           <p class="fit-note">SDLC fit: Converts backlog scope into executable sprint sequences.</p>
           <div class="actions"><a class="btn primary" href="../planning/sprint-one-plan.md">Open Markdown</a></div>
         </article>
@@ -646,14 +646,14 @@
         <article class="doc-card">
           <div class="doc-tag">Test Strategy</div>
           <h4>Test Plan</h4>
-          <p>Layered test plan covering service, repository, security, performance, serviceability, and WEB tests.</p>
+          <p>Layered test plan covering service, repository, security, performance, serviceability, and deferred Post-MVP areas.</p>
           <p class="fit-note">SDLC fit: Defines objective verification paths for done status.</p>
           <div class="actions"><a class="btn primary" href="../planning/test-plan.md">Open Markdown</a></div>
         </article>
         <article class="doc-card">
           <div class="doc-tag">Coverage Mapping</div>
           <h4>Traceability Matrix</h4>
-          <p>Requirement-to-story-to-test linkage across the 94-item baseline.</p>
+          <p>Requirement-to-story-to-test linkage across active MVP scope and documented Post-MVP deferrals.</p>
           <p class="fit-note">SDLC fit: Shows end-to-end accountability from requirement to evidence.</p>
           <div class="actions"><a class="btn primary" href="../planning/traceability-matrix.md">Open Markdown</a></div>
         </article>
@@ -670,7 +670,7 @@
         <article class="doc-card">
           <div class="doc-tag">Release Controls</div>
           <h4>Release Gates</h4>
-          <p>Pass/fail criteria for functional completeness, quality checks, security checks, and web readiness.</p>
+          <p>Pass/fail criteria for functional completeness, quality checks, security checks, and MVP vs Post-MVP scope control.</p>
           <p class="fit-note">SDLC fit: Governs release eligibility using objective criteria.</p>
           <div class="actions"><a class="btn primary" href="../planning/release-gates.md">Open Markdown</a></div>
         </article>
@@ -684,7 +684,7 @@
         <article class="doc-card">
           <div class="doc-tag">Stakeholder Sign-Off</div>
           <h4>Customer Acceptance</h4>
-          <p>Simplified acceptance checklist with formal sign-off sections, including Part 5 web multi-user foundations.</p>
+          <p>Simplified acceptance checklist with formal sign-off sections aligned to the current single-user MVP baseline.</p>
           <p class="fit-note">SDLC fit: Captures final acceptance evidence and release approval.</p>
           <div class="actions"><a class="btn primary" href="../planning/customer-acceptance-document.md">Open Markdown</a></div>
         </article>
@@ -713,7 +713,7 @@
       </div>
     </section>
 
-    <p class="footer">AstraNotes SDLC map refreshed for the current web multi-user planning baseline.</p>
+    <p class="footer">AstraNotes SDLC map refreshed for the current single-user MVP planning baseline.</p>
   </main>
   <script>
     (function addHtmlCompanionButtons() {

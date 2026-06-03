@@ -1,0 +1,143 @@
+<div class="pin-input-wrapper">
+    <!-- PIN Display Circles -->
+    <div class="pin-circles-container">
+        <div class="pin-circle" id="pin-circle-0"></div>
+        <div class="pin-circle" id="pin-circle-1"></div>
+        <div class="pin-circle" id="pin-circle-2"></div>
+        <div class="pin-circle" id="pin-circle-3"></div>
+    </div>
+
+    <!-- Hidden Input for Form Submission -->
+    <input
+        type="hidden"
+        id="pin-input-{{ note_id or 'default' }}"
+        name="pin"
+        value=""
+        required
+    />
+
+    <!-- Numerical Pad -->
+    <div class="numerical-pad">
+        <button type="button" class="num-pad-btn" data-digit="1">1</button>
+        <button type="button" class="num-pad-btn" data-digit="2">2</button>
+        <button type="button" class="num-pad-btn" data-digit="3">3</button>
+        
+        <button type="button" class="num-pad-btn" data-digit="4">4</button>
+        <button type="button" class="num-pad-btn" data-digit="5">5</button>
+        <button type="button" class="num-pad-btn" data-digit="6">6</button>
+        
+        <button type="button" class="num-pad-btn" data-digit="7">7</button>
+        <button type="button" class="num-pad-btn" data-digit="8">8</button>
+        <button type="button" class="num-pad-btn" data-digit="9">9</button>
+        
+        <button type="button" class="num-pad-btn num-pad-special" id="pin-backspace">
+            ⌫
+        </button>
+        <button type="button" class="num-pad-btn" data-digit="0">0</button>
+        <button type="button" class="num-pad-btn num-pad-special" id="pin-clear">
+            C
+        </button>
+    </div>
+
+    <script>
+        (function() {
+            const pinInputElement = document.getElementById('pin-input-{{ note_id or "default" }}');
+            const circles = document.querySelectorAll('.pin-circle');
+            const numPadBtns = document.querySelectorAll('.num-pad-btn[data-digit]');
+            const backspaceBtn = document.getElementById('pin-backspace');
+            const clearBtn = document.getElementById('pin-clear');
+            const form = document.querySelector('.editor-form');
+            let currentPin = '';
+
+            function submitPin() {
+                if (!form) {
+                    return;
+                }
+                if (window.htmx && typeof window.htmx.trigger === 'function') {
+                    // Trigger a normal submit event so HTMX handles hx-post/hx-target.
+                    window.htmx.trigger(form, 'submit');
+                    return;
+                }
+                // Fallback for environments without HTMX.
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
+                }
+            }
+
+            function updateDisplay() {
+                circles.forEach((circle, index) => {
+                    if (index < currentPin.length) {
+                        circle.classList.add('filled');
+                    } else {
+                        circle.classList.remove('filled');
+                    }
+                });
+                pinInputElement.value = currentPin;
+                
+                // Auto-submit when 4 digits entered
+                if (currentPin.length === 4 && form) {
+                    setTimeout(() => {
+                        submitPin();
+                    }, 150);
+                }
+            }
+
+            function addDigit(digit) {
+                if (currentPin.length < 4) {
+                    currentPin += digit;
+                    updateDisplay();
+                }
+            }
+
+            function removeDigit() {
+                if (currentPin.length > 0) {
+                    currentPin = currentPin.slice(0, -1);
+                    updateDisplay();
+                }
+            }
+
+            function clearPin() {
+                currentPin = '';
+                updateDisplay();
+            }
+
+            // Numerical pad button clicks
+            numPadBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    addDigit(btn.dataset.digit);
+                });
+            });
+
+            // Backspace button
+            backspaceBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                removeDigit();
+            });
+
+            // Clear button
+            clearBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                clearPin();
+            });
+
+            // Keyboard input
+            document.addEventListener('keydown', (e) => {
+                if (/^[0-9]$/.test(e.key)) {
+                    e.preventDefault();
+                    addDigit(e.key);
+                } else if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    removeDigit();
+                } else if (e.key === 'Escape') {
+                    clearPin();
+                }
+            });
+
+            // Initial display
+            updateDisplay();
+        })();
+    </script>
+</div>

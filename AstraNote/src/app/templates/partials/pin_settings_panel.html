@@ -1,0 +1,398 @@
+<article class="card editor-panel" id="editor-panel">
+    <div class="editor-header">
+        <button
+            type="button"
+            class="panel-close-btn"
+            aria-label="Close settings"
+            title="Close settings"
+            onclick="closeEditorPanel()"
+        >
+            ×
+        </button>
+        <h2 style="margin-left: 0.4rem; flex: 1;">Private PIN Settings</h2>
+    </div>
+
+    <p class="panel-subtitle">Default PIN is 1234. Set a new 4-digit numeric PIN for private notes.</p>
+    <div class="microcopy" style="margin-bottom: 0.75rem;">If notes were encrypted under a previous PIN after a manual config edit, enter that previous PIN as Current PIN to recover.</div>
+
+    <style>
+        .pin-rect-grid {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.7rem;
+        }
+
+        .pin-rect {
+            width: 2.4rem;
+            height: 2.8rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-muted);
+            background: rgba(255, 255, 255, 0.92);
+            text-align: center;
+            font-size: 1.22rem;
+            font-weight: 700;
+            color: var(--ink);
+            caret-color: transparent;
+        }
+
+        .pin-rect:focus {
+            border-color: var(--accent-deep);
+            outline: 2px solid rgba(43, 108, 176, 0.22);
+            outline-offset: 1px;
+        }
+
+        .pin-rect[readonly] {
+            background: rgba(246, 248, 251, 0.95);
+            cursor: default;
+        }
+
+        .pin-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-bottom: 0.85rem;
+            font-size: 0.86rem;
+            color: var(--ink-soft);
+        }
+
+        .pin-inline-error {
+            margin-top: -0.25rem;
+            margin-bottom: 0.6rem;
+            color: var(--danger);
+            font-size: 0.83rem;
+            font-weight: 600;
+        }
+
+        .pin-step-card {
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            margin-bottom: 0.75rem;
+            background: transparent;
+        }
+
+        .pin-success-hero {
+            margin: 1.2rem 0 0.8rem;
+            padding: 1rem 1.1rem;
+            border-radius: 0.85rem;
+            text-align: center;
+            font-size: 1.45rem;
+            font-weight: 800;
+            line-height: 1.3;
+            color: var(--accent-deep);
+            background: rgba(15, 118, 110, 0.12);
+            border: 1px solid rgba(15, 118, 110, 0.25);
+        }
+    </style>
+
+    {% if pin_error_message %}
+        <div class="error" role="alert">{{ pin_error_message }}</div>
+    {% endif %}
+
+    {% if pin_update_completed and pin_success_message %}
+        <div class="pin-success-hero" role="status" aria-live="polite">{{ pin_success_message }}</div>
+    {% elif pin_success_message %}
+        <div class="microcopy" style="margin-bottom: 0.75rem; color: var(--accent-deep); font-weight: 700;">{{ pin_success_message }}</div>
+    {% endif %}
+
+    {% if not pin_update_completed %}
+    <div class="pin-toggle-row">
+        <input id="toggle-pin-visibility" type="checkbox" />
+        <label for="toggle-pin-visibility" style="margin: 0; cursor: pointer;">Show PIN digits</label>
+    </div>
+    {% endif %}
+
+    {% if pin_update_completed %}
+    {% elif not pin_verified %}
+        <form
+            class="editor-form"
+            id="pin-verify-form"
+            hx-post="/ui/security/pin/verify"
+            hx-target="#editor-slot"
+            hx-swap="innerHTML"
+            novalidate
+        >
+            <div class="pin-step-card">
+                <label class="label">Current PIN</label>
+                <div class="pin-rect-grid" data-pin-group="current" data-hidden-id="current-pin-value" data-readonly="false">
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 1" />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 2" />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 3" />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 4" />
+                </div>
+                <input id="current-pin-value" name="current_pin" type="hidden" required />
+                <div id="pin-current-inline-error" class="pin-inline-error" hidden>Current PIN must contain numbers only.</div>
+            </div>
+
+            <button class="save-edit-btn" type="submit">Verify Current PIN</button>
+        </form>
+    {% else %}
+        <form
+            class="editor-form"
+            id="pin-update-form"
+            hx-post="/ui/security/pin"
+            hx-target="#editor-slot"
+            hx-swap="innerHTML"
+            novalidate
+        >
+            <div class="pin-step-card">
+                <label class="label">Current PIN (verified)</label>
+                <div class="pin-rect-grid" data-pin-group="current" data-hidden-id="current-pin-value" data-readonly="true">
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 1" readonly />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 2" readonly />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 3" readonly />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 4" readonly />
+                </div>
+                <input id="current-pin-value" name="current_pin" type="hidden" value="{{ verified_current_pin or '' }}" required />
+            </div>
+
+            <div class="pin-step-card">
+                <label class="label">New PIN</label>
+                <div class="pin-rect-grid" data-pin-group="new" data-hidden-id="new-pin-value" data-readonly="false">
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="New PIN digit 1" />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="New PIN digit 2" />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="New PIN digit 3" />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="New PIN digit 4" />
+                </div>
+                <input id="new-pin-value" name="new_pin" type="hidden" required />
+            </div>
+
+            <div class="pin-step-card">
+                <label class="label">Confirm new PIN</label>
+                <div class="pin-rect-grid" data-pin-group="confirm" data-hidden-id="confirm-pin-value" data-readonly="false">
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Confirm PIN digit 1" />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Confirm PIN digit 2" />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Confirm PIN digit 3" />
+                    <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Confirm PIN digit 4" />
+                </div>
+                <input id="confirm-pin-value" name="confirm_pin" type="hidden" required />
+                <div id="pin-new-inline-error" class="pin-inline-error" hidden>New PIN and confirmation do not match.</div>
+            </div>
+
+            <button class="save-edit-btn" type="submit">Save PIN</button>
+        </form>
+    {% endif %}
+
+    <script>
+        (function () {
+            const panel = document.getElementById('editor-panel');
+            if (!panel) {
+                return;
+            }
+
+            const showToggle = panel.querySelector('#toggle-pin-visibility');
+            const pinGroups = Array.from(panel.querySelectorAll('.pin-rect-grid[data-pin-group]'));
+
+            function isShowEnabled() {
+                return !!(showToggle && showToggle.checked);
+            }
+
+            function wirePinGroup(group) {
+                const hiddenId = group.dataset.hiddenId;
+                const hiddenInput = hiddenId ? document.getElementById(hiddenId) : null;
+                const isReadonly = group.dataset.readonly === 'true';
+                const inputs = Array.from(group.querySelectorAll('.pin-rect'));
+                if (!hiddenInput || inputs.length !== 4) {
+                    return;
+                }
+
+                const digits = ['', '', '', ''];
+
+                function hideNumericError() {
+                    const numericError = document.getElementById('pin-current-inline-error');
+                    if (numericError) {
+                        numericError.hidden = true;
+                    }
+                }
+
+                function showNumericError() {
+                    const numericError = document.getElementById('pin-current-inline-error');
+                    if (numericError && group.dataset.pinGroup === 'current') {
+                        numericError.hidden = false;
+                        numericError.textContent = 'Current PIN must contain numbers only.';
+                    }
+                }
+
+                function syncHiddenFromDigits() {
+                    hiddenInput.value = digits.join('');
+                }
+
+                function renderDigits() {
+                    const showDigits = isShowEnabled();
+                    inputs.forEach((input, index) => {
+                        const digit = digits[index] || '';
+                        input.value = showDigits ? digit : (digit ? '•' : '');
+                    });
+                    syncHiddenFromDigits();
+                }
+
+                function setDigitAt(index, digit) {
+                    digits[index] = digit;
+                    renderDigits();
+                }
+
+                function clearDigitAt(index) {
+                    digits[index] = '';
+                    renderDigits();
+                }
+
+                function focusIndex(index) {
+                    if (index < 0 || index >= inputs.length) {
+                        return;
+                    }
+                    inputs[index].focus();
+                    inputs[index].select();
+                }
+
+                function hydrateFromHidden() {
+                    const value = String(hiddenInput.value || '').replace(/\D/g, '').slice(0, 4);
+                    for (let i = 0; i < digits.length; i += 1) {
+                        digits[i] = value[i] || '';
+                    }
+                    renderDigits();
+                }
+
+                function applyPastedDigits(startIndex, text) {
+                    const pastedDigits = String(text || '').replace(/\D/g, '').slice(0, 4 - startIndex);
+                    if (!pastedDigits) {
+                        showNumericError();
+                        return;
+                    }
+                    hideNumericError();
+                    for (let i = 0; i < pastedDigits.length; i += 1) {
+                        digits[startIndex + i] = pastedDigits[i];
+                    }
+                    renderDigits();
+                    focusIndex(Math.min(startIndex + pastedDigits.length, inputs.length - 1));
+                }
+
+                if (!isReadonly) {
+                    inputs.forEach((input, index) => {
+                        input.addEventListener('focus', () => {
+                            input.select();
+                        });
+
+                        input.addEventListener('keydown', (event) => {
+                            if (event.key === 'Tab') {
+                                return;
+                            }
+
+                            if (event.key === 'ArrowLeft') {
+                                focusIndex(index - 1);
+                                event.preventDefault();
+                                return;
+                            }
+
+                            if (event.key === 'ArrowRight') {
+                                focusIndex(index + 1);
+                                event.preventDefault();
+                                return;
+                            }
+
+                            if (event.key === 'Backspace' || event.key === 'Delete') {
+                                if (digits[index]) {
+                                    clearDigitAt(index);
+                                    event.preventDefault();
+                                    return;
+                                }
+                                if (index > 0) {
+                                    clearDigitAt(index - 1);
+                                    focusIndex(index - 1);
+                                }
+                                event.preventDefault();
+                                return;
+                            }
+
+                            if (/^\d$/.test(event.key)) {
+                                hideNumericError();
+                                setDigitAt(index, event.key);
+                                if (index < inputs.length - 1) {
+                                    focusIndex(index + 1);
+                                }
+                                event.preventDefault();
+                                return;
+                            }
+
+                            if (event.key.length === 1) {
+                                showNumericError();
+                                event.preventDefault();
+                            }
+                        });
+
+                        input.addEventListener('paste', (event) => {
+                            event.preventDefault();
+                            const text = event.clipboardData ? event.clipboardData.getData('text') : '';
+                            applyPastedDigits(index, text);
+                        });
+                    });
+                }
+
+                hydrateFromHidden();
+
+                group.__renderPinDigits = renderDigits;
+            }
+
+            pinGroups.forEach(wirePinGroup);
+
+            if (showToggle) {
+                showToggle.addEventListener('change', () => {
+                    pinGroups.forEach((group) => {
+                        if (typeof group.__renderPinDigits === 'function') {
+                            group.__renderPinDigits();
+                        }
+                    });
+                });
+            }
+
+            const verifyForm = panel.querySelector('#pin-verify-form');
+            if (verifyForm) {
+                verifyForm.addEventListener('submit', (event) => {
+                    const currentValue = (document.getElementById('current-pin-value')?.value || '');
+                    const currentError = document.getElementById('pin-current-inline-error');
+                    if (!/^\d{4}$/.test(currentValue)) {
+                        event.preventDefault();
+                        if (currentError) {
+                            currentError.hidden = false;
+                            currentError.textContent = 'Current PIN must be exactly 4 numeric digits.';
+                        }
+                        return;
+                    }
+                    if (currentError) {
+                        currentError.hidden = true;
+                    }
+                });
+            }
+
+            const updateForm = panel.querySelector('#pin-update-form');
+            if (updateForm) {
+                updateForm.addEventListener('submit', (event) => {
+                    const newValue = (document.getElementById('new-pin-value')?.value || '');
+                    const confirmValue = (document.getElementById('confirm-pin-value')?.value || '');
+                    const mismatchError = document.getElementById('pin-new-inline-error');
+
+                    if (!/^\d{4}$/.test(newValue) || !/^\d{4}$/.test(confirmValue)) {
+                        event.preventDefault();
+                        if (mismatchError) {
+                            mismatchError.hidden = false;
+                            mismatchError.textContent = 'New PIN and confirmation must be exactly 4 numeric digits.';
+                        }
+                        return;
+                    }
+
+                    if (newValue !== confirmValue) {
+                        event.preventDefault();
+                        if (mismatchError) {
+                            mismatchError.hidden = false;
+                            mismatchError.textContent = 'New PIN and confirmation do not match.';
+                        }
+                        return;
+                    }
+
+                    if (mismatchError) {
+                        mismatchError.hidden = true;
+                    }
+                });
+            }
+        })();
+    </script>
+</article>

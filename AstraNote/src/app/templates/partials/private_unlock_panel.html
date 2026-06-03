@@ -1,0 +1,30 @@
+<article class="card editor-panel" id="editor-panel">
+    <div class="editor-header">
+        <button
+            type="button"
+            class="panel-close-btn"
+            aria-label="Close editor"
+            title="Close editor"
+            onclick="closeEditorPanel()"
+        >
+            ×
+        </button>
+        <h2 style="margin-left: 0.4rem; flex: 1;">Unlock: {{ note.title }}</h2>
+    </div>
+
+    <p class="panel-subtitle">This note is private. Enter your 4-digit PIN to continue.</p>
+
+    {% if unlock_error_message %}
+        <div class="error">{{ unlock_error_message }}</div>
+    {% endif %}
+
+    <form
+        class="editor-form"
+        hx-post="{{ unlock_post_url if unlock_post_url else '/ui/notes/' ~ note.note_id ~ '/unlock' }}"
+        hx-target="#editor-slot"
+        hx-swap="innerHTML"
+    >
+        {% set note_id = note.note_id %}
+        {% include "partials/pin_input_component.html" %}
+    </form>
+</article>

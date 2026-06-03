@@ -101,13 +101,13 @@
 ## Delete Note
 
 ### REQ-09 — Delete Confirmation
-**Requirement**: The app shall require the user to confirm deletion before a note is removed. The confirmation prompt shall display the note title and state that the action is permanent and cannot be undone.
+**Requirement**: The app shall require the user to confirm deletion before a note is removed from the active list. The confirmation prompt shall display the note title and state that the note will move to Trash and can be restored for 15 days.
 
 **User Story**: As a user, I want to be asked to confirm before a note is deleted so that I don't accidentally lose my work.
 
 **Acceptance Criteria**:
 - User selects a note and triggers delete.
-- Confirmation dialog appears displaying the note title and the message "This cannot be undone."
+- Confirmation dialog appears displaying the note title and the message "This note will move to Trash and can be restored for 15 days."
 - If user cancels, the note is not deleted and the list is unchanged.
 
 ## Account and Authentication
@@ -155,12 +155,12 @@
 - Bulk delete is out of scope for MVP.
 
 ### REQ-10 — Delete Execution and Persistence
-**Requirement**: Upon confirmation, the app shall permanently remove the note from storage atomically. If the delete operation fails, the note shall remain intact and the user shall receive an error message.
+**Requirement**: Upon confirmation, the app shall atomically soft-delete the note (move to Trash) and remove it from active list/search results. If the delete operation fails, the note shall remain intact and the user shall receive an error message.
 
-**User Story**: As a user, I want a confirmed deletion to remove the note immediately and permanently so that my storage stays clean.
+**User Story**: As a user, I want a confirmed deletion to move notes to Trash first so accidental deletes can be recovered.
 
 **Acceptance Criteria**:
-- Confirmed deletion removes the note from JSON storage atomically (no partial writes).
+- Confirmed deletion marks the note as deleted atomically (no partial writes).
 - Deleted note is removed from the list immediately.
 - If the note no longer exists at delete time, the app shows an error and does not crash.
 - If JSON write fails, the note remains intact and user receives an error message.
@@ -187,6 +187,18 @@
 - If no notes remain after bulk delete, the empty state message from REQ-13 is shown.
 - Deselecting all notes or cancelling exits multi-select mode without deleting anything.
 - Bulk-action buttons wrap gracefully at narrower panel widths rather than overflowing.
+
+### BL-13.1 — Trash Review and Recovery UX
+**Requirement**: The Trash workspace shall support read-only note inspection (including rendered formatting), unlock-gated access for private trashed notes, and bulk restore/permanent-delete actions. Creating a note while Trash view is active shall return the user to active-notes view.
+
+**User Story**: As a user, I want Trash to be a safe recovery workspace where I can inspect deleted notes, unlock private deleted notes when needed, and recover or permanently remove multiple notes efficiently.
+
+**Acceptance Criteria**:
+- Trash mode presents deleted notes only and does not expose active notes in the same results list.
+- Opening a trashed note loads a read-only viewer with rendered body formatting.
+- Opening a private trashed note requires PIN unlock before content is shown.
+- Bulk Restore and Delete Forever actions operate on selected trashed notes and refresh Trash results.
+- Creating a new note from Trash context places the created note in active results and returns the UI to active view.
 
 ## List Notes
 
@@ -221,6 +233,7 @@
 **Acceptance Criteria**:
 - List updates immediately after a note is created, edited, or deleted.
 - Sort order (newest first) is re-applied after each refresh.
+- If the user creates a note while currently in Trash view, the interface switches back to active notes and shows the newly created note there.
 
 ### BL-04 UI Alignment — Two-Panel Workbench Layout
 **Requirement**: The desktop workbench shall display a persistent two-panel layout with a resizable notes list on the left and an editor/action panel on the right. The create-note form and the note editor shall share the same right-panel slot. The right panel shall show an idle placeholder when no action is active. The notes list panel shall be resizable via a draggable splitter bar that persists its position across sessions.
@@ -240,7 +253,7 @@
 
 ## Search Notes
 
-### REQ-15 ✅ — Basic Search
+### REQ-15 — Basic Search
 **Requirement**: The app shall allow the user to filter notes by entering a query that matches against note titles and body content, case-insensitively. Minimum query length is 1 non-whitespace character. Special characters in the search query are treated as literal text and do not cause errors.
 
 **User Story**: As a user, I want to search my notes by title or content so I can locate specific information efficiently.
@@ -252,7 +265,7 @@
 - Special characters in search query (e.g., @, #) are treated as literal search text and do not cause errors.
 - Clearing the search bar resets to the full note list.
 
-### REQ-16 ✅ — Search Edge Cases
+### REQ-16 — Search Edge Cases
 **Requirement**: The app shall handle empty, whitespace-only, and no-result search inputs by displaying specific feedback messages in place of the notes list, with no errors or crashes occurring.
 
 **User Story**: As a user, I want clear feedback when my search returns no results so I'm not confused by a blank screen.
@@ -278,7 +291,7 @@
 
 ## Lists in Notes
 
-### REQ-17 ✅ — Bullet and Checkbox Lists
+### REQ-17 — Bullet and Checkbox Lists
 **Requirement**: The app shall allow the user to create and edit unordered bullet lists and checkbox lists inside the note body.
 
 **User Story**: As a user, I want to structure my notes with bullet and checkbox lists so I can organize tasks and ideas clearly.
@@ -288,7 +301,7 @@
 - User can edit existing list item text without breaking list structure.
 - Ordered (numbered) lists are out of scope for MVP.
 
-### REQ-18 ✅ — List Persistence and Rendering
+### REQ-18 — List Persistence and Rendering
 **Requirement**: List content shall be persisted in note storage and rendered consistently after save, close, and reopen. Nested lists deeper than 2 levels are not required for MVP.
 
 **User Story**: As a user, I want my list formatting to stay intact after reopening the app so I do not lose note structure.
@@ -298,7 +311,7 @@
 - After reopening the app, previously saved lists render the same as before close.
 - Nesting up to 2 levels is preserved; deeper nesting behavior is not required for MVP.
 
-### REQ-19 ✅ — Checkbox State Persistence
+### REQ-19 — Checkbox State Persistence
 **Requirement**: The app shall allow the user to toggle checkbox list items between checked and unchecked states, and persist each state change immediately.
 
 **User Story**: As a user, I want to check and uncheck tasks so I can track progress directly in my notes.
@@ -310,7 +323,7 @@
 
 ## Text Formatting
 
-### REQ-20 ✅ — Apply Basic Formatting
+### REQ-20 — Apply Basic Formatting
 **Requirement**: The app shall allow the user to apply bold, italic, and underline formatting to selected text in the note body.
 
 **User Story**: As a user, I want to format text for emphasis so my notes are easier to scan.
@@ -320,7 +333,7 @@
 - Formatting applies only to current selection.
 - If no text is selected, formatting action does not modify note content.
 
-### REQ-21 ✅ — Formatting Integrity
+### REQ-21 — Formatting Integrity
 **Requirement**: Formatting actions shall not modify note title content and shall preserve existing surrounding text without data loss when multiple formats are combined.
 
 **User Story**: As a user, I want formatting tools to be safe so they do not corrupt unrelated text.
@@ -330,7 +343,7 @@
 - Applying multiple formats to overlapping text does not delete nearby characters.
 - Undo/redo of formatting changes restores exact previous/next body content states.
 
-### REQ-22 ✅ — Formatting Storage Rules
+### REQ-22 — Formatting Storage Rules
 **Requirement**: Bold and italic shall be stored using Markdown-compatible markers, and underline shall be stored using a consistent format supported by the renderer.
 
 **User Story**: As a user, I want formatting to render consistently so saved notes look the same across sessions.
@@ -674,32 +687,35 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - Writes to affected records are blocked until integrity issue is resolved.
 
 ### SRG-10 — Soft Delete Retention [MVP]
-**Requirement**: Deleting a note shall perform a soft delete by default, retaining recoverable metadata and content for 30 calendar days.
+**Requirement**: Deleting a note shall perform a soft delete by default, retaining recoverable metadata and content for 15 calendar days.
 
 **User Story**: As a user, I want accidental deletions recoverable for a limited period.
 
 **Acceptance Criteria**:
 - Delete action marks note as soft-deleted by default.
-- Metadata and content remain recoverable for 30 calendar days.
+- Metadata and content remain recoverable for 15 calendar days.
 - Soft-delete timestamp is recorded for retention tracking.
 
 ### SRG-11 — Soft Delete Visibility and Restore Window [MVP]
-**Requirement**: Soft-deleted notes shall be excluded from default list and search results, and shall be restorable only within the retention window.
+**Requirement**: Soft-deleted notes shall be excluded from default list and search results, and shall be accessible in a Trash view where users can restore notes or permanently delete them before retention expiry.
 
 **User Story**: As a user, I want deleted notes hidden from normal views but restorable before retention expiry.
 
 **Acceptance Criteria**:
 - Soft-deleted notes do not appear in default list results.
 - Soft-deleted notes do not appear in default search results.
+- Trash view lists soft-deleted notes with Restore and Delete Forever actions.
+- Trash view supports opening deleted notes in a read-only viewer with formatted content rendering.
+- Private notes in Trash require successful PIN unlock before content is displayed.
 - Restore succeeds only while within retention window.
 
-### SRG-12 — Retention Expiry Purge [Post-MVP]
-**Requirement**: At retention expiry, soft-deleted notes shall be permanently purged within 24 hours unless an explicit policy override is configured.
+### SRG-12 — Retention Expiry Purge [MVP]
+**Requirement**: At retention expiry (15 days after soft delete), notes in Trash shall be automatically and permanently purged.
 
 **User Story**: As a governance owner, I want retention expiry enforced so stale deleted content does not persist indefinitely.
 
 **Acceptance Criteria**:
-- Expired soft-deleted notes are purged within 24 hours.
+- Expired soft-deleted notes are automatically purged after 15 days.
 - Purged notes are no longer recoverable through normal restore flows.
 - Explicit policy override prevents purge only when configured.
 
@@ -754,15 +770,15 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - Code review and DoD checklists include a SRG-04 confirmation step for all network-touching features.
 - Features passing this gate have documented evidence of transport encryption compliance.
 
-### SRG-18 — Private Note Passphrase Unlock [MVP]
-**Requirement**: Viewing or decrypting a private note shall require successful private-note unlock authentication using a user-defined app passphrase.
+### SRG-18 — Private Note PIN Unlock [MVP]
+**Requirement**: Viewing or decrypting a private note shall require successful private-note unlock authentication using the app-wide 4-digit PIN.
 
-**User Story**: As a user, I want my private notes locked behind a passphrase so that only I can access them.
+**User Story**: As a user, I want my private notes locked behind a PIN so that only I can access them.
 
 **Acceptance Criteria**:
 - Attempting to open a private note without authenticating redirects to the unlock prompt.
-- Correct passphrase grants access to private note content.
-- Incorrect passphrase denies access and shows an error message.
+- Correct PIN grants access to private note content.
+- Incorrect PIN denies access and shows an error message.
 - No private note title, body, or version content is accessible without successful authentication.
 
 ### SRG-19 — Private Note Content Hidden Until Authenticated [MVP]
@@ -781,7 +797,7 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 **User Story**: As a user, I want to authenticate once per session so that I am not repeatedly prompted while working, but am protected when I reopen the app.
 
 **Acceptance Criteria**:
-- First private note access in a session prompts for passphrase.
+- First private note access in a session prompts for PIN.
 - Subsequent private note accesses within the same session do not re-prompt while session is active.
 - Closing and reopening the app starts a new session requiring re-authentication.
 
@@ -798,7 +814,7 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 ### SRG-22 — Unlock Rate Limiting [MVP]
 **Requirement**: Failed unlock attempts shall return clear error messages, shall not crash the app, and shall apply rate limiting after 5 consecutive failures.
 
-**User Story**: As a user, I want failed unlock attempts rate-limited so that brute-force guessing of my passphrase is impractical.
+**User Story**: As a user, I want failed unlock attempts rate-limited so that brute-force guessing of my PIN is impractical.
 
 **Acceptance Criteria**:
 - Failed unlock returns a clear, user-safe error message.
@@ -818,12 +834,12 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - Unlock prompt is disabled and displays remaining lockout time during lockout state.
 
 ### SRG-24 — Anti-Enumeration Unlock Responses [MVP]
-**Requirement**: Unlock error responses shall be identical in content and timing regardless of whether the failure is caused by a wrong passphrase or an internal error, preventing enumeration of failure cause.
+**Requirement**: Unlock error responses shall be identical in content and timing regardless of whether the failure is caused by a wrong PIN or an internal error, preventing enumeration of failure cause.
 
 **User Story**: As a security owner, I want all unlock failure responses to be indistinguishable so that an attacker cannot determine the cause of failure.
 
 **Acceptance Criteria**:
-- Wrong passphrase and internal error responses display identical user-facing error messages.
+- Wrong PIN and internal error responses display identical user-facing error messages.
 - Response timing for both failure types is equivalent within an acceptable tolerance.
 - No additional metadata or status codes differentiate the failure cause to the client.
 
@@ -841,18 +857,45 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 
 ## Security, Reliability, and Governance — Key Management
 
-### SRG-26 — Passphrase-Based Key Derivation [MVP]
-**Requirement**: The encryption key used for private notes shall be derived from the user passphrase using PBKDF2-HMAC-SHA256 with a minimum iteration count of 260,000, a randomly generated 16-byte salt stored alongside the derived key material, and a 256-bit output key. The raw passphrase shall never be stored or logged. The derived key shall be held only in memory for the duration of the unlocked session.
+### SRG-26 — PIN-Based Key Derivation [MVP]
+**Requirement**: The encryption key used for private notes shall be derived from the user PIN using PBKDF2-HMAC-SHA256 with a minimum iteration count of 260,000, a randomly generated 16-byte salt stored alongside the derived key material, and a 256-bit output key. The raw PIN shall never be stored or logged. The derived key shall be held only in memory for the duration of the unlocked session.
 
-**User Story**: As a user, I want my private note encryption key derived securely from my passphrase so that my notes cannot be decrypted without knowing my passphrase.
+**User Story**: As a user, I want my private note encryption key derived securely from my PIN so that my notes cannot be decrypted without knowing my PIN.
 
 **Acceptance Criteria**:
 - Key derivation uses PBKDF2-HMAC-SHA256 with ≥ 260,000 iterations.
-- A randomly generated 16-byte salt is created on passphrase setup and stored with the encrypted data.
+- A randomly generated 16-byte salt is created on PIN setup and stored with the encrypted data.
 - Derived key length is 256 bits.
-- The raw passphrase is not present in any persistent storage, log, or audit record.
+- The raw PIN is not present in any persistent storage, log, or audit record.
 - The derived key is cleared from memory when the session expires (per SRG-21) or the app is closed.
 - Invalid retries do not create duplicate audit side effects.
+
+### SRG-27 — App-Wide 4-Digit PIN Bootstrap [MVP]
+**Requirement**: The private-note unlock factor shall be an app-wide 4-digit numeric PIN (`0000`-`9999`) with a bootstrap default of `1234` until explicitly changed by the user from the UI settings flow.
+
+**User Story**: As a user, I want private-note protection to work immediately with a known default PIN and then be customizable so I can secure notes without setup friction.
+
+**Acceptance Criteria**:
+- Private note unlock accepts only 4-digit numeric input.
+- On first use (before user update), default PIN `1234` unlocks private notes.
+- Private PIN is app-wide rather than per-note.
+- After the user changes the PIN, `1234` no longer unlocks notes.
+
+### SRG-28 — In-App PIN Change and Keypad Unlock UX [MVP]
+**Requirement**: The app shall provide an in-app PIN change workflow that requires entering the current PIN, validates the new 4-digit PIN and confirmation, and re-encrypts existing private-note payloads to the new PIN atomically. The unlock UI shall support keypad-based 4-digit entry with masked circle indicators and automatic submit after the fourth digit.
+
+**User Story**: As a user, I want to change my private PIN safely and unlock private notes quickly with a keypad so that security stays strong while the flow stays simple.
+
+**Acceptance Criteria**:
+- A "Change Private Pin" action is available from the main UI.
+- Changing PIN requires a staged flow: verify current PIN first, then enter new PIN and confirmation.
+- New PIN must be exactly 4 numeric digits; invalid inputs show a clear error.
+- New/confirm PIN inputs remain hidden until current PIN verification succeeds.
+- PIN change performs private-note re-encryption atomically; on failure, previous encrypted data remains intact.
+- After successful update, the settings panel shows a clear completion state and hides edit controls.
+- Unlock panel shows 4 masked circles and an on-screen numeric keypad.
+- Entering the fourth digit auto-submits unlock without extra button click.
+- Incorrect PIN keeps user in unlock panel and shows a clear correction prompt.
 
 ## Serviceability and Manageability Requirements
 
@@ -981,9 +1024,9 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - The process exits only after the current storage operation has committed or explicitly rolled back.
 - Graceful shutdown is logged at INFO level.
 
-## Web and Multi-User Requirements
+## Web and Multi-User Requirements [Post-MVP under 2026-06-02 pivot]
 
-### WEB-01 — Authenticated Account Required [MVP]
+### WEB-01 — Authenticated Account Required [Post-MVP]
 **Requirement**: The system shall require authenticated user accounts for all note operations.
 
 **User Story**: As a user, I want to sign in before accessing notes so that my data is protected behind authentication.
@@ -993,7 +1036,7 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - Authenticated users can access note routes normally.
 - Logout invalidates the active session and blocks further note access until sign-in.
 
-### WEB-02 — Per-User Data Isolation [MVP]
+### WEB-02 — Per-User Data Isolation [Post-MVP]
 **Requirement**: All note reads/writes shall be scoped to the authenticated user identity; users shall not access other users' notes.
 
 **User Story**: As a user, I want to see only my notes so that other users cannot view or modify my data.
@@ -1023,7 +1066,7 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - UI interactions use HTTP endpoint calls (directly or via HTMX).
 - Boundary violations fail architecture checks.
 
-### WEB-05 — Session Expiry by Inactivity [MVP]
+### WEB-05 — Session Expiry by Inactivity [Post-MVP]
 **Requirement**: Session authentication shall expire after inactivity and require re-authentication.
 
 **User Story**: As a security-conscious user, I want inactive sessions to expire automatically so that unattended browsers cannot continue using my account.
@@ -1033,7 +1076,7 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - After expiry, note operations require re-authentication.
 - Activity refreshes last-active timestamp and extends valid session window.
 
-### WEB-06 — Server-Side Authorization on Every Endpoint [MVP]
+### WEB-06 — Server-Side Authorization on Every Endpoint [Post-MVP]
 **Requirement**: API endpoints shall enforce authorization checks server-side for every request.
 
 **User Story**: As a security owner, I want authorization enforced on the server so client-side bypasses cannot access protected actions.
@@ -1043,7 +1086,7 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - Every protected note action validates resource ownership.
 - Missing/invalid auth context is rejected before service-layer mutation.
 
-### WEB-07 — Transactional Multi-User Storage Integrity [MVP]
+### WEB-07 — Transactional Multi-User Storage Integrity [Post-MVP]
 **Requirement**: Server-side storage shall support concurrent multi-user access with transactional integrity.
 
 **User Story**: As a user, I want my saves and edits to remain correct even when other users are active at the same time.
@@ -1053,7 +1096,7 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - Failed writes roll back cleanly with no partial commits.
 - Optimistic concurrency conflict behavior remains enforced for same-note collisions.
 
-### WEB-08 — Shared Persistent Demo Environment [MVP]
+### WEB-08 — Shared Persistent Demo Environment [Post-MVP]
 **Requirement**: Deployment shall support at least one shared persistent environment for instructor/demo review.
 
 **User Story**: As an instructor or reviewer, I want a persistent deployed instance so that I can evaluate the application without local setup.
@@ -1062,3 +1105,36 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - One shared environment is reachable for review.
 - Data persists across app restarts in that environment.
 - Basic health/status endpoint confirms service availability.
+
+## Interface Language and Authoring Expansion
+
+### REQ-28 — English/Spanish Interface Toggle [MVP]
+**Requirement**: The app shall provide an English/Spanish interface toggle that translates application UI text (labels, buttons, headings, helper text, and user-facing system messages) without auto-translating user-authored note title/body content.
+
+**User Story**: As a bilingual user, I want to switch the app interface between English and Spanish so I can use AstraNotes in my preferred language.
+
+**Acceptance Criteria**:
+- User can toggle interface language between English and Spanish from the main UI.
+- UI labels, action buttons, section headings, placeholders, and system messages change language immediately.
+- Existing note title/body content remains exactly as authored (no automatic note-content translation).
+- Selected language persists across page reload in MVP runtime.
+
+### REQ-29 — Nested Lists up to 3 Levels [Post-MVP]
+**Requirement**: The app shall support nested bullet and checkbox lists up to 3 levels of depth in the note body editor and persisted representation.
+
+**User Story**: As a user, I want deeper list nesting so I can organize hierarchical ideas and tasks directly in notes.
+
+**Acceptance Criteria**:
+- Editor supports bullet/checklist nesting through level 3.
+- Persisted note data preserves all levels up to 3.
+- Rendering after reopen remains structurally correct for nested levels.
+
+### REQ-30 — Image Paste in Note Body [Post-MVP]
+**Requirement**: The app shall support image paste into the note body, including safe rendering and persisted retrieval.
+
+**User Story**: As a user, I want to paste images directly into notes so I can capture visual context with text.
+
+**Acceptance Criteria**:
+- User can paste supported image formats into note body.
+- Saved notes reopen with pasted images intact.
+- Rendering and storage path enforce safe content handling.

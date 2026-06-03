@@ -1,8 +1,8 @@
 # Requirements Traceability Matrix
 
 **Project**: AstraNotes  
-**Last Updated**: 2026-06-02  
-**Total Requirements**: 94 (REQ-01–REQ-27, NFR-01–NFR-18, SRG-01–SRG-26, SMR-01–SMR-12, WEB-01–WEB-11)  
+**Last Updated**: 2026-06-03  
+**Total Requirements**: 99 (REQ-01–REQ-30, NFR-01–NFR-18, SRG-01–SRG-28, SMR-01–SMR-12, WEB-01–WEB-11)  
 **UML Source**: Lucid document `83846df4-c365-4466-83ae-ea4703514eca`, Page 2 (`C0fSJIjDhK~F`)
 
 ## Legend
@@ -15,7 +15,7 @@
 
 ---
 
-## Functional Requirements (REQ-01–REQ-27)
+## Functional Requirements (REQ-01–REQ-30)
 
 | Req ID | Short Description | Class / Object Evidence | Use Case / Activity Evidence | Deployment Evidence | Status | Gap Note |
 |---|---|---|---|---|---|---|
@@ -27,12 +27,12 @@
 | REQ-06 | Edit title/body validation | `Note` | UC: Edit Note | — | ⚠️ Partially Traced | Implemented; edit validation branches are not yet diagrammed in UML |
 | REQ-07 | Duplicate title on edit (self-exclude) | `NoteService` | UC: Edit Note | — | ⚠️ Partially Traced | Implemented in service logic; self-exclusion flow is not yet explicit in UML |
 | REQ-08 | Edit persistence (keep id/created_at, update updated_at) | `Note` (updated_at), `SqlNoteRepository` | Activity: Save note changes | Shared DB persistence artifact | ✅ Fully Traced | |
-| REQ-09 | Delete confirmation prompt | — | UC: Delete Note | — | ⚠️ Partially Traced | Pending UML detail: confirmation step in delete activity flow |
-| REQ-10 | Atomic delete with error fallback | `NoteRepository`, `ResultError` | UC: Delete Note | — | ✅ Fully Traced | |
+| REQ-09 | Delete confirmation prompt (move to Trash) | — | UC: Delete Note | — | ⚠️ Partially Traced | Implemented UI copy and confirm flow for move-to-trash; UML activity wording update pending |
+| REQ-10 | Atomic soft-delete with error fallback | `NoteRepository`, `ResultError` | UC: Delete Note | — | ✅ Fully Traced | |
 | REQ-11 | List updates after delete; empty state | `NoteService` | UC: Delete Note, UC: List Notes | — | ⚠️ Partially Traced | Implemented behavior; empty-state handling is not yet modeled in UML |
 | REQ-12 | List display: newest first, 40-char server-side truncation with hover tooltip; editor shows Modified timestamp; body preview uses first non-empty line with formatting-preserving render | `Note` (title, created_at, updated_at) | UC: List Notes | — | ⚠️ Partially Traced | Implemented. Truncation revised to 40 chars (BL-04 UI Alignment). Full title in storage; hover tooltip via CSS `data-full-title`; preview now renders first non-empty line with checklist/bullet/inline formatting. UML artifact update pending. |
 | REQ-13 | Empty state message when no notes | — | UC: List Notes | — | ⚠️ Partially Traced | Pending UML detail: explicit empty-state message flow |
-| REQ-14 | List auto-refresh after CRUD | `NoteService` | UC: List Notes | — | ⚠️ Partially Traced | Implemented behavior; refresh trigger is not yet explicit in UML flow |
+| REQ-14 | List auto-refresh after CRUD | `NoteService`, `notes_ui.py` create/search routes | UC: List Notes | HTMX partial refresh + create-from-trash redirect to active results | ⚠️ Partially Traced | Implemented behavior including create-from-trash return to active view; explicit refresh trigger flow still pending in UML |
 | REQ-15 | Search by title/body, case-insensitive | `NoteService.search()`, `SqlNoteRepository.search()`, `/api/notes/search`, `/ui/notes/search` | UC: Search Notes | API + HTMX partial route (`#notes-results`) | ✅ Fully Traced | Implemented with integration tests for API and UI live filtering |
 | REQ-16 | Search edge cases: empty/whitespace/no results | `NoteService.search()` normalization, UI search context builder | UC: Search Notes | HTMX partial messaging for empty/no-match states | ⚠️ Partially Traced | Implemented with tests; UML activity branches for search edge states are still pending |
 | REQ-17 | Bullet and checkbox lists in body | `Note` (body), `editor_panel.html` checklist controls | UC: Edit Note | HTMX editor flow (`/ui/notes/{id}/editor`) | ⚠️ Partially Traced | Implemented in BL-06 with integration tests; UML list-edit branch detail still pending |
@@ -46,6 +46,9 @@
 | REQ-25 | Private toggle per note | `Note` (is_private), `SecureNote` | UC: Mark Private | — | ✅ Fully Traced | |
 | REQ-26 | Private status persisted + visually indicated | `Note` (is_private), `SqlNoteRepository` | UC: Mark Private | Shared DB persistence artifact | ✅ Fully Traced | |
 | REQ-27 | Private notes hide body preview | `SecureNote` | UC: Mark Private, UC: Search Notes | — | ✅ Fully Traced | |
+| REQ-28 | English/Spanish interface toggle for UI text only | UI localization dictionary module (planned), template text keys | UC: Switch interface language | Web UI node | ⚠️ Partially Traced | MVP scope approved in pivot; implementation and tests pending |
+| REQ-29 | Nested bullet/checklist lists up to 3 levels [Post-MVP] | Editor list model (planned) | UC: Edit Note (nested list branch) | — | ❌ Weakly Traced | Deferred to Post-MVP under pivot |
+| REQ-30 | Image paste in note body [Post-MVP] | Media/content sanitizer module (planned) | UC: Edit Note (paste image flow) | Storage/media artifact | ❌ Weakly Traced | Deferred to Post-MVP under pivot |
 
 ---
 
@@ -53,11 +56,11 @@
 
 | Req ID | Short Description | Class / Object Evidence | Use Case / Activity Evidence | Deployment Evidence | Status | Gap Note |
 |---|---|---|---|---|---|---|
-| NFR-01 | 100 concurrent user sessions | — | — | — | ❌ Weakly Traced | Pending artifact: dedicated load-test evidence for 100-session target |
-| NFR-02 | Active session definition and workload mix | — | — | — | ❌ Weakly Traced | Pending artifact: workload-definition and test-method document |
-| NFR-03 | Concurrency latency targets (p95/p99) | — | — | — | ❌ Weakly Traced | Pending artifact: NFR verification plan with latency benchmarks |
+| NFR-01 | 100 concurrent user sessions | — | — | — | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
+| NFR-02 | Active session definition and workload mix | — | — | — | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
+| NFR-03 | Concurrency latency targets (p95/p99) | — | — | — | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
 | NFR-04 | Optimistic concurrency / version field | `Note` (version), `ResultError` (STALE_VERSION) | Activity: conflict/save error branch | — | ✅ Fully Traced | |
-| NFR-05 | Overload throttle; ≤1% failure rate | — | — | — | ❌ Weakly Traced | Pending artifact: overload-policy verification in NFR plan |
+| NFR-05 | Overload throttle; ≤1% failure rate | — | — | — | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
 | NFR-06 | Web mode: up to 5,000 notes per account | `SqlNoteRepository`, `tests/performance/test_performance.py` (5,000-note seed) | BL-10 performance verification workflow | Shared DB node | ✅ Fully Traced | Verified in BL-10 with dataset size 5,000 |
 | NFR-07 | API latency targets (p95/p99) | `tests/performance/test_performance.py` latency assertions | BL-10 benchmark run (read/search + update operations) | API runtime node | ✅ Fully Traced | Measured results: read p95 35.00 ms, write p95 1.34 ms, all-ops p99 35.99 ms |
 | NFR-08 | API measurement boundary | `tests/performance/test_performance.py` API-route timing (`/api/notes/search`, `/api/notes/{id}`) | BL-10 service-boundary measurement procedure | API runtime node | ✅ Fully Traced | Browser rendering excluded; request/response boundary timing captured |
@@ -74,7 +77,7 @@
 
 ---
 
-## Security, Reliability & Governance Requirements (SRG-01–SRG-26)
+## Security, Reliability & Governance Requirements (SRG-01–SRG-28)
 
 | Req ID | Short Description | Class / Object Evidence | Use Case / Activity Evidence | Deployment Evidence | Status | Gap Note |
 |---|---|---|---|---|---|---|
@@ -87,23 +90,25 @@
 | SRG-07 | Audit privacy: no plaintext private content | `AuditEntry` | — | /data/audit-log.jsonl artifact | ✅ Fully Traced | |
 | SRG-08 | Immutable version records | `VersionHistory`, `NoteVersion` | — | — | ✅ Fully Traced | |
 | SRG-09 | Version SHA-256 hash validation [Post-MVP] | — | — | — | ❌ Weakly Traced | Post-MVP scope; coverage intentionally deferred |
-| SRG-10 | Soft delete: 30-day retention | `Note` (is_deleted, deleted_at) | UC: Delete Note | Shared DB persistence artifact | ✅ Fully Traced | |
-| SRG-11 | Soft-deleted notes excluded from list/search; restorable in window | `NoteService`, `NoteRepository` | UC: Delete Note, UC: List Notes | — | ✅ Fully Traced | |
-| SRG-12 | Retention expiry purge [Post-MVP] | — | — | — | ❌ Weakly Traced | Post-MVP scope; coverage intentionally deferred |
+| SRG-10 | Soft delete: 15-day retention | `Note` (is_deleted, deleted_at) | UC: Delete Note | Shared DB persistence artifact | ✅ Fully Traced | |
+| SRG-11 | Soft-deleted notes excluded from default list/search and managed in Trash view | `NoteService`, `NoteRepository`, `notes_ui.py`, `note_preview.py` | UC: Delete Note, UC: List Notes, UC: Restore Note, UC: Trash Review | UI trash routes (`/?view=trash`, `/ui/notes/{id}/trash-viewer`, `/ui/notes/{id}/trash-unlock`, `/ui/notes/{id}/restore`, `/ui/notes/{id}/purge`) | ✅ Fully Traced | Read-only trash viewer, private-note unlock in trash, and restore/purge are covered by `tests/integration/test_trash_ui.py` |
+| SRG-12 | Retention expiry purge (MVP) | `NoteService._purge_expired_deleted_notes()`, `SqlNoteRepository.purge_soft_deleted_older_than()` | Activity: list/search triggers purge path | Shared DB persistence artifact | ✅ Fully Traced | Implemented with 15-day automatic purge and covered by `test_trash_ui.py` |
 | SRG-13 | Restore: preserve ID, history, audit entry | `NoteService`, `VersionHistory`, `AuditEntry` | — | — | ✅ Fully Traced | |
 | SRG-14 | Structured error handling (no crashes) | `ResultError`, route error mapping module | Activity: save error branch | API and UI route parity tests | ✅ Fully Traced | Implemented shared error mapping with route-level tests |
 | SRG-15 | Atomic commit/rollback on failure | `NoteRepository` (persist contract), `SqlNoteRepository.create_note_atomic()` | Activity: save error branch | SQLite transaction and integrity-error retry path | ✅ Fully Traced | Concurrency tests validate conflict-safe create behavior |
 | SRG-16 | Consistent error codes on repeated invalid requests | `ResultError` | — | — | ⚠️ Partially Traced | Behavior is implemented in shared error contracts; explicit flow evidence is pending |
 | SRG-17 | TLS release gate (no content transmission without SRG-04) | — | — | Deployment constraint note | ⚠️ Partially Traced | Process gate is documented; release-control evidence is pending |
-| SRG-18 | Passphrase unlock required for private notes | `UnlockSessionManager`, `KeyDerivationService` | Activity: Prompt passphrase → validate | — | ✅ Fully Traced | |
-| SRG-19 | Private content hidden until auth succeeds | `SecureNote`, `UnlockSessionManager` | Activity: Passphrase valid? decision | — | ✅ Fully Traced | |
-| SRG-20 | Unlock required once per session | `UnlockSessionManager` | Activity: passphrase flow | — | ✅ Fully Traced | |
+| SRG-18 | PIN unlock required for private notes | `UnlockSessionManager`, `KeyDerivationService` | Activity: Prompt PIN → validate | — | ✅ Fully Traced | |
+| SRG-19 | Private content hidden until auth succeeds | `SecureNote`, `UnlockSessionManager` | Activity: PIN valid? decision | — | ✅ Fully Traced | |
+| SRG-20 | Unlock required once per session | `UnlockSessionManager` | Activity: PIN flow | — | ✅ Fully Traced | |
 | SRG-21 | 15-min inactivity → unlock expiry | `UnlockSessionManager` | Activity: Session inactive >15 min? branch | — | ✅ Fully Traced | |
 | SRG-22 | Rate limiting after 5 failed unlock attempts | `UnlockSessionManager` | Activity: Failed attempts ≥5? decision | — | ✅ Fully Traced | |
-| SRG-23 | Lockout + exponential backoff; persists across restarts | `UnlockSessionManager` | Activity: lockout state node | /data/security-state.json artifact | ✅ Fully Traced | |
-| SRG-24 | Anti-enumeration: identical error for wrong passphrase and internal error | `UnlockSessionManager` | Activity: constraint note (indistinguishable errors) | — | ✅ Fully Traced | |
+| SRG-23 | Lockout + exponential backoff; resets on restart | `UnlockSessionManager` | Activity: lockout state node | In-memory session state | ✅ Fully Traced | |
+| SRG-24 | Anti-enumeration: identical error for wrong PIN and internal error | `UnlockSessionManager` | Activity: constraint note (indistinguishable errors) | — | ✅ Fully Traced | |
 | SRG-25 | Plaintext metadata allowlist | `Note` (field list), `SqlNoteRepository` | — | Shared DB persistence artifact | ✅ Fully Traced | |
 | SRG-26 | PBKDF2-HMAC-SHA256 key derivation (≥260k iterations) | `KeyDerivationService` | — | Key Derivation library node | ✅ Fully Traced | |
+| SRG-27 | App-wide 4-digit PIN bootstrap (default `1234`) | `PinSettingsManager`, `UnlockSessionManager`, `CryptoService.set_private_pin()` | Activity: unlock prompt validates 4-digit PIN | UI settings + config persistence artifact (`/ui/security/pin`) | ✅ Fully Traced | Implemented with persistent app-wide PIN default and verification flow. Test evidence: TP-U32, TP-U33, TP-I08 (see `planning/test-plan.md`). |
+| SRG-28 | In-app PIN change + atomic private-note rotation + keypad UX | `PinSettingsManager`, `SqlNoteRepository.rotate_private_pin()`, `notes_ui.py`, `pin_settings_panel.html`, `pin_input_component.html` | Activity: verify current PIN → reveal new/confirm inputs → rotate private note ciphertext → completion state; unlock via keypad auto-submit | HTMX verify/update routes (`/ui/security/pin/verify`, `/ui/security/pin`) + unlock partials | ✅ Fully Traced | Implemented with rollback-safe rotation, staged verify/update flow, and completion-state rendering. Test evidence: TP-U33, TP-U34, TP-I08, TP-I09, TP-I14 (see `planning/test-plan.md`). |
 
 ---
 
@@ -111,17 +116,17 @@
 
 | Req ID | Short Description | Class / Object Evidence | Use Case / Activity Evidence | Deployment Evidence | Status | Gap Note |
 |---|---|---|---|---|---|---|
-| WEB-01 | Authenticated account required for note operations | `AuthService`, `SessionRepository` (planned) | UC: Login, UC: Access Notes | Shared deployment node | ⚠️ Partially Traced | Planned architecture present; auth classes are not yet represented in UML |
-| WEB-02 | Per-user data isolation (owner-scoped reads/writes) | `SqlNoteRepository` owner scoping | UC: List Notes, UC: Edit Note | Shared DB node | ⚠️ Partially Traced | Owner-scoped data model is not yet rendered in UML |
+| WEB-01 | Authenticated account required for note operations | `AuthService`, `SessionRepository` (planned) | UC: Login, UC: Access Notes | Shared deployment node | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
+| WEB-02 | Per-user data isolation (owner-scoped reads/writes) | `SqlNoteRepository` owner scoping | UC: List Notes, UC: Edit Note | Shared DB node | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
 | WEB-03 | JSON APIs for create/edit/delete/list/search/restore | FastAPI route layer (BL-01 create implemented) | Activity: API request/response flows | API runtime node | ⚠️ Partially Traced | BL-01 create API is implemented and tested; remaining endpoints are pending |
 | WEB-04 | Web client consumes public APIs only | UI → service boundary with API parity contract | UC: all note workflows via API | — | ⚠️ Partially Traced | BL-01 parity is tested; full UI-through-API boundary enforcement is pending |
-| WEB-05 | Session expires after inactivity | `SessionRepository`, inactivity timeout policy | Activity: session timeout and re-auth path | — | ⚠️ Partially Traced | Session timeout behavior is defined; activity-flow evidence is pending |
-| WEB-06 | Server-side authorization check on every API | `AuthService`, route-level dependency checks | Activity: authorize before mutate | — | ⚠️ Partially Traced | Authorization intent is defined; endpoint-guard UML evidence is pending |
-| WEB-07 | Transactional multi-user storage integrity | `SqlNoteRepository`, DB transaction boundary | Activity: commit/rollback | Shared DB node | ⚠️ Partially Traced | Transaction boundary is represented; multi-user implementation evidence is pending |
-| WEB-08 | Shared persistent demo environment | Deployment config + persistence volume | UC: reviewer access | Shared deployment endpoint | ❌ Weakly Traced | Pending artifacts: deployment architecture and operations runbook |
-| WEB-09 | Persistent User model with required fields | `User` table: user_id, email, password_hash, created_at, is_active | UC: Signup, UC: Login | Database schema artifact | ⚠️ Partially Traced | ADR evidence exists; schema diagram artifact is pending |
-| WEB-10 | Database-backed session store with timeouts | `Session` table: session_id, user_id, created_at, last_activity_at, expires_at, is_revoked, ip_address, user_agent; 30-min idle timeout, 7-day absolute timeout | Activity: login → session create; logout → session revoke; timeout check | Database schema artifact | ⚠️ Partially Traced | ADR evidence exists; session lifecycle sequence diagram is pending |
-| WEB-11 | Separate login password and note passphrase | `User.password_hash` (bcrypt/Argon2); `Note.passphrase_salt` + PBKDF2 (4-digit PIN) | Activity: login hashes password; unlock derives key from passphrase | Crypto policy artifact | ⚠️ Partially Traced | ADR evidence exists; cryptographic flow diagram is pending |
+| WEB-05 | Session expires after inactivity | `SessionRepository`, inactivity timeout policy | Activity: session timeout and re-auth path | — | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
+| WEB-06 | Server-side authorization check on every API | `AuthService`, route-level dependency checks | Activity: authorize before mutate | — | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
+| WEB-07 | Transactional multi-user storage integrity | `SqlNoteRepository`, DB transaction boundary | Activity: commit/rollback | Shared DB node | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
+| WEB-08 | Shared persistent demo environment | Deployment config + persistence volume | UC: reviewer access | Shared deployment endpoint | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
+| WEB-09 | Persistent User model with required fields | `User` table: user_id, email, password_hash, created_at, is_active | UC: Signup, UC: Login | Database schema artifact | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
+| WEB-10 | Database-backed session store with timeouts | `Session` table: session_id, user_id, created_at, last_activity_at, expires_at, is_revoked, ip_address, user_agent; 30-min idle timeout, 7-day absolute timeout | Activity: login → session create; logout → session revoke; timeout check | Database schema artifact | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
+| WEB-11 | Separate login password and note passphrase | `User.password_hash` (bcrypt/Argon2); `Note.passphrase_salt` + PBKDF2 (4-digit PIN) | Activity: login hashes password; unlock derives key from passphrase | Crypto policy artifact | ❌ Weakly Traced | Deferred to Post-MVP under single-user pivot |
 
 ---
 
@@ -129,11 +134,11 @@
 
 | Status | Count |
 |---|---|
-| ✅ Fully Traced | 26 |
-| ⚠️ Partially Traced | 42 |
-| ❌ Weakly Traced | 14 |
+| ✅ Fully Traced | 28 |
+| ⚠️ Partially Traced | 43 |
+| ❌ Weakly Traced | 16 |
 | ➕ SMR — Pending Diagrams | 12 |
-| **Total** | **94** |
+| **Total** | **99** |
 
 ## BL-01 Residual Tracker (Non-Blocking)
 

@@ -41,7 +41,7 @@ def search_notes(
         SearchNoteResponse(
             note_id=note.note_id,
             title=note.title,
-            body=note.body,
+            body="" if note.is_private else note.body,
             is_private=note.is_private,
             is_deleted=note.is_deleted,
             created_at=note.created_at,
