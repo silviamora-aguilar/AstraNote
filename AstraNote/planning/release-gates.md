@@ -28,7 +28,7 @@ All MVP backlog items must be complete and verified:
 | BL-12: Architecture boundaries | NFR-13–16 | ✅ |
 | BL-13: Security stack | SRG-01, 02, 04, 05, 07, 08, 10, 11, 12, 13–26 | ✅ |
 | BL-23: Interface localization toggle | REQ-28 | ✅ |
-| BL-21: Serviceability/manageability | SMR-01–12 | ☐ |
+| BL-21: Serviceability/manageability | SMR-01, 03, 04, 05, 06, 07, 09, 10, 11 (SMR-02, 08, 12 deferred [Post-MVP]) | ☐ |
 | BL-22: Web multi-user foundation | WEB-01–11 | Deferred [Post-MVP] |
 | BL-24: Nested list depth (3 levels) | REQ-29 | Deferred [Post-MVP] |
 | BL-25: Image paste in note body | REQ-30 | Deferred [Post-MVP] |
@@ -163,6 +163,7 @@ Signed off by: _______________
 
 - ✅ BL-11 deferred to Post-MVP for this demo cycle.
 - ✅ NFR-10 and NFR-12 moved to Post-MVP scope in `planning/requirements.md`.
+- ✅ BL-21 rebaselined for localhost single-user MVP: SMR-02, SMR-08, and SMR-12 deferred to Post-MVP; remaining SMR items retained as MVP serviceability baseline.
 - ✅ Current active open implementation gate for MVP is BL-21.
 
 ## Demo Hardening Checkpoint (2026-06-03)

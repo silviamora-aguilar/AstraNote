@@ -55,9 +55,10 @@ class NoteNotFoundError(ValueError):
 class NoteService:
     """Business rules for note operations."""
 
-    def __init__(self, repository: NoteRepository, audit_logger: _AuditSink | None = None) -> None:
+    def __init__(self, repository: NoteRepository, audit_logger: _AuditSink | None = None, max_notes: int = MAX_NOTES) -> None:
         self.repository = repository
         self._audit_logger = audit_logger
+        self._max_notes = max_notes
 
     def _audit(self, action: str, note_id: str, outcome: str, error_code: str | None = None) -> None:
         if self._audit_logger is None:
@@ -87,7 +88,7 @@ class NoteService:
                 title=cleaned_title,
                 body=cleaned_body,
                 is_private=is_private,
-                max_notes=MAX_NOTES,
+                max_notes=self._max_notes,
             )
             self._audit("create", created.note_id, "success")
             return created

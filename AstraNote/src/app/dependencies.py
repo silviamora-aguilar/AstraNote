@@ -11,14 +11,34 @@ from starlette.templating import Jinja2Templates
 
 from src.app.presentation import render_note_body_html, render_note_preview_html
 from src.app.repositories import NoteRepository, SqlNoteRepository
+from src.app.runtime import AppLogger, AppStartup, ConfigService
 from src.app.security import AuditLogger, CryptoService, PinSettingsManager, UnlockSessionManager
 from src.app.services import NoteService, PrivateNoteService
 
 
 @lru_cache(maxsize=1)
+def get_config_service() -> ConfigService:
+    """Provide validated runtime configuration."""
+    return ConfigService()
+
+
+@lru_cache(maxsize=1)
+def get_app_logger() -> AppLogger:
+    """Provide a singleton diagnostic logger."""
+    config = get_config_service()
+    return AppLogger(config.data_dir_path / "astranote.log", level=str(config.get("log_level") or "INFO"))
+
+
+@lru_cache(maxsize=1)
+def get_app_startup() -> AppStartup:
+    """Provide startup validation workflow."""
+    return AppStartup(get_config_service(), get_app_logger())
+
+
+@lru_cache(maxsize=1)
 def get_pin_settings_manager() -> PinSettingsManager:
     """Provide persisted app-level private PIN settings."""
-    return PinSettingsManager()
+    return PinSettingsManager(config_file=get_config_service().config_path)
 
 
 @lru_cache(maxsize=1)
@@ -31,19 +51,24 @@ def get_crypto_service() -> CryptoService:
 @lru_cache(maxsize=1)
 def get_unlock_session_manager() -> UnlockSessionManager:
     """Provide unlock manager for private-note session gating."""
-    return UnlockSessionManager(get_crypto_service())
+    return UnlockSessionManager(
+        get_crypto_service(),
+        unlock_timeout_minutes=int(get_config_service().get("inactivity_timeout_minutes") or 15),
+    )
 
 
 @lru_cache(maxsize=1)
 def get_note_repository() -> NoteRepository:
     """Provide a singleton note repository instance."""
-    return SqlNoteRepository(crypto_service=get_crypto_service())
+    config = get_config_service()
+    database_url = f"sqlite:///{config.data_dir_path / 'astranote.db'}"
+    return SqlNoteRepository(database_url=database_url, crypto_service=get_crypto_service())
 
 
 @lru_cache(maxsize=1)
 def get_audit_logger() -> AuditLogger:
     """Provide a singleton append-only audit logger."""
-    return AuditLogger()
+    return AuditLogger(get_config_service().data_dir_path / "audit-log.jsonl")
 
 
 def get_note_service(
@@ -51,7 +76,11 @@ def get_note_service(
     audit_logger: Annotated[AuditLogger, Depends(get_audit_logger)],
 ) -> NoteService:
     """Provide the note service using the configured repository."""
-    return NoteService(note_repository, audit_logger=audit_logger)
+    return NoteService(
+        note_repository,
+        audit_logger=audit_logger,
+        max_notes=int(get_config_service().get("max_notes") or 10_000),
+    )
 
 
 def get_private_note_service(

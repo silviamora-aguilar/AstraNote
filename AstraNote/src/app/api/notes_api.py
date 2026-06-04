@@ -6,7 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from src.app.api.error_mapping import map_note_error_code, map_note_error_message, map_note_error_status
+from src.app.api.error_mapping import log_note_exception, map_note_error_code, map_note_error_message, map_note_error_status
 from src.app.api.schemas import (
     BulkDeleteNotesRequest,
     BulkDeleteNotesResponse,
@@ -32,6 +32,7 @@ def search_notes(
     try:
         notes = note_service.search(q)
     except Exception as exc:
+        log_note_exception(exc, surface="api", operation="search")
         raise HTTPException(
             status_code=map_note_error_status(exc),
             detail=map_note_error_message(exc),
@@ -65,6 +66,7 @@ def create_note(
             is_private=payload.is_private,
         )
     except Exception as exc:
+        log_note_exception(exc, surface="api", operation="create")
         raise HTTPException(
             status_code=map_note_error_status(exc),
             detail=map_note_error_message(exc),
@@ -91,6 +93,7 @@ def delete_note(
     try:
         note_service.delete(note_id)
     except Exception as exc:
+        log_note_exception(exc, surface="api", operation="delete", note_id=note_id)
         raise HTTPException(
             status_code=map_note_error_status(exc),
             detail=map_note_error_message(exc),
@@ -107,6 +110,7 @@ def bulk_delete_notes(
     try:
         deleted_count = note_service.bulk_delete(payload.note_ids)
     except Exception as exc:
+        log_note_exception(exc, surface="api", operation="bulk_delete")
         raise HTTPException(
             status_code=map_note_error_status(exc),
             detail=map_note_error_message(exc),
@@ -131,6 +135,7 @@ def update_note(
             is_private=payload.is_private,
         )
     except Exception as exc:
+        log_note_exception(exc, surface="api", operation="update", note_id=note_id)
         raise HTTPException(
             status_code=map_note_error_status(exc),
             detail=map_note_error_message(exc),

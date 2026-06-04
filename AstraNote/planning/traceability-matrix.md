@@ -189,17 +189,17 @@
 | Req ID | Short Description | Class / Object Evidence | Use Case / Activity Evidence | Deployment Evidence | Status | Gap Note |
 |---|---|---|---|---|---|---|
 | SMR-01 | Rotating diagnostic log file with tier, timestamp, severity, correlation ID | `AppLogger` (to be added to class diagram) | — | AstraNotes Application node | ⚠️ Partially Traced | Runtime coverage exists; logger class representation in UML is pending |
-| SMR-02 | Log level configurable in config.json; live reload | `AppLogger`, `ConfigService` | — | /data/config.json artifact | ⚠️ Partially Traced | Configuration artifact exists; ConfigService class representation in UML is pending |
+| SMR-02 [Post-MVP] | Log level configurable in config.json; live reload | `AppLogger`, `ConfigService` | — | /data/config.json artifact | ❌ Weakly Traced | Deferred to Post-MVP under localhost MVP scope rebaseline |
 | SMR-03 | Log entries never contain note plaintext | `AppLogger` | — | — | ⚠️ Partially Traced | Constraint is defined; logger privacy note in UML is pending |
-| SMR-04 | ResultError includes source_tier; raw exceptions never reach UI | `ResultError` (source_tier field) | — | — | ⚠️ Partially Traced | ResultError is represented; source_tier field detail in UML is pending |
+| SMR-04 | Storage/security errors translated to stable domain errors before UI responses | `error_mapping.py`, domain error types | Activity: error branch rendering | API/UI response mapping evidence | ⚠️ Partially Traced | Core user-safe mapping is implemented; strict `source_tier` tagging deferred to Post-MVP |
 | SMR-05 | UI renders user-safe error state; no codes/traces shown to user | UI tier (to be modeled) | Activity: error branch rendering | — | ❌ Weakly Traced | Pending artifact: UI-tier model for safe error rendering |
 | SMR-06 | Startup: verify/create data directory; refuse launch if not writable | `AppStartup` (to be added) | — | Local File System node | ⚠️ Partially Traced | Deployment evidence exists; startup class representation in UML is pending |
-| SMR-07 | Startup: corrupt/unreadable persistence store preserved + fresh store initialized + user warning | `SqlNoteRepository` startup path | — | Shared DB artifact | ⚠️ Partially Traced | Startup recovery behavior is defined; UML flow evidence is pending |
-| SMR-08 | Schema migration version guard; refuse write if stored version > app version | `SqlNoteRepository`, migration metadata | — | DB migration metadata artifact | ⚠️ Partially Traced | Migration artifact exists; version-guard detail in UML is pending |
+| SMR-07 | Startup: unreadable/invalid persistence store triggers clear fail-fast behavior | `SqlNoteRepository` startup path | — | Shared DB artifact | ⚠️ Partially Traced | Fail-fast startup behavior retained for MVP; automatic rename/reinitialize recovery deferred |
+| SMR-08 [Post-MVP] | Schema migration version guard; refuse write if stored version > app version | `SqlNoteRepository`, migration metadata | — | DB migration metadata artifact | ❌ Weakly Traced | Deferred to Post-MVP under localhost MVP scope rebaseline |
 | SMR-09 | config.json: unknown keys ignored, missing keys use defaults, invalid values → WARNING | `ConfigService` (to be added) | — | /data/config.json artifact | ⚠️ Partially Traced | Configuration artifact exists; ConfigService model in UML is pending |
 | SMR-10 | Four supported config keys: log_level, data_dir, inactivity_timeout_minutes, max_notes | `ConfigService` | — | /data/config.json artifact | ⚠️ Partially Traced | Defined keys are documented; UML/config flow evidence is pending |
-| SMR-11 | Semantic version embedded in app, shown in About UI, logged on startup | `AppVersion` / version constant | — | AstraNotes Application node | ⚠️ Partially Traced | Deployment evidence exists; version model detail in UML is pending |
-| SMR-12 | Graceful shutdown: in-progress writes complete before process exits | `SqlNoteRepository` (transaction guard) | — | AstraNotes Application node | ⚠️ Partially Traced | Transaction intent is represented; shutdown-flow activity evidence is pending |
+| SMR-11 | Semantic version embedded and available in runtime/startup metadata | `APP_VERSION`/application version metadata | — | AstraNotes Application node | ⚠️ Partially Traced | Runtime metadata exists; dedicated About UI exposure deferred |
+| SMR-12 [Post-MVP] | Graceful shutdown: in-progress writes complete before process exits | `SqlNoteRepository` (transaction guard) | — | AstraNotes Application node | ❌ Weakly Traced | Deferred to Post-MVP under localhost MVP scope rebaseline |
 
 ### Weakly Traced — Root Cause Groups
 
