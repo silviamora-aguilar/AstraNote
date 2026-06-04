@@ -13,18 +13,13 @@ from cryptography.exceptions import InvalidTag
 
 from src.app.api.error_mapping import map_note_error_message, map_note_error_status
 from src.app.dependencies import (
-    get_crypto_service,
-    get_note_repository,
+    get_private_note_service,
     get_note_service,
-    get_pin_settings_manager,
     get_templates,
-    get_unlock_session_manager,
 )
-from src.app.repositories import SqlNoteRepository
-from src.app.security import CryptoService, PinSettingsManager, UnlockSessionManager
 from src.app.presentation import render_note_body_html
 from src.app.presentation.localization import get_ui_strings, resolve_ui_language
-from src.app.services import NoteService
+from src.app.services import NoteService, PinChangeResult, PrivateNoteService
 
 
 router = APIRouter(tags=["notes-ui"])
@@ -354,7 +349,7 @@ def get_note_editor_panel(
     request: Request,
     note_id: str,
     note_service: Annotated[NoteService, Depends(get_note_service)],
-    unlock_manager: Annotated[UnlockSessionManager, Depends(get_unlock_session_manager)],
+    private_note_service: Annotated[PrivateNoteService, Depends(get_private_note_service)],
     include_oob: bool = Query(default=True),
 ) -> HTMLResponse:
     """Load a selected note into the dedicated editor panel."""
@@ -368,7 +363,7 @@ def get_note_editor_panel(
             status_code=404,
         )
 
-    if note.is_private and not unlock_manager.is_unlocked(note.note_id):
+    if note.is_private and not private_note_service.is_unlocked(note.note_id):
         return _render_unlock_panel(request, note)
 
     return templates.TemplateResponse(
@@ -393,7 +388,7 @@ def get_trashed_note_viewer_panel(
     request: Request,
     note_id: str,
     note_service: Annotated[NoteService, Depends(get_note_service)],
-    unlock_manager: Annotated[UnlockSessionManager, Depends(get_unlock_session_manager)],
+    private_note_service: Annotated[PrivateNoteService, Depends(get_private_note_service)],
 ) -> HTMLResponse:
     """Load a trashed note into a read-only viewer panel."""
     templates = get_templates()
@@ -406,7 +401,7 @@ def get_trashed_note_viewer_panel(
             status_code=404,
         )
 
-    if note.is_private and not unlock_manager.is_unlocked(note.note_id):
+    if note.is_private and not private_note_service.is_unlocked(note.note_id):
         return _render_unlock_panel(
             request,
             note,
@@ -433,7 +428,7 @@ def update_note_editor_panel(
     request: Request,
     note_id: str,
     note_service: Annotated[NoteService, Depends(get_note_service)],
-    unlock_manager: Annotated[UnlockSessionManager, Depends(get_unlock_session_manager)],
+    private_note_service: Annotated[PrivateNoteService, Depends(get_private_note_service)],
     title: str = Form(...),
     body: str | None = Form(None),
     is_private: bool = Form(False),
@@ -449,7 +444,7 @@ def update_note_editor_panel(
             status_code=404,
         )
 
-    if existing_note.is_private and not unlock_manager.is_unlocked(existing_note.note_id):
+    if existing_note.is_private and not private_note_service.is_unlocked(existing_note.note_id):
         return _render_unlock_panel(request, existing_note, _ui_context(request)["i18n"]["unlock_wrong_pin"])
 
     resolved_body = "" if body is None else body
@@ -505,7 +500,7 @@ def toggle_checklist_item_htmx(
     request: Request,
     note_id: str,
     note_service: Annotated[NoteService, Depends(get_note_service)],
-    unlock_manager: Annotated[UnlockSessionManager, Depends(get_unlock_session_manager)],
+    private_note_service: Annotated[PrivateNoteService, Depends(get_private_note_service)],
     line_index: int = Form(...),
     checked: bool = Form(False),
 ) -> HTMLResponse:
@@ -519,7 +514,7 @@ def toggle_checklist_item_htmx(
             {"error_message": _ui_context(request)["i18n"]["note_not_found"]},
             status_code=404,
         )
-    if existing_note.is_private and not unlock_manager.is_unlocked(existing_note.note_id):
+    if existing_note.is_private and not private_note_service.is_unlocked(existing_note.note_id):
         return _render_unlock_panel(request, existing_note, _ui_context(request)["i18n"]["unlock_wrong_pin"])
 
     try:
@@ -554,7 +549,7 @@ def unlock_private_note_htmx(
     request: Request,
     note_id: str,
     note_service: Annotated[NoteService, Depends(get_note_service)],
-    unlock_manager: Annotated[UnlockSessionManager, Depends(get_unlock_session_manager)],
+    private_note_service: Annotated[PrivateNoteService, Depends(get_private_note_service)],
     view: str = Query(default="active"),
     pin: str = Form(...),
 ) -> HTMLResponse:
@@ -576,17 +571,17 @@ def unlock_private_note_htmx(
 
     if not note.is_private:
         if view == "trash":
-            return get_trashed_note_viewer_panel(request, note_id, note_service, unlock_manager)
-        return get_note_editor_panel(request, note_id, note_service, unlock_manager)
+            return get_trashed_note_viewer_panel(request, note_id, note_service, private_note_service)
+        return get_note_editor_panel(request, note_id, note_service, private_note_service)
 
-    unlocked, error_message = unlock_manager.attempt_unlock(note_id, pin)
+    unlocked, _error_message = private_note_service.attempt_unlock(note_id, pin)
     if not unlocked:
         unlock_post_url = f"/ui/notes/{note.note_id}/unlock?view=trash" if view == "trash" else None
         return _render_unlock_panel(request, note, _ui_context(request)["i18n"]["unlock_wrong_pin"], unlock_post_url)
 
     if view == "trash":
-        return get_trashed_note_viewer_panel(request, note_id, note_service, unlock_manager)
-    return get_note_editor_panel(request, note_id, note_service, unlock_manager)
+        return get_trashed_note_viewer_panel(request, note_id, note_service, private_note_service)
+    return get_note_editor_panel(request, note_id, note_service, private_note_service)
 
 
 @router.get("/ui/security/pin", response_class=HTMLResponse)
@@ -598,102 +593,88 @@ def get_private_pin_settings_panel(request: Request) -> HTMLResponse:
 @router.post("/ui/security/pin/verify", response_class=HTMLResponse)
 def verify_private_pin_settings_current_pin(
     request: Request,
-    pin_settings: Annotated[PinSettingsManager, Depends(get_pin_settings_manager)],
-    crypto_service: Annotated[CryptoService, Depends(get_crypto_service)],
+    private_note_service: Annotated[PrivateNoteService, Depends(get_private_note_service)],
     current_pin: str = Form(...),
 ) -> HTMLResponse:
     """Verify current app-level private PIN before allowing update fields."""
     lang_ctx = _ui_context(request)
-    if not crypto_service.validate_pin_format(current_pin):
+    verification_result = private_note_service.verify_current_pin(current_pin)
+    if verification_result.code == "current_pin_format":
         return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} must be exactly 4 digits.")
 
-    if not pin_settings.verify_pin(current_pin):
+    if verification_result.code == "current_pin_incorrect":
         return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} is incorrect.")
 
     return _render_pin_settings_panel(
         request,
         success_message=f"{lang_ctx['i18n']['current_pin_label']} verified. Enter a new PIN.",
-        verified_current_pin=current_pin,
+        verified_current_pin=verification_result.verified_current_pin,
     )
 
 
 @router.post("/ui/security/pin", response_class=HTMLResponse)
 def update_private_pin_settings(
     request: Request,
-    note_repository: Annotated[SqlNoteRepository, Depends(get_note_repository)],
-    crypto_service: Annotated[CryptoService, Depends(get_crypto_service)],
-    pin_settings: Annotated[PinSettingsManager, Depends(get_pin_settings_manager)],
-    unlock_manager: Annotated[UnlockSessionManager, Depends(get_unlock_session_manager)],
+    private_note_service: Annotated[PrivateNoteService, Depends(get_private_note_service)],
     current_pin: str = Form(...),
     new_pin: str = Form(...),
     confirm_pin: str = Form(...),
 ) -> HTMLResponse:
     """Change app-level private-note PIN and re-encrypt private note data."""
     lang_ctx = _ui_context(request)
-    if not crypto_service.validate_pin_format(current_pin):
+    change_result: PinChangeResult = private_note_service.change_pin(
+        current_pin=current_pin,
+        new_pin=new_pin,
+        confirm_pin=confirm_pin,
+    )
+
+    recovery_message = ""
+    if change_result.recovered_count > 0:
+        recovery_message = f"Recovered {change_result.recovered_count} private notes from a previous PIN. "
+
+    if change_result.code == "current_pin_incorrect":
         return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} is incorrect.")
 
-    active_pin = pin_settings.get_pin()
-    effective_current_pin = current_pin
-    recovery_message = ""
-
-    if not pin_settings.verify_pin(current_pin):
-        try:
-            recovered_count = note_repository.rotate_private_pin(old_pin=current_pin, new_pin=active_pin)
-        except Exception:
-            recovered_count = 0
-
-        if recovered_count <= 0:
-            return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} is incorrect.")
-
-        effective_current_pin = active_pin
-        unlock_manager.reset_all()
-        recovery_message = f"Recovered {recovered_count} private notes from a previous PIN. "
-
-    if not crypto_service.validate_pin_format(new_pin):
+    if change_result.code == "new_pin_format":
         return _render_pin_settings_panel(
             request,
             error_message=f"{lang_ctx['i18n']['new_pin_label']} must be exactly 4 digits.",
-            verified_current_pin=effective_current_pin,
+            verified_current_pin=change_result.verified_current_pin,
         )
 
-    if new_pin != confirm_pin:
+    if change_result.code == "pin_mismatch":
         return _render_pin_settings_panel(
             request,
             error_message=f"{lang_ctx['i18n']['new_pin_label']} and confirmation do not match.",
-            verified_current_pin=effective_current_pin,
+            verified_current_pin=change_result.verified_current_pin,
         )
 
-    if effective_current_pin == new_pin:
-        if recovery_message:
-            return _render_pin_settings_panel(
-                request,
-                success_message=f"{recovery_message}PIN unchanged.",
-                verified_current_pin=effective_current_pin,
-            )
+    if change_result.code == "pin_unchanged_after_recovery":
+        return _render_pin_settings_panel(
+            request,
+            success_message=f"{recovery_message}PIN unchanged.",
+            verified_current_pin=change_result.verified_current_pin,
+        )
+
+    if change_result.code == "pin_unchanged":
         return _render_pin_settings_panel(
             request,
             error_message=f"{lang_ctx['i18n']['new_pin_label']} must be different from {lang_ctx['i18n']['current_pin_label']}.",
-            verified_current_pin=effective_current_pin,
+            verified_current_pin=change_result.verified_current_pin,
         )
 
-    try:
-        note_repository.rotate_private_pin(old_pin=effective_current_pin, new_pin=new_pin)
-        pin_settings.set_pin(new_pin)
-        crypto_service.set_private_pin(new_pin)
-        unlock_manager.reset_all()
-    except Exception:
+    if change_result.code == "update_failed":
         return _render_pin_settings_panel(
             request,
             error_message=f"Unable to update {lang_ctx['i18n']['change_private_pin'].lower()} right now.",
-            verified_current_pin=effective_current_pin,
+            verified_current_pin=change_result.verified_current_pin,
         )
 
     return _render_pin_settings_panel(
         request,
         success_message=f"{recovery_message}{lang_ctx['i18n']['change_private_pin']} updated.",
-        verified_current_pin=new_pin,
-        pin_update_completed=True,
+        verified_current_pin=change_result.verified_current_pin,
+        pin_update_completed=change_result.pin_update_completed,
     )
 
 
@@ -828,6 +809,7 @@ def update_note_htmx_legacy(
     request: Request,
     note_id: str,
     note_service: Annotated[NoteService, Depends(get_note_service)],
+    private_note_service: Annotated[PrivateNoteService, Depends(get_private_note_service)],
     title: str = Form(...),
     body: str = Form(""),
     is_private: bool = Form(False),
@@ -837,6 +819,7 @@ def update_note_htmx_legacy(
         request=request,
         note_id=note_id,
         note_service=note_service,
+        private_note_service=private_note_service,
         title=title,
         body=body,
         is_private=is_private,

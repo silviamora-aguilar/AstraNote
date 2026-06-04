@@ -25,7 +25,7 @@ All MVP backlog items must be complete and verified:
 | BL-09: Privacy state and preview suppression | REQ-25–27 | ✅ |
 | BL-10: Performance verification | NFR-06–09 | ✅ |
 | BL-11: Input model and accessibility parity | NFR-10, NFR-12 | Deferred [Post-MVP] |
-| BL-12: Architecture boundaries | NFR-13–16 | ☐ |
+| BL-12: Architecture boundaries | NFR-13–16 | ✅ |
 | BL-13: Security stack | SRG-01, 02, 04, 05, 07, 08, 10, 11, 12, 13–26 | ✅ |
 | BL-23: Interface localization toggle | REQ-28 | ✅ |
 | BL-21: Serviceability/manageability | SMR-01–12 | ☐ |
@@ -163,7 +163,7 @@ Signed off by: _______________
 
 - ✅ BL-11 deferred to Post-MVP for this demo cycle.
 - ✅ NFR-10 and NFR-12 moved to Post-MVP scope in `planning/requirements.md`.
-- ✅ Current active open implementation gates for MVP are BL-12, BL-21, and BL-23.
+- ✅ Current active open implementation gate for MVP is BL-21.
 
 ## Demo Hardening Checkpoint (2026-06-03)
 

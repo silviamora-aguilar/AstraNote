@@ -31,7 +31,7 @@ def test_notes_page_renders_jinja_template(client) -> None:
 
     assert response.status_code == 200
     assert 'AstraNote' in response.text
-    assert 'hx-post="/ui/notes"' in response.text
+    assert 'hx-post="/ui/notes?lang=' in response.text
     assert 'id="editor-slot"' in response.text
     assert 'id="create-panel-template"' in response.text
     assert 'id="editor-panel"' not in response.text
@@ -55,7 +55,7 @@ def test_htmx_create_note_returns_html_snippet(client) -> None:
     assert title in response.text
     assert 'note-item' in response.text
     assert 'hx-get="/ui/notes/' in response.text
-    assert '/editor"' in response.text
+    assert '/editor?lang=' in response.text
 
 
 @pytest.mark.integration
