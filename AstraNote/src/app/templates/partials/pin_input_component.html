@@ -42,6 +42,7 @@
     <script>
         (function() {
             const pinInputElement = document.getElementById('pin-input-{{ note_id or "default" }}');
+            const pinWrapper = pinInputElement ? pinInputElement.closest('.pin-input-wrapper') : null;
             const circles = document.querySelectorAll('.pin-circle');
             const numPadBtns = document.querySelectorAll('.num-pad-btn[data-digit]');
             const backspaceBtn = document.getElementById('pin-backspace');
@@ -124,7 +125,18 @@
             });
 
             // Keyboard input
-            document.addEventListener('keydown', (e) => {
+            function handlePinKeydown(e) {
+                if (!pinWrapper || !pinWrapper.isConnected) {
+                    document.removeEventListener('keydown', handlePinKeydown);
+                    return;
+                }
+
+                const activeElement = document.activeElement;
+                const focusInsidePinWidget = Boolean(activeElement && pinWrapper.contains(activeElement));
+                if (!focusInsidePinWidget) {
+                    return;
+                }
+
                 if (/^[0-9]$/.test(e.key)) {
                     e.preventDefault();
                     addDigit(e.key);
@@ -134,7 +146,9 @@
                 } else if (e.key === 'Escape') {
                     clearPin();
                 }
-            });
+            }
+
+            document.addEventListener('keydown', handlePinKeydown);
 
             // Initial display
             updateDisplay();

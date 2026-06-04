@@ -9,9 +9,9 @@
         >
             ×
         </button>
-        <h2 style="margin-left: 0.4rem; flex: 1;">New Note</h2>
+        <h2 style="margin-left: 0.4rem; flex: 1;">{{ i18n.create_panel_title }}</h2>
     </div>
-    <p class="panel-subtitle">Create a new note here. Closing this panel returns you to the notes list only.</p>
+    <p class="panel-subtitle">{{ i18n.create_panel_subtitle }}</p>
 
     <div id="form-errors">
         {% if error_message %}
@@ -20,33 +20,33 @@
     </div>
 
     <form
-        hx-post="/ui/notes"
+        hx-post="/ui/notes?lang={{ lang }}"
         hx-target="#today-note-list"
         hx-swap="afterbegin"
         hx-on::after-request="if(event.detail.successful){document.getElementById('body').innerHTML=''; document.getElementById('body-hidden').value=''; document.getElementById('empty-state')?.remove(); document.getElementById('form-errors').innerHTML=''; document.getElementById('title').value=''; closeEditorPanel();} else {document.getElementById('form-errors').innerHTML = event.detail.xhr.responseText;}"
     >
-        <label for="title" class="label">Title</label>
-        <input id="title" name="title" type="text" required maxlength="255" placeholder="Example: Sprint check-in summary" />
+        <label for="title" class="label">{{ i18n.title_label }}</label>
+        <input id="title" name="title" type="text" required maxlength="255" placeholder="{{ i18n.title_placeholder }}" />
 
-        <label for="body" class="label">Body</label>
-        <div class="format-toolbar" role="toolbar" aria-label="Body formatting tools">
-            <button type="button" class="format-btn" data-format-action="bullet" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('bullet', 'body')">Bullets</button>
-            <button type="button" class="format-btn" data-format-action="checklist" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('checklist', 'body')">Checklist</button>
+        <label for="body" class="label">{{ i18n.body_label }}</label>
+        <div class="format-toolbar" role="toolbar" aria-label="{{ i18n.body_label }} formatting tools">
+            <button type="button" class="format-btn" data-format-action="bullet" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('bullet', 'body')">{{ i18n.bullets }}</button>
+            <button type="button" class="format-btn" data-format-action="checklist" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('checklist', 'body')">{{ i18n.checklist }}</button>
             <button type="button" class="format-btn" data-format-action="bold" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('bold', 'body')"><strong>B</strong></button>
             <button type="button" class="format-btn" data-format-action="italic" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('italic', 'body')"><em>I</em></button>
             <button type="button" class="format-btn" data-format-action="underline" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('underline', 'body')"><span style="text-decoration: underline;">U</span></button>
         </div>
         <input type="hidden" id="body-hidden" name="body" />
-        <div id="body" class="body-wysiwyg" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Body" data-placeholder="Add details, context, and next steps..." data-hidden-id="body-hidden"></div>
+        <div id="body" class="body-wysiwyg" contenteditable="true" role="textbox" aria-multiline="true" aria-label="{{ i18n.body_label }}" data-placeholder="{{ i18n.body_placeholder }}" data-hidden-id="body-hidden"></div>
 
         <div class="row">
             <label class="toggle">
                 <input type="checkbox" name="is_private" value="true" />
-                Private note
+                {{ i18n.private_note_toggle }}
             </label>
-            <button type="submit">Create Note</button>
+            <button type="submit">{{ i18n.create_note_submit }}</button>
         </div>
 
-        <p class="microcopy">Validation is enforced server-side through NoteService, then rendered back as inline feedback.</p>
+        <p class="microcopy">{{ i18n.create_note_microcopy }}</p>
     </form>
 </article>

@@ -9,28 +9,28 @@
         >
             ×
         </button>
-        <h2 style="margin-left: 0.4rem; flex: 1;">Trash Note</h2>
+        <h2 style="margin-left: 0.4rem; flex: 1;">{{ i18n.trash_note_title }}</h2>
     </div>
 
-    <p class="panel-subtitle">This note is in Trash and is read-only. Restore it to make edits.</p>
+    <p class="panel-subtitle">{{ i18n.trash_note_subtitle }}</p>
 
     {% if note.is_private %}
-        <div class="microcopy" style="margin-bottom: 0.35rem; font-weight: 700; color: var(--accent-deep);">Private Note</div>
+        <div class="microcopy" style="margin-bottom: 0.35rem; font-weight: 700; color: var(--accent-deep);">{{ i18n.private_note }}</div>
     {% endif %}
 
-    <label class="label">Title</label>
+    <label class="label">{{ i18n.title_label }}</label>
     <div class="readonly-note-field">{{ note.title }}</div>
 
     <div class="readonly-note-meta">
-        <div>Created: {{ created_display }}</div>
-        <div>Modified: {{ modified_display }}</div>
-        <div>Deleted: {{ deleted_display }}</div>
+        <div>{{ i18n.created_label }}: {{ created_display }}</div>
+        <div>{{ i18n.modified_label }}: {{ modified_display }}</div>
+        <div>{{ i18n.deleted_label }}: {{ deleted_display }}</div>
     </div>
 
-    <label class="label">Body</label>
+    <label class="label">{{ i18n.body_label }}</label>
     {% if note.body and note.body.strip() %}
         <div class="readonly-note-body body-wysiwyg body-wysiwyg-readonly">{{ rendered_body_html }}</div>
     {% else %}
-        <div class="microcopy">Note is empty.</div>
+        <div class="microcopy">{{ i18n.note_empty }}.</div>
     {% endif %}
 </article>

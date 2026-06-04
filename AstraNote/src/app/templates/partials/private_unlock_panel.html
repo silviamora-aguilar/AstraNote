@@ -9,10 +9,10 @@
         >
             ×
         </button>
-        <h2 style="margin-left: 0.4rem; flex: 1;">Unlock: {{ note.title }}</h2>
+        <h2 style="margin-left: 0.4rem; flex: 1;">{{ i18n.unlock_title }}: {{ note.title }}</h2>
     </div>
 
-    <p class="panel-subtitle">This note is private. Enter your 4-digit PIN to continue.</p>
+    <p class="panel-subtitle">{{ i18n.unlock_subtitle }}</p>
 
     {% if unlock_error_message %}
         <div class="error">{{ unlock_error_message }}</div>
@@ -20,7 +20,7 @@
 
     <form
         class="editor-form"
-        hx-post="{{ unlock_post_url if unlock_post_url else '/ui/notes/' ~ note.note_id ~ '/unlock' }}"
+        hx-post="{{ unlock_post_url if unlock_post_url else '/ui/notes/' ~ note.note_id ~ '/unlock' }}{% if '?' in (unlock_post_url if unlock_post_url else '/ui/notes/' ~ note.note_id ~ '/unlock') %}&{% else %}?{% endif %}lang={{ lang }}"
         hx-target="#editor-slot"
         hx-swap="innerHTML"
     >

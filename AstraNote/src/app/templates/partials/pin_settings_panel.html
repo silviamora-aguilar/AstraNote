@@ -9,11 +9,11 @@
         >
             ×
         </button>
-        <h2 style="margin-left: 0.4rem; flex: 1;">Private PIN Settings</h2>
+        <h2 style="margin-left: 0.4rem; flex: 1;">{{ i18n.pin_settings_title }}</h2>
     </div>
 
-    <p class="panel-subtitle">Default PIN is 1234. Set a new 4-digit numeric PIN for private notes.</p>
-    <div class="microcopy" style="margin-bottom: 0.75rem;">If notes were encrypted under a previous PIN after a manual config edit, enter that previous PIN as Current PIN to recover.</div>
+    <p class="panel-subtitle">{{ i18n.pin_settings_subtitle }}</p>
+    <div class="microcopy" style="margin-bottom: 0.75rem;">{{ i18n.pin_settings_recovery_copy }}</div>
 
     <style>
         .pin-rect-grid {
@@ -98,7 +98,7 @@
     {% if not pin_update_completed %}
     <div class="pin-toggle-row">
         <input id="toggle-pin-visibility" type="checkbox" />
-        <label for="toggle-pin-visibility" style="margin: 0; cursor: pointer;">Show PIN digits</label>
+        <label for="toggle-pin-visibility" style="margin: 0; cursor: pointer;">{{ i18n.show_pin_digits }}</label>
     </div>
     {% endif %}
 
@@ -107,13 +107,13 @@
         <form
             class="editor-form"
             id="pin-verify-form"
-            hx-post="/ui/security/pin/verify"
+            hx-post="/ui/security/pin/verify?lang={{ lang }}"
             hx-target="#editor-slot"
             hx-swap="innerHTML"
             novalidate
         >
             <div class="pin-step-card">
-                <label class="label">Current PIN</label>
+                <label class="label">{{ i18n.current_pin_label }}</label>
                 <div class="pin-rect-grid" data-pin-group="current" data-hidden-id="current-pin-value" data-readonly="false">
                     <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 1" />
                     <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 2" />
@@ -124,19 +124,19 @@
                 <div id="pin-current-inline-error" class="pin-inline-error" hidden>Current PIN must contain numbers only.</div>
             </div>
 
-            <button class="save-edit-btn" type="submit">Verify Current PIN</button>
+            <button class="save-edit-btn" type="submit">{{ i18n.verify_current_pin }}</button>
         </form>
     {% else %}
         <form
             class="editor-form"
             id="pin-update-form"
-            hx-post="/ui/security/pin"
+            hx-post="/ui/security/pin?lang={{ lang }}"
             hx-target="#editor-slot"
             hx-swap="innerHTML"
             novalidate
         >
             <div class="pin-step-card">
-                <label class="label">Current PIN (verified)</label>
+                <label class="label">{{ i18n.current_pin_verified }}</label>
                 <div class="pin-rect-grid" data-pin-group="current" data-hidden-id="current-pin-value" data-readonly="true">
                     <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 1" readonly />
                     <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Current PIN digit 2" readonly />
@@ -147,7 +147,7 @@
             </div>
 
             <div class="pin-step-card">
-                <label class="label">New PIN</label>
+                <label class="label">{{ i18n.new_pin_label }}</label>
                 <div class="pin-rect-grid" data-pin-group="new" data-hidden-id="new-pin-value" data-readonly="false">
                     <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="New PIN digit 1" />
                     <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="New PIN digit 2" />
@@ -158,7 +158,7 @@
             </div>
 
             <div class="pin-step-card">
-                <label class="label">Confirm new PIN</label>
+                <label class="label">{{ i18n.confirm_new_pin_label }}</label>
                 <div class="pin-rect-grid" data-pin-group="confirm" data-hidden-id="confirm-pin-value" data-readonly="false">
                     <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Confirm PIN digit 1" />
                     <input class="pin-rect" type="text" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Confirm PIN digit 2" />
@@ -169,7 +169,7 @@
                 <div id="pin-new-inline-error" class="pin-inline-error" hidden>New PIN and confirmation do not match.</div>
             </div>
 
-            <button class="save-edit-btn" type="submit">Save PIN</button>
+            <button class="save-edit-btn" type="submit">{{ i18n.save_pin }}</button>
         </form>
     {% endif %}
 

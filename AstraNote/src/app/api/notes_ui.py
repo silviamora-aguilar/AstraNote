@@ -23,6 +23,7 @@ from src.app.dependencies import (
 from src.app.repositories import SqlNoteRepository
 from src.app.security import CryptoService, PinSettingsManager, UnlockSessionManager
 from src.app.presentation import render_note_body_html
+from src.app.presentation.localization import get_ui_strings, resolve_ui_language
 from src.app.services import NoteService
 
 
@@ -103,7 +104,19 @@ def _build_note_groups(notes):
     }
 
 
-def _build_search_context(note_service: NoteService, query: str) -> dict:
+def _resolve_lang(request: Request) -> str:
+    return resolve_ui_language(
+        request.query_params.get("lang"),
+        request.cookies.get("astranote_ui_lang"),
+    )
+
+
+def _ui_context(request: Request) -> dict:
+    lang = _resolve_lang(request)
+    return {"lang": lang, "i18n": get_ui_strings(lang)}
+
+
+def _build_search_context(note_service: NoteService, query: str, i18n: dict[str, str]) -> dict:
     """Prepare list-group and empty-state context for BL-05 search rendering."""
     all_notes = note_service.list_notes()
     normalized_query = (query or "").strip()
@@ -112,9 +125,9 @@ def _build_search_context(note_service: NoteService, query: str) -> dict:
     empty_state_message = None
     if not notes:
         if not all_notes:
-            empty_state_message = "No notes yet. Create your first note."
+            empty_state_message = i18n["search_empty_no_notes"]
         elif normalized_query:
-            empty_state_message = "No notes match your search."
+            empty_state_message = i18n["search_empty_no_match"]
 
     return {
         "notes": notes,
@@ -127,7 +140,7 @@ def _build_search_context(note_service: NoteService, query: str) -> dict:
     }
 
 
-def _build_trash_context(note_service: NoteService, query: str) -> dict:
+def _build_trash_context(note_service: NoteService, query: str, i18n: dict[str, str]) -> dict:
     """Prepare trash-list context with soft-deleted notes only."""
     normalized_query = (query or "").strip()
     notes = note_service.search_trash(normalized_query)
@@ -135,9 +148,9 @@ def _build_trash_context(note_service: NoteService, query: str) -> dict:
     empty_state_message = None
     if not notes:
         if normalized_query:
-            empty_state_message = "No deleted notes match your search."
+            empty_state_message = i18n["trash_empty_no_match"]
         else:
-            empty_state_message = "Trash is empty."
+            empty_state_message = i18n["trash_empty"]
 
     return {
         "notes": notes,
@@ -188,6 +201,7 @@ def _render_unlock_panel(
     unlock_post_url: str | None = None,
 ) -> HTMLResponse:
     templates = get_templates()
+    context = _ui_context(request)
     return templates.TemplateResponse(
         request,
         "partials/private_unlock_panel.html",
@@ -195,6 +209,7 @@ def _render_unlock_panel(
             "note": note,
             "unlock_error_message": unlock_error,
             "unlock_post_url": unlock_post_url,
+            **context,
         },
         status_code=200,
     )
@@ -209,6 +224,7 @@ def _render_pin_settings_panel(
     pin_update_completed: bool = False,
 ) -> HTMLResponse:
     templates = get_templates()
+    context = _ui_context(request)
     return templates.TemplateResponse(
         request,
         "partials/pin_settings_panel.html",
@@ -218,6 +234,7 @@ def _render_pin_settings_panel(
             "pin_verified": bool(verified_current_pin),
             "verified_current_pin": verified_current_pin or "",
             "pin_update_completed": pin_update_completed,
+            **context,
         },
         status_code=200,
     )
@@ -231,43 +248,49 @@ def notes_page(
 ) -> HTMLResponse:
     """Render initial notes page with create form and notes list."""
     templates = get_templates()
+    context = _ui_context(request)
+    i18n = context["i18n"]
     try:
         if view == "trash":
-            search_context = _build_trash_context(note_service, "")
+            search_context = _build_trash_context(note_service, "", i18n)
         else:
-            search_context = _build_search_context(note_service, "")
+            search_context = _build_search_context(note_service, "", i18n)
     except InvalidTag:
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             request,
             "index.html",
             {
-                "error_message": (
-                    "Private note data could not be decrypted with current PIN settings. "
-                    "Open Private PIN and restore the last valid PIN before changing it again."
-                ),
+                "error_message": i18n["pin_data_decrypt_warning"],
                 "view_mode": "active",
                 "trash_mode": False,
                 "notes": [],
                 "note_count": 0,
                 "search_query": "",
-                "empty_state_message": "Notes are temporarily hidden until PIN settings are corrected.",
+                "empty_state_message": i18n["pin_data_hidden_warning"],
                 "today_notes": [],
                 "recent_notes": [],
                 "last_month_notes": [],
                 "last_month_label": datetime.now(timezone.utc).strftime("%B %Y"),
                 "this_year_label": str(datetime.now(timezone.utc).year),
                 "this_year_notes": [],
+                **context,
             },
             status_code=200,
         )
-    return templates.TemplateResponse(
+        response.set_cookie("astranote_ui_lang", context["lang"], samesite="lax")
+        return response
+
+    response = templates.TemplateResponse(
         request,
         "index.html",
         {
             "error_message": None,
             **search_context,
+            **context,
         },
     )
+    response.set_cookie("astranote_ui_lang", context["lang"], samesite="lax")
+    return response
 
 
 @router.get("/ui/notes/search", response_class=HTMLResponse)
@@ -279,14 +302,16 @@ def search_notes_htmx(
 ) -> HTMLResponse:
     """Return filtered note-list markup for BL-05 live search."""
     templates = get_templates()
+    context = _ui_context(request)
+    i18n = context["i18n"]
     if view == "trash":
-        search_context = _build_trash_context(note_service, query)
+        search_context = _build_trash_context(note_service, query, i18n)
     else:
-        search_context = _build_search_context(note_service, query)
+        search_context = _build_search_context(note_service, query, i18n)
     return templates.TemplateResponse(
         request,
         "partials/note_list_results.html",
-        search_context,
+        {**search_context, **context},
         status_code=200,
     )
 
@@ -314,7 +339,12 @@ def create_note_htmx(
     return templates.TemplateResponse(
         request,
         "partials/note_list_item.html",
-        {"note": note, "selected_note_id": None, "oob_swap": False},
+        {
+            "note": note,
+            "selected_note_id": None,
+            "oob_swap": False,
+            **_ui_context(request),
+        },
         status_code=201,
     )
 
@@ -325,6 +355,7 @@ def get_note_editor_panel(
     note_id: str,
     note_service: Annotated[NoteService, Depends(get_note_service)],
     unlock_manager: Annotated[UnlockSessionManager, Depends(get_unlock_session_manager)],
+    include_oob: bool = Query(default=True),
 ) -> HTMLResponse:
     """Load a selected note into the dedicated editor panel."""
     templates = get_templates()
@@ -333,7 +364,7 @@ def get_note_editor_panel(
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
-            {"error_message": "Note not found"},
+            {"error_message": _ui_context(request)["i18n"]["note_not_found"]},
             status_code=404,
         )
 
@@ -349,8 +380,9 @@ def get_note_editor_panel(
             "modified_display": _format_modified_pacific(note.updated_at),
             "checklist_items": _extract_checklist_items(note.body),
             "edit_error_message": None,
-            "oob_note": note,
+            "oob_note": note if include_oob else None,
             "selected_note_id": note.note_id,
+            **_ui_context(request),
         },
         status_code=200,
     )
@@ -370,7 +402,7 @@ def get_trashed_note_viewer_panel(
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
-            {"error_message": "Note not found"},
+            {"error_message": _ui_context(request)["i18n"]["note_not_found"]},
             status_code=404,
         )
 
@@ -390,6 +422,7 @@ def get_trashed_note_viewer_panel(
             "modified_display": _format_modified_pacific(note.updated_at),
             "deleted_display": _format_modified_pacific(note.deleted_at) if note.deleted_at else "Recently",
             "rendered_body_html": render_note_body_html(note.body or ""),
+            **_ui_context(request),
         },
         status_code=200,
     )
@@ -412,12 +445,12 @@ def update_note_editor_panel(
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
-            {"error_message": "Note not found"},
+            {"error_message": _ui_context(request)["i18n"]["note_not_found"]},
             status_code=404,
         )
 
     if existing_note.is_private and not unlock_manager.is_unlocked(existing_note.note_id):
-        return _render_unlock_panel(request, existing_note, "Enter correct pin to unlock private note.")
+        return _render_unlock_panel(request, existing_note, _ui_context(request)["i18n"]["unlock_wrong_pin"])
 
     resolved_body = "" if body is None else body
     try:
@@ -445,6 +478,7 @@ def update_note_editor_panel(
                 "form_title": title,
                 "form_body": resolved_body,
                 "form_is_private": is_private,
+                **_ui_context(request),
             },
             status_code=200,
         )
@@ -460,6 +494,7 @@ def update_note_editor_panel(
             "edit_error_message": None,
             "oob_note": note,
             "selected_note_id": note.note_id,
+            **_ui_context(request),
         },
         status_code=200,
     )
@@ -481,11 +516,11 @@ def toggle_checklist_item_htmx(
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
-            {"error_message": "Note not found"},
+            {"error_message": _ui_context(request)["i18n"]["note_not_found"]},
             status_code=404,
         )
     if existing_note.is_private and not unlock_manager.is_unlocked(existing_note.note_id):
-        return _render_unlock_panel(request, existing_note, "Enter correct pin to unlock private note.")
+        return _render_unlock_panel(request, existing_note, _ui_context(request)["i18n"]["unlock_wrong_pin"])
 
     try:
         note = note_service.toggle_checklist_item(note_id=note_id, line_index=line_index, checked=checked)
@@ -508,6 +543,7 @@ def toggle_checklist_item_htmx(
             "edit_error_message": None,
             "oob_note": note,
             "selected_note_id": note.note_id,
+            **_ui_context(request),
         },
         status_code=200,
     )
@@ -534,7 +570,7 @@ def unlock_private_note_htmx(
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
-            {"error_message": "Note not found"},
+            {"error_message": _ui_context(request)["i18n"]["note_not_found"]},
             status_code=404,
         )
 
@@ -546,7 +582,7 @@ def unlock_private_note_htmx(
     unlocked, error_message = unlock_manager.attempt_unlock(note_id, pin)
     if not unlocked:
         unlock_post_url = f"/ui/notes/{note.note_id}/unlock?view=trash" if view == "trash" else None
-        return _render_unlock_panel(request, note, "Enter correct pin to unlock private note.", unlock_post_url)
+        return _render_unlock_panel(request, note, _ui_context(request)["i18n"]["unlock_wrong_pin"], unlock_post_url)
 
     if view == "trash":
         return get_trashed_note_viewer_panel(request, note_id, note_service, unlock_manager)
@@ -567,15 +603,16 @@ def verify_private_pin_settings_current_pin(
     current_pin: str = Form(...),
 ) -> HTMLResponse:
     """Verify current app-level private PIN before allowing update fields."""
+    lang_ctx = _ui_context(request)
     if not crypto_service.validate_pin_format(current_pin):
-        return _render_pin_settings_panel(request, error_message="Current PIN must be exactly 4 digits.")
+        return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} must be exactly 4 digits.")
 
     if not pin_settings.verify_pin(current_pin):
-        return _render_pin_settings_panel(request, error_message="Current PIN is incorrect.")
+        return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} is incorrect.")
 
     return _render_pin_settings_panel(
         request,
-        success_message="Current PIN verified. Enter a new PIN.",
+        success_message=f"{lang_ctx['i18n']['current_pin_label']} verified. Enter a new PIN.",
         verified_current_pin=current_pin,
     )
 
@@ -592,8 +629,9 @@ def update_private_pin_settings(
     confirm_pin: str = Form(...),
 ) -> HTMLResponse:
     """Change app-level private-note PIN and re-encrypt private note data."""
+    lang_ctx = _ui_context(request)
     if not crypto_service.validate_pin_format(current_pin):
-        return _render_pin_settings_panel(request, error_message="Current PIN is incorrect.")
+        return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} is incorrect.")
 
     active_pin = pin_settings.get_pin()
     effective_current_pin = current_pin
@@ -606,7 +644,7 @@ def update_private_pin_settings(
             recovered_count = 0
 
         if recovered_count <= 0:
-            return _render_pin_settings_panel(request, error_message="Current PIN is incorrect.")
+            return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} is incorrect.")
 
         effective_current_pin = active_pin
         unlock_manager.reset_all()
@@ -615,14 +653,14 @@ def update_private_pin_settings(
     if not crypto_service.validate_pin_format(new_pin):
         return _render_pin_settings_panel(
             request,
-            error_message="New PIN must be exactly 4 digits.",
+            error_message=f"{lang_ctx['i18n']['new_pin_label']} must be exactly 4 digits.",
             verified_current_pin=effective_current_pin,
         )
 
     if new_pin != confirm_pin:
         return _render_pin_settings_panel(
             request,
-            error_message="New PIN and confirmation do not match.",
+            error_message=f"{lang_ctx['i18n']['new_pin_label']} and confirmation do not match.",
             verified_current_pin=effective_current_pin,
         )
 
@@ -635,7 +673,7 @@ def update_private_pin_settings(
             )
         return _render_pin_settings_panel(
             request,
-            error_message="New PIN must be different from current PIN.",
+            error_message=f"{lang_ctx['i18n']['new_pin_label']} must be different from {lang_ctx['i18n']['current_pin_label']}.",
             verified_current_pin=effective_current_pin,
         )
 
@@ -647,13 +685,13 @@ def update_private_pin_settings(
     except Exception:
         return _render_pin_settings_panel(
             request,
-            error_message="Unable to update private PIN right now.",
+            error_message=f"Unable to update {lang_ctx['i18n']['change_private_pin'].lower()} right now.",
             verified_current_pin=effective_current_pin,
         )
 
     return _render_pin_settings_panel(
         request,
-        success_message=f"{recovery_message}Private PIN updated.",
+        success_message=f"{recovery_message}{lang_ctx['i18n']['change_private_pin']} updated.",
         verified_current_pin=new_pin,
         pin_update_completed=True,
     )
@@ -676,7 +714,8 @@ def delete_note_htmx(
             {"error_message": map_note_error_message(exc)},
             status_code=map_note_error_status(exc),
         )
-    return Response(status_code=200, headers={"HX-Redirect": "/"})
+    lang = _resolve_lang(request)
+    return Response(status_code=200, headers={"HX-Redirect": f"/?lang={lang}"})
 
 
 @router.post("/ui/notes/bulk-delete", response_class=HTMLResponse)
@@ -696,7 +735,8 @@ def bulk_delete_notes_htmx(
             {"error_message": map_note_error_message(exc)},
             status_code=map_note_error_status(exc),
         )
-    return Response(status_code=200, headers={"HX-Redirect": "/"})
+    lang = _resolve_lang(request)
+    return Response(status_code=200, headers={"HX-Redirect": f"/?lang={lang}"})
 
 
 @router.post("/ui/notes/{note_id}/restore", response_class=HTMLResponse)
@@ -716,7 +756,8 @@ def restore_note_htmx(
             {"error_message": map_note_error_message(exc)},
             status_code=map_note_error_status(exc),
         )
-    return Response(status_code=200, headers={"HX-Redirect": "/?view=trash"})
+    lang = _resolve_lang(request)
+    return Response(status_code=200, headers={"HX-Redirect": f"/?view=trash&lang={lang}"})
 
 
 @router.post("/ui/notes/trash/bulk-restore", response_class=HTMLResponse)
@@ -736,7 +777,8 @@ def bulk_restore_notes_htmx(
             {"error_message": map_note_error_message(exc)},
             status_code=map_note_error_status(exc),
         )
-    return Response(status_code=200, headers={"HX-Redirect": "/?view=trash"})
+    lang = _resolve_lang(request)
+    return Response(status_code=200, headers={"HX-Redirect": f"/?view=trash&lang={lang}"})
 
 
 @router.delete("/ui/notes/{note_id}/purge", response_class=HTMLResponse)
@@ -756,7 +798,8 @@ def purge_note_htmx(
             {"error_message": map_note_error_message(exc)},
             status_code=map_note_error_status(exc),
         )
-    return Response(status_code=200, headers={"HX-Redirect": "/?view=trash"})
+    lang = _resolve_lang(request)
+    return Response(status_code=200, headers={"HX-Redirect": f"/?view=trash&lang={lang}"})
 
 
 @router.post("/ui/notes/trash/bulk-purge", response_class=HTMLResponse)
@@ -776,7 +819,8 @@ def bulk_purge_notes_htmx(
             {"error_message": map_note_error_message(exc)},
             status_code=map_note_error_status(exc),
         )
-    return Response(status_code=200, headers={"HX-Redirect": "/?view=trash"})
+    lang = _resolve_lang(request)
+    return Response(status_code=200, headers={"HX-Redirect": f"/?view=trash&lang={lang}"})
 
 
 @router.post("/ui/notes/{note_id}", response_class=HTMLResponse)

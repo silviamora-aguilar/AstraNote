@@ -31,7 +31,7 @@ def test_deleted_note_appears_in_trash_and_can_be_restored(client) -> None:
 
     restored = client.post(f"/ui/notes/{note_id}/restore")
     assert restored.status_code == 200
-    assert restored.headers.get("HX-Redirect") == "/?view=trash"
+    assert restored.headers.get("HX-Redirect") in {"/?view=trash", "/?view=trash&lang=en"}
 
     page = client.get("/")
     assert page.status_code == 200
@@ -82,7 +82,7 @@ def test_bulk_delete_forever_removes_selected_trashed_notes(client) -> None:
 
     response = client.post("/ui/notes/trash/bulk-purge", data={"note_ids": note_ids})
     assert response.status_code == 200
-    assert response.headers.get("HX-Redirect") == "/?view=trash"
+    assert response.headers.get("HX-Redirect") in {"/?view=trash", "/?view=trash&lang=en"}
 
     trash = client.get("/ui/notes/search", params={"view": "trash", "query": ""})
     assert trash.status_code == 200
