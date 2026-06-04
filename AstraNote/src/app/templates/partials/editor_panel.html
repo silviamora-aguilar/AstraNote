@@ -9,26 +9,26 @@
         >
             ×
         </button>
-        <h2 style="margin-left: 0.4rem; flex: 1;">Edit Note</h2>
+        <h2 style="margin-left: 0.4rem; flex: 1;">{{ i18n.edit_note }}</h2>
         <button
             class="save-edit-btn"
             type="button"
             onclick="submitEditorForm('{{ note.note_id }}')"
         >
-            Save edits
+            {{ i18n.save_edits }}
         </button>
         <button
             class="delete-note-btn"
             type="button"
             onclick="openDeleteModal('{{ note.note_id }}', '{{ note.title | replace("'", "\\'") }}')"
         >
-            Delete
+            {{ i18n.delete_note }}
         </button>
     </div>
-    <p class="panel-subtitle">Edit the selected note. Save applies your changes and keeps this panel open.</p>
+    <p class="panel-subtitle">{{ i18n.edit_subtitle }}</p>
 
     {% if note.is_private %}
-        <div class="microcopy" style="margin-bottom: 0.35rem; font-weight: 700; color: var(--accent-deep);">Private Note</div>
+        <div class="microcopy" style="margin-bottom: 0.35rem; font-weight: 700; color: var(--accent-deep);">{{ i18n.private_note }}</div>
     {% endif %}
 
     {% if edit_error_message %}
@@ -38,31 +38,31 @@
     <form
         id="edit-form-{{ note.note_id }}"
         class="editor-form"
-        hx-post="/ui/notes/{{ note.note_id }}/editor"
+        hx-post="/ui/notes/{{ note.note_id }}/editor?lang={{ lang }}"
         hx-target="#editor-panel"
         hx-swap="outerHTML"
     >
-        <label for="title-{{ note.note_id }}" class="label">Title</label>
+        <label for="title-{{ note.note_id }}" class="label">{{ i18n.title_label }}</label>
         <input id="title-{{ note.note_id }}" name="title" type="text" required maxlength="255" value="{{ form_title if form_title is defined else note.title }}" />
 
-        <div class="microcopy">Created: {{ created_display }}</div>
-        <div class="microcopy">Modified: {{ modified_display }}</div>
+        <div class="microcopy">{{ i18n.created_label }}: {{ created_display }}</div>
+        <div class="microcopy">{{ i18n.modified_label }}: {{ modified_display }}</div>
 
         <label class="toggle" style="justify-content: flex-start;">
             <input id="private-{{ note.note_id }}" name="is_private" type="checkbox" value="true" {% if form_is_private is defined %}{% if form_is_private %}checked{% endif %}{% elif note.is_private %}checked{% endif %} />
-            Private note
+            {{ i18n.private_note_toggle }}
         </label>
 
-        <label for="body-{{ note.note_id }}" class="label">Body</label>
-        <div class="format-toolbar" role="toolbar" aria-label="Body formatting tools">
-            <button type="button" class="format-btn" data-format-action="bullet" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('bullet', 'body-{{ note.note_id }}')">Bullets</button>
-            <button type="button" class="format-btn" data-format-action="checklist" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('checklist', 'body-{{ note.note_id }}')">Checklist</button>
+        <label for="body-{{ note.note_id }}" class="label">{{ i18n.body_label }}</label>
+        <div class="format-toolbar" role="toolbar" aria-label="{{ i18n.body_label }} formatting tools">
+            <button type="button" class="format-btn" data-format-action="bullet" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('bullet', 'body-{{ note.note_id }}')">{{ i18n.bullets }}</button>
+            <button type="button" class="format-btn" data-format-action="checklist" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('checklist', 'body-{{ note.note_id }}')">{{ i18n.checklist }}</button>
             <button type="button" class="format-btn" data-format-action="bold" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('bold', 'body-{{ note.note_id }}')"><strong>B</strong></button>
             <button type="button" class="format-btn" data-format-action="italic" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('italic', 'body-{{ note.note_id }}')"><em>I</em></button>
             <button type="button" class="format-btn" data-format-action="underline" onmousedown="event.preventDefault()" onclick="applyWysiwygFormat('underline', 'body-{{ note.note_id }}')"><span style="text-decoration: underline;">U</span></button>
         </div>
         <input type="hidden" id="body-hidden-{{ note.note_id }}" name="body" value="{{ form_body if form_body is defined else note.body }}" />
-        <div id="body-{{ note.note_id }}" class="body-wysiwyg" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Body" data-hidden-id="body-hidden-{{ note.note_id }}"></div>
+        <div id="body-{{ note.note_id }}" class="body-wysiwyg" contenteditable="true" role="textbox" aria-multiline="true" aria-label="{{ i18n.body_label }}" data-hidden-id="body-hidden-{{ note.note_id }}"></div>
 
 
     </form>

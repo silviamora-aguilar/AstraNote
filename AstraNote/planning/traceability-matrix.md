@@ -46,7 +46,7 @@
 | REQ-25 | Private toggle per note | `Note` (is_private), `SecureNote` | UC: Mark Private | — | ✅ Fully Traced | |
 | REQ-26 | Private status persisted + visually indicated | `Note` (is_private), `SqlNoteRepository` | UC: Mark Private | Shared DB persistence artifact | ✅ Fully Traced | |
 | REQ-27 | Private notes hide body preview | `SecureNote` | UC: Mark Private, UC: Search Notes | — | ✅ Fully Traced | |
-| REQ-28 | English/Spanish interface toggle for UI text only | UI localization dictionary module (planned), template text keys | UC: Switch interface language | Web UI node | ⚠️ Partially Traced | MVP scope approved in pivot; implementation and tests pending |
+| REQ-28 | English/Spanish interface toggle for UI text only | `src/app/presentation/localization.py`, localized template keys | UC: Switch interface language | Web UI node + HTMX language propagation (`lang` query/cookie) | ✅ Fully Traced | Implemented in BL-23 with integration coverage in `tests/integration/test_localization_ui.py` |
 | REQ-29 | Nested bullet/checklist lists up to 3 levels [Post-MVP] | Editor list model (planned) | UC: Edit Note (nested list branch) | — | ❌ Weakly Traced | Deferred to Post-MVP under pivot |
 | REQ-30 | Image paste in note body [Post-MVP] | Media/content sanitizer module (planned) | UC: Edit Note (paste image flow) | Storage/media artifact | ❌ Weakly Traced | Deferred to Post-MVP under pivot |
 

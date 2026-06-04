@@ -4,7 +4,7 @@
 <div class="notes-panel-body">
     {% if trash_mode %}
         <div class="note-group">
-            <div class="group-head">Trash (auto-purged after 15 days)</div>
+            <div class="group-head">{{ i18n.trash_group_title }}</div>
             <ul id="note-list" class="group-list">
                 {% for note in notes %}
                     <li class="note-item trash-item" id="note-{{ note.note_id }}">
@@ -14,14 +14,14 @@
                         {% else %}
                             {% set title_display = note.title %}
                         {% endif %}
-                        <label class="note-bulk-check-wrap" aria-label="Select {{ note.title }} for bulk actions">
+                        <label class="note-bulk-check-wrap" aria-label="{{ i18n.select_all }} {{ note.title }} {{ i18n.selected_suffix }}">
                             <input class="note-bulk-check" type="checkbox" value="{{ note.note_id }}" />
                         </label>
                         <button
                             class="note-select"
                             type="button"
                             data-full-title="{{ note.title }}"
-                            hx-get="/ui/notes/{{ note.note_id }}/trash-viewer"
+                            hx-get="/ui/notes/{{ note.note_id }}/trash-viewer?lang={{ lang }}"
                             hx-target="#editor-slot"
                             hx-swap="innerHTML"
                         >
@@ -29,11 +29,11 @@
                             {% if preview_html and not note.is_private %}
                                 <span class="note-preview">{{ preview_html }}</span>
                             {% elif note.is_private %}
-                                <span class="note-preview" aria-label="Private note preview hidden">Private note</span>
+                                <span class="note-preview" aria-label="{{ i18n.private_note }} preview hidden">{{ i18n.private_note }}</span>
                             {% else %}
-                                <span class="note-preview">Note is empty</span>
+                                <span class="note-preview">{{ i18n.note_empty }}</span>
                             {% endif %}
-                            <span class="note-preview">Deleted {{ note.deleted_at.strftime('%b %d, %Y') if note.deleted_at else 'recently' }}</span>
+                            <span class="note-preview">{{ i18n.deleted_prefix }} {{ note.deleted_at.strftime('%b %d, %Y') if note.deleted_at else i18n.deleted_recently }}</span>
                         </button>
                     </li>
                 {% endfor %}
@@ -41,7 +41,7 @@
         </div>
     {% else %}
     <div id="today-group" class="note-group" {% if not today_notes %}hidden{% endif %}>
-        <div class="group-head">Today</div>
+        <div class="group-head">{{ i18n.today_group }}</div>
         <ul id="today-note-list" class="group-list">
             {% if today_notes %}
                 {% for note in today_notes %}
@@ -52,7 +52,7 @@
     </div>
 
     <div class="note-group">
-        <div class="group-head">Previous 7 days</div>
+        <div class="group-head">{{ i18n.previous_seven_days_group }}</div>
         <ul id="note-list" class="group-list">
             {% if recent_notes %}
                 {% for note in recent_notes %}

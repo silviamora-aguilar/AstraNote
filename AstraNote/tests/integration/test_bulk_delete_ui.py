@@ -39,7 +39,7 @@ def test_bulk_delete_ui_route_redirects_and_removes_notes(client) -> None:
     )
 
     assert response.status_code == 200
-    assert response.headers.get("HX-Redirect") == "/"
+    assert response.headers.get("HX-Redirect") in {"/", "/?lang=en"}
 
     page = client.get("/")
     assert page.status_code == 200

@@ -467,6 +467,11 @@ Scope note: This section is intentionally retained for future reactivation when 
 - **Status**: ✅ Implemented (`tests/integration/test_private_pin_settings_ui.py`)
 - **Expected**: Current PIN must verify before new/confirm fields are accepted; successful update returns completion UI state
 
+### TP-I15 ✅ — Localization toggle renders English/Spanish UI text without translating note content
+- **Requirement**: REQ-28
+- **Status**: ✅ Implemented (`tests/integration/test_localization_ui.py`)
+- **Expected**: Default view renders English labels, `lang=es` renders Spanish UI labels/messages, and language preference persists across subsequent requests.
+
 ---
 
 ## 6. Security Validation Tests
@@ -547,6 +552,7 @@ Scope note: This section is intentionally retained for future reactivation when 
 | REQ-23 | TP-U22 |
 | REQ-24 | TP-U22, TP-U23 |
 | REQ-25–27 | TP-U08, UI privacy placeholder tests, TP-I05 (full security path pending) |
+| REQ-28 | TP-I15 |
 | NFR-04 | TP-U31, TP-I07 |
 | NFR-06 | TP-P01 |
 | NFR-07 | TP-P01, TP-P02, TP-P03 |

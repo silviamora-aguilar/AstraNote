@@ -57,7 +57,7 @@ Detailed evidence lives in planning/traceability-matrix.md.
 - **REQ-25 ✅**: The app shall allow the user to mark or unmark any note as private using a per-note toggle.
 - **REQ-26 ✅**: Private status shall be persisted in storage and visually indicated in the notes list.
 - **REQ-27 ✅**: Private notes shall hide body preview text in list and search results to prevent accidental on-screen disclosure.
-- **REQ-28**: The app shall provide an English/Spanish interface toggle that translates application UI text (labels, buttons, headings, helper text, and user-facing system messages) without auto-translating user-authored note title/body content.
+- **REQ-28 ✅**: The app shall provide an English/Spanish interface toggle that translates application UI text (labels, buttons, headings, helper text, and user-facing system messages) without auto-translating user-authored note title/body content.
 
 ### Non-Functional Requirements (NFR)
 

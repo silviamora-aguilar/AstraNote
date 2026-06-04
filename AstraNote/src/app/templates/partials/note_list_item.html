@@ -9,14 +9,14 @@
     {% else %}
         {% set title_display = note.title %}
     {% endif %}
-    <label class="note-bulk-check-wrap" aria-label="Select {{ note.title }} for bulk delete">
+    <label class="note-bulk-check-wrap" aria-label="{{ i18n.select_all }} {{ note.title }} {{ i18n.selected_suffix }}">
         <input class="note-bulk-check" type="checkbox" value="{{ note.note_id }}" />
     </label>
     <button
         class="note-select"
         type="button"
         data-full-title="{{ note.title }}"
-        hx-get="/ui/notes/{{ note.note_id }}/editor"
+        hx-get="/ui/notes/{{ note.note_id }}/editor?lang={{ lang }}"
         hx-target="#editor-slot"
         hx-swap="innerHTML"
     >
@@ -24,9 +24,9 @@
         {% if preview_html and not note.is_private %}
             <span class="note-preview">{{ preview_html }}</span>
         {% elif note.is_private %}
-            <span class="note-preview" aria-label="Private note preview hidden">Private note</span>
+            <span class="note-preview" aria-label="{{ i18n.private_note }} preview hidden">{{ i18n.private_note }}</span>
         {% else %}
-            <span class="note-preview">Note is empty</span>
+            <span class="note-preview">{{ i18n.note_empty }}</span>
         {% endif %}
     </button>
     <button

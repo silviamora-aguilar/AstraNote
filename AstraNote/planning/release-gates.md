@@ -27,7 +27,7 @@ All MVP backlog items must be complete and verified:
 | BL-11: Input model and accessibility parity | NFR-10, NFR-12 | Deferred [Post-MVP] |
 | BL-12: Architecture boundaries | NFR-13–16 | ☐ |
 | BL-13: Security stack | SRG-01, 02, 04, 05, 07, 08, 10, 11, 12, 13–26 | ✅ |
-| BL-23: Interface localization toggle | REQ-28 | ☐ |
+| BL-23: Interface localization toggle | REQ-28 | ✅ |
 | BL-21: Serviceability/manageability | SMR-01–12 | ☐ |
 | BL-22: Web multi-user foundation | WEB-01–11 | Deferred [Post-MVP] |
 | BL-24: Nested list depth (3 levels) | REQ-29 | Deferred [Post-MVP] |
@@ -204,3 +204,10 @@ Signed off by: _______________
 - ✅ Added deterministic error-code mapping for repeated invalid requests (SRG-16) and verified via unit test.
 - ✅ Confirmed there is no outbound content-transmitting network path in the MVP codebase (SRG-17 code review evidence).
 - ✅ BL-13 gate checks in Gate 3 are complete for current MVP scope.
+
+## BL-23 Localization Checkpoint (2026-06-03)
+
+- ✅ Added English/Spanish UI localization dictionary and route-level language resolution.
+- ✅ Added language toggle in the main UI with `lang` propagation across HTMX/fetch routes.
+- ✅ Localized UI labels/headings/system helper text across primary notes, trash, unlock, editor, and create flows.
+- ✅ Added integration coverage in `tests/integration/test_localization_ui.py` for English default, Spanish toggle, cookie persistence, and Spanish search empty-state messaging.
