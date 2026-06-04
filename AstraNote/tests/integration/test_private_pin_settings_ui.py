@@ -28,7 +28,7 @@ def test_private_pin_settings_can_change_unlock_pin(client) -> None:
         data={"current_pin": "1234", "new_pin": "5678", "confirm_pin": "5678"},
     )
     assert settings_response.status_code == 200
-    assert "Private PIN updated." in settings_response.text
+    assert "Change Private Pin updated." in settings_response.text
 
     old_unlock = client.post(f"/ui/notes/{note_id}/unlock", data={"pin": "1234"})
     assert old_unlock.status_code == 200

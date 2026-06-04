@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from threading import Lock
 
 from sqlalchemy import (
     Boolean,
@@ -72,6 +73,7 @@ class SqlNoteRepository(NoteRepository):
         self.engine = create_engine(database_url, **engine_kwargs)
         self._session_factory = sessionmaker(bind=self.engine, autoflush=False, autocommit=False, future=True)
         self._crypto = crypto_service or CryptoService()
+        self._title_write_lock = Lock()
         Base.metadata.create_all(self.engine)
         self._ensure_security_columns()
 
@@ -145,50 +147,51 @@ class SqlNoteRepository(NoteRepository):
         is_private: bool,
         max_notes: int,
     ) -> Note:
-        """Atomically enforce capacity and title uniqueness before insert."""
+        """Serialize title allocation so concurrent local requests cannot insert duplicates."""
         max_retries = 20
         for _ in range(max_retries):
-            with self._session_factory() as session:
-                try:
-                    with session.begin():
-                        active_records = self._list_active_records(session)
-                        active_count = len(active_records)
-                        if active_count >= max_notes:
-                            raise NoteRepositoryCapacityError("capacity reached")
+            with self._title_write_lock:
+                with self._session_factory() as session:
+                    try:
+                        with session.begin():
+                            active_records = self._list_active_records(session)
+                            active_count = len(active_records)
+                            if active_count >= max_notes:
+                                raise NoteRepositoryCapacityError("capacity reached")
 
-                        candidate = title
-                        suffix = 1
-                        while True:
-                            if not any(self._to_domain(record).title == candidate for record in active_records):
-                                break
-                            candidate = f"{title}{suffix}"
-                            suffix += 1
+                            candidate = title
+                            suffix = 1
+                            while True:
+                                if not any(self._to_domain(record).title == candidate for record in active_records):
+                                    break
+                                candidate = f"{title}{suffix}"
+                                suffix += 1
 
-                        note = Note.new(title=candidate, body=body, is_private=is_private)
-                        encrypted_title, encrypted_body, pin_salt = self._encrypt_title_body(
-                            title=note.title,
-                            body=note.body,
-                            is_private=note.is_private,
-                            pin_salt=None,
-                        )
-                        session.add(
-                            NoteRecord(
-                                note_id=note.note_id,
-                                title=encrypted_title,
-                                body=encrypted_body,
+                            note = Note.new(title=candidate, body=body, is_private=is_private)
+                            encrypted_title, encrypted_body, pin_salt = self._encrypt_title_body(
+                                title=note.title,
+                                body=note.body,
                                 is_private=note.is_private,
-                                pin_salt=pin_salt,
-                                is_deleted=note.is_deleted,
-                                created_at=note.created_at,
-                                updated_at=note.updated_at,
-                                deleted_at=note.deleted_at,
+                                pin_salt=None,
                             )
-                        )
-                    return note
-                except NoteRepositoryCapacityError:
-                    raise
-                except SQLAlchemyError as exc:
-                    raise NoteRepositoryError("Failed to persist note") from exc
+                            session.add(
+                                NoteRecord(
+                                    note_id=note.note_id,
+                                    title=encrypted_title,
+                                    body=encrypted_body,
+                                    is_private=note.is_private,
+                                    pin_salt=pin_salt,
+                                    is_deleted=note.is_deleted,
+                                    created_at=note.created_at,
+                                    updated_at=note.updated_at,
+                                    deleted_at=note.deleted_at,
+                                )
+                            )
+                        return note
+                    except NoteRepositoryCapacityError:
+                        raise
+                    except SQLAlchemyError as exc:
+                        raise NoteRepositoryError("Failed to persist note") from exc
 
         raise NoteRepositoryError("Failed to persist note after concurrent title conflicts")
 
@@ -226,44 +229,45 @@ class SqlNoteRepository(NoteRepository):
         body: str,
         is_private: bool,
     ) -> Note:
-        """Atomically update title/body with duplicate-title handling that excludes self."""
+        """Serialize title allocation so concurrent updates cannot collide on duplicate titles."""
         max_retries = 20
         for _ in range(max_retries):
-            with self._session_factory() as session:
-                try:
-                    with session.begin():
-                        record = session.get(NoteRecord, note_id)
-                        if record is None or record.is_deleted:
-                            raise NoteRepositoryNotFoundError("note not found")
+            with self._title_write_lock:
+                with self._session_factory() as session:
+                    try:
+                        with session.begin():
+                            record = session.get(NoteRecord, note_id)
+                            if record is None or record.is_deleted:
+                                raise NoteRepositoryNotFoundError("note not found")
 
-                        active_records = [r for r in self._list_active_records(session) if r.note_id != note_id]
+                            active_records = [r for r in self._list_active_records(session) if r.note_id != note_id]
 
-                        candidate = title
-                        suffix = 1
-                        while True:
-                            if not any(self._to_domain(active_record).title == candidate for active_record in active_records):
-                                break
-                            candidate = f"{title}{suffix}"
-                            suffix += 1
+                            candidate = title
+                            suffix = 1
+                            while True:
+                                if not any(self._to_domain(active_record).title == candidate for active_record in active_records):
+                                    break
+                                candidate = f"{title}{suffix}"
+                                suffix += 1
 
-                        encrypted_title, encrypted_body, pin_salt = self._encrypt_title_body(
-                            title=candidate,
-                            body=body,
-                            is_private=is_private,
-                            pin_salt=record.pin_salt,
-                        )
-                        record.title = encrypted_title
-                        record.body = encrypted_body
-                        record.is_private = is_private
-                        record.pin_salt = pin_salt
-                        record.updated_at = datetime.now(timezone.utc)
+                            encrypted_title, encrypted_body, pin_salt = self._encrypt_title_body(
+                                title=candidate,
+                                body=body,
+                                is_private=is_private,
+                                pin_salt=record.pin_salt,
+                            )
+                            record.title = encrypted_title
+                            record.body = encrypted_body
+                            record.is_private = is_private
+                            record.pin_salt = pin_salt
+                            record.updated_at = datetime.now(timezone.utc)
 
-                    session.refresh(record)
-                    return self._to_domain(record)
-                except NoteRepositoryNotFoundError:
-                    raise
-                except SQLAlchemyError as exc:
-                    raise NoteRepositoryError("Failed to update note") from exc
+                        session.refresh(record)
+                        return self._to_domain(record)
+                    except NoteRepositoryNotFoundError:
+                        raise
+                    except SQLAlchemyError as exc:
+                        raise NoteRepositoryError("Failed to update note") from exc
 
         raise NoteRepositoryError("Failed to update note after concurrent title conflicts")
 

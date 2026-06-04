@@ -586,17 +586,17 @@ Scope note: This section is intentionally retained for future reactivation when 
 | SRG-27 | TP-U32, TP-U33, TP-I08 |
 | SRG-28 | TP-U33, TP-U34, TP-I08, TP-I09, TP-I14 |
 | SMR-01 | TP-M01, TP-M02 |
-| SMR-02 | TP-M03 |
+| SMR-02 [Post-MVP] | TP-M03 |
 | SMR-03 | TP-M04 |
 | SMR-04 | TP-M05 |
 | SMR-05 | TP-M06 |
 | SMR-06 | TP-M07 |
 | SMR-07 | TP-M08, TP-M09 |
-| SMR-08 | TP-M10 |
+| SMR-08 [Post-MVP] | TP-M10 |
 | SMR-09 | TP-M11, TP-M12 |
 | SMR-10 | TP-M13 |
 | SMR-11 | TP-M14 |
-| SMR-12 | TP-M15 |
+| SMR-12 [Post-MVP] | TP-M15 |
 | WEB-01 [Post-MVP] | TP-W01, TP-W02 |
 | WEB-02 [Post-MVP] | TP-W03, TP-W04 |
 | WEB-03 [Post-MVP] | TP-W05 |
@@ -621,8 +621,8 @@ Scope note: This section is intentionally retained for future reactivation when 
 - **Requirement**: SMR-01
 - **Method**: Write log entries until file exceeds 5 MB; verify rotation and file count ≤ 3 (current + 2 rotated)
 
-### TP-M03 — Log level change in config.json takes effect without restart
-- **Requirement**: SMR-02
+### TP-M03 — Log level change in config.json takes effect without restart [Post-MVP]
+- **Requirement**: SMR-02 [Post-MVP]
 - **Method**: Set log_level=DEBUG in config.json; perform operation; verify DEBUG entries appear; set log_level=ERROR; verify DEBUG entries no longer appear
 - **Expected**: Level change respected without app restart
 
@@ -650,13 +650,13 @@ Scope note: This section is intentionally retained for future reactivation when 
 - **Requirement**: SMR-07
 - **Expected**: No warnings or recovery actions; notes loaded correctly
 
-### TP-M09 — Startup with corrupt SQLite store renames artifact and initializes fresh
+### TP-M09 — Startup with corrupt SQLite store fails fast with clear warning (auto-recovery deferred)
 - **Requirement**: SMR-07
 - **Method**: Corrupt the SQLite store file; start app
-- **Expected**: Corrupt file renamed to `astranotes.db.corrupt.<timestamp>`; fresh store initialized; user-visible warning displayed; error logged
+- **Expected**: Startup is blocked with a clear user-visible warning; error is logged. Automated rename/reinitialize behavior is deferred to Post-MVP.
 
-### TP-M10 — App refuses write when stored migration version > app-supported version
-- **Requirement**: SMR-08
+### TP-M10 — App refuses write when stored migration version > app-supported version [Post-MVP]
+- **Requirement**: SMR-08 [Post-MVP]
 - **Method**: Simulate newer migration revision in store metadata; attempt a create operation
 - **Expected**: Write blocked; ERROR logged with version mismatch detail; existing data unchanged
 
@@ -675,12 +675,12 @@ Scope note: This section is intentionally retained for future reactivation when 
 - **Method**: Set each of log_level, data_dir, inactivity_timeout_minutes, max_notes; set/update encrypted `private_pin_token` via PIN settings flow; verify each takes effect
 - **Expected**: log_level changes log verbosity; inactivity_timeout_minutes controls session expiry; max_notes controls capacity limit; `private_pin_token` reflects the active private-note unlock baseline without storing raw PIN
 
-### TP-M14 — App version displayed in About UI and logged on startup
+### TP-M14 — App version visible in runtime metadata and startup output
 - **Requirement**: SMR-11
-- **Expected**: Version string in semantic format (e.g., "1.0.0") visible in About surface and present in startup log at INFO level
+- **Expected**: Version string in semantic format (e.g., "1.0.0") visible in runtime metadata/startup output; dedicated About UI exposure is deferred
 
-### TP-M15 — Graceful shutdown waits for in-progress write to complete
-- **Requirement**: SMR-12
+### TP-M15 — Graceful shutdown waits for in-progress write to complete [Post-MVP]
+- **Requirement**: SMR-12 [Post-MVP]
 - **Method**: Trigger a write operation; send graceful shutdown signal mid-write; verify DB transaction is not partially committed
 - **Expected**: Write completes atomically before process exits; no corrupted or partially committed data after shutdown
 

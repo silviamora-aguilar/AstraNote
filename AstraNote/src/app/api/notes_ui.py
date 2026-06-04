@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, Response
 from cryptography.exceptions import InvalidTag
 
-from src.app.api.error_mapping import map_note_error_message, map_note_error_status
+from src.app.api.error_mapping import log_note_exception, map_note_error_message, map_note_error_status
 from src.app.dependencies import (
     get_private_note_service,
     get_note_service,
@@ -324,6 +324,7 @@ def create_note_htmx(
     try:
         note = note_service.create(title=title, body=body, is_private=is_private)
     except Exception as exc:
+        log_note_exception(exc, surface="ui", operation="create")
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
@@ -451,6 +452,7 @@ def update_note_editor_panel(
     try:
         note = note_service.update(note_id=note_id, title=title, body=resolved_body, is_private=is_private)
     except Exception as exc:
+        log_note_exception(exc, surface="ui", operation="update", note_id=note_id)
         current_note = note_service.get_note(note_id)
         if current_note is None:
             return templates.TemplateResponse(
@@ -520,6 +522,7 @@ def toggle_checklist_item_htmx(
     try:
         note = note_service.toggle_checklist_item(note_id=note_id, line_index=line_index, checked=checked)
     except Exception as exc:
+        log_note_exception(exc, surface="ui", operation="toggle_checklist", note_id=note_id)
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
@@ -689,6 +692,7 @@ def delete_note_htmx(
     try:
         note_service.delete(note_id)
     except Exception as exc:
+        log_note_exception(exc, surface="ui", operation="delete", note_id=note_id)
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
@@ -710,6 +714,7 @@ def bulk_delete_notes_htmx(
     try:
         note_service.bulk_delete(note_ids)
     except Exception as exc:
+        log_note_exception(exc, surface="ui", operation="bulk_delete")
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
@@ -731,6 +736,7 @@ def restore_note_htmx(
     try:
         note_service.restore(note_id)
     except Exception as exc:
+        log_note_exception(exc, surface="ui", operation="restore", note_id=note_id)
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
@@ -752,6 +758,7 @@ def bulk_restore_notes_htmx(
     try:
         note_service.bulk_restore(note_ids)
     except Exception as exc:
+        log_note_exception(exc, surface="ui", operation="bulk_restore")
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
@@ -773,6 +780,7 @@ def purge_note_htmx(
     try:
         note_service.permanently_delete(note_id)
     except Exception as exc:
+        log_note_exception(exc, surface="ui", operation="purge", note_id=note_id)
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",
@@ -794,6 +802,7 @@ def bulk_purge_notes_htmx(
     try:
         note_service.bulk_permanently_delete(note_ids)
     except Exception as exc:
+        log_note_exception(exc, surface="ui", operation="bulk_purge")
         return templates.TemplateResponse(
             request,
             "partials/error_message.html",

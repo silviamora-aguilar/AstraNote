@@ -11,6 +11,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.app.dependencies import (
+    get_app_logger,
+    get_config_service,
     get_crypto_service,
     get_note_repository,
     get_note_service,
@@ -61,6 +63,8 @@ def client(tmp_path):
 
     from src.main import app
     from src.app.dependencies import (
+        get_app_logger as get_logger_cached,
+        get_config_service as get_config_cached,
         get_crypto_service as get_crypto_cached,
         get_note_repository as get_repo_cached,
         get_pin_settings_manager as get_pin_cached,
@@ -72,6 +76,8 @@ def client(tmp_path):
     os.environ["ASTRANOTE_CONFIG_PATH"] = str(config_path)
 
     # Ensure lru-cached providers do not leak state between tests.
+    get_config_cached.cache_clear()
+    get_logger_cached.cache_clear()
     get_repo_cached.cache_clear()
     get_crypto_cached.cache_clear()
     get_unlock_cached.cache_clear()
@@ -85,6 +91,8 @@ def client(tmp_path):
         yield test_client
 
     app.dependency_overrides.clear()
+    get_config_cached.cache_clear()
+    get_logger_cached.cache_clear()
     get_repo_cached.cache_clear()
     get_crypto_cached.cache_clear()
     get_unlock_cached.cache_clear()

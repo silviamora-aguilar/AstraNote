@@ -121,15 +121,15 @@ These tasks must be completed in Sprint 1 because logging, config, and startup i
 **Tasks:**
 - S1-32: Implement `AppLogger` — rotating file logger (5 MB / 2 rotated files), structured entries with UTC timestamp, severity, tier (UI/Service/Storage/Security), correlation ID, and message (SMR-01)
 - S1-33: Implement `ConfigService` — load `config.json` on startup; apply supported keys (SMR-09, SMR-10); ignore unknown keys; use documented defaults for missing keys; log WARNING for invalid values; expose `get(key)` API to all tiers
-- S1-34: Wire `AppLogger` log level to `config.json` `log_level` key; implement live-reload check so log level is respected without restart (SMR-02)
+- S1-34 [Deferred Post-MVP]: Wire `AppLogger` log level to `config.json` `log_level` key with live-reload behavior so log level changes apply without restart (SMR-02)
 - S1-35: Enforce log privacy guard — add assertion/test that `AppLogger` never accepts note title or body as a message argument; log diagnostic context limited to `note_id` + operation type (SMR-03)
-- S1-36: Add `source_tier` field to `ResultError`; update Storage tier and Security tier error paths to set it before returning errors to NoteService (SMR-04)
+- S1-36: Enforce stable domain-error translation for storage/security failures before UI response mapping; strict `source_tier` tagging deferred (SMR-04)
 - S1-37: Implement UI error handler — catch all `ResultError` at the UI layer, display user-safe message, log full detail at WARNING/ERROR level; ensure no machine-readable codes or stack traces reach the user-facing surface (SMR-05)
 - S1-38: Implement `AppStartup` sequence: verify data directory exists and is writable → create if absent → refuse launch with clear error if not writable (SMR-06)
-- S1-39: Add persistence-integrity check to `AppStartup` / repository init: if store is unreadable/corrupt, rename to `astranotes.db.corrupt.<UTC>`, initialize fresh store, surface user warning (SMR-07)
-- S1-40: Add migration/version guard (Alembic revision compatibility) in repository startup path — refuse write if stored schema revision > app-supported revision (SMR-08)
-- S1-41: Embed semantic version constant (e.g., `APP_VERSION = "1.0.0"`) in application; log it at INFO on startup; expose it in an About/Help UI surface (SMR-11)
-- S1-42: Implement graceful shutdown handler — register OS signal handler (SIGTERM, process stop) that waits for any in-progress repository transaction to complete before exit (SMR-12)
+- S1-39: Add persistence-integrity fail-fast check to `AppStartup` / repository init: if store is unreadable/corrupt, block startup and show a clear user warning; automated rename/reinitialize deferred (SMR-07)
+- S1-40 [Deferred Post-MVP]: Add migration/version guard (Alembic revision compatibility) in repository startup path — refuse write if stored schema revision > app-supported revision (SMR-08)
+- S1-41: Embed semantic version constant (e.g., `APP_VERSION = "1.0.0"`) in application and include it in startup/runtime metadata outputs; dedicated About/Help UI exposure deferred (SMR-11)
+- S1-42 [Deferred Post-MVP]: Implement graceful shutdown handler — register OS signal handler (SIGTERM, process stop) that waits for any in-progress repository transaction to complete before exit (SMR-12)
 
 ---
 
@@ -137,7 +137,7 @@ These tasks must be completed in Sprint 1 because logging, config, and startup i
 **Status:** Deferred under 2026-06-02 pivot to single-user local web MVP.
 **Deferred scope note:** Keep WEB requirements documented for later reactivation; no Sprint 1 implementation tasks are active for BL-22.
 
-**Exit criteria:** Diagnostic log written for all operations with required fields; config.json controls log level; corrupt persistence store handled on startup without crash; schema/migration version guard blocks stale writes; app version visible in UI and startup log; shutdown does not interrupt in-flight transaction completion.
+**Exit criteria:** Diagnostic log baseline active with privacy guard; config.json defaults/validation applied for active MVP keys; startup data-dir and persistence fail-fast checks active; app version exposed in startup/runtime metadata. Live log-level reload, schema migration guard, and graceful-shutdown orchestration remain explicitly deferred to Post-MVP.
 
 ---
 
