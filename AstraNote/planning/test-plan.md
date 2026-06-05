@@ -281,7 +281,7 @@ Scope note: This section is intentionally retained for future reactivation when 
 ### TP-U27 — Error handling: save failure does not corrupt state
 - **Requirement**: SRG-14, SRG-15
 - **Setup**: Fake repo raises save error
-- **Expected**: ResultError returned, no partial state change
+- **Expected**: Structured domain error returned, no partial state change
 
 ### TP-U28 ✅ — Error handling: repeated invalid requests return consistent code
 - **Requirement**: SRG-16
@@ -631,12 +631,12 @@ Scope note: This section is intentionally retained for future reactivation when 
 - **Method**: Create a note with a distinctive title and body; grep log file for title and body text
 - **Expected**: No title or body text present in any log entry
 
-### TP-M05 — Storage tier error wrapped in ResultError with source_tier
+### TP-M05 — Storage/security errors translated into stable domain errors before UI mapping
 - **Requirement**: SMR-04
 - **Setup**: Inject storage failure
-- **Expected**: Service layer receives ResultError with source_tier="storage"; no raw exception propagates to UI
+- **Expected**: Service layer receives a stable domain error and no raw exception propagates to UI; strict `source_tier` tagging is deferred to Post-MVP.
 
-### TP-M06 — UI displays user-safe message for ResultError; no code/traceback shown
+### TP-M06 — UI displays user-safe message for structured domain errors; no code/traceback shown
 - **Requirement**: SMR-05
 - **Method**: Trigger a SAVE_ERROR; inspect UI error display
 - **Expected**: User sees a friendly message; no machine-readable code or stack trace in user-facing output

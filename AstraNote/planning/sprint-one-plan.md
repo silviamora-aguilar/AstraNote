@@ -28,7 +28,7 @@ Deliver a working single-user local web note-taking core: create, edit, delete, 
 - Carry-forward residuals (tracked, non-blocking for BL-02 start):
   - UML explicit validation and duplicate-suffix branches still pending artifact updates.
   - Capacity/load verification artifact for the 10,000-note boundary remains pending.
-  - Broader Sprint 1 foundations (BL-21) remain open and continue in planned order.
+  - Broader Sprint 1 foundations were completed later under BL-21 and remain tracked in the Sprint 1 plan and release artifacts.
 
 **Exit criteria:** Creates a note, persists to SQLite store, title constraints enforced, duplicate auto-suffix works, rejects at 10,000-note limit.
 
@@ -124,12 +124,20 @@ These tasks must be completed in Sprint 1 because logging, config, and startup i
 - S1-34 [Deferred Post-MVP]: Wire `AppLogger` log level to `config.json` `log_level` key with live-reload behavior so log level changes apply without restart (SMR-02)
 - S1-35: Enforce log privacy guard — add assertion/test that `AppLogger` never accepts note title or body as a message argument; log diagnostic context limited to `note_id` + operation type (SMR-03)
 - S1-36: Enforce stable domain-error translation for storage/security failures before UI response mapping; strict `source_tier` tagging deferred (SMR-04)
-- S1-37: Implement UI error handler — catch all `ResultError` at the UI layer, display user-safe message, log full detail at WARNING/ERROR level; ensure no machine-readable codes or stack traces reach the user-facing surface (SMR-05)
+- S1-37: Implement UI error handler — catch structured domain errors at the UI layer, display user-safe message, log full detail at WARNING/ERROR level; ensure no machine-readable codes or stack traces reach the user-facing surface (SMR-05)
 - S1-38: Implement `AppStartup` sequence: verify data directory exists and is writable → create if absent → refuse launch with clear error if not writable (SMR-06)
 - S1-39: Add persistence-integrity fail-fast check to `AppStartup` / repository init: if store is unreadable/corrupt, block startup and show a clear user warning; automated rename/reinitialize deferred (SMR-07)
 - S1-40 [Deferred Post-MVP]: Add migration/version guard (Alembic revision compatibility) in repository startup path — refuse write if stored schema revision > app-supported revision (SMR-08)
 - S1-41: Embed semantic version constant (e.g., `APP_VERSION = "1.0.0"`) in application and include it in startup/runtime metadata outputs; dedicated About/Help UI exposure deferred (SMR-11)
 - S1-42 [Deferred Post-MVP]: Implement graceful shutdown handler — register OS signal handler (SIGTERM, process stop) that waits for any in-progress repository transaction to complete before exit (SMR-12)
+
+**Exit criteria:** Diagnostic log baseline active with privacy guard; config.json defaults/validation applied for active MVP keys; startup data-dir and persistence fail-fast checks active; app version exposed in startup/runtime metadata. Live log-level reload, schema migration guard, and graceful-shutdown orchestration remain explicitly deferred to Post-MVP.
+
+**BL-21 Closeout Note (2026-06-04):**
+- Release bookkeeping updated: BL-21 marked complete in `backlog.md`, `release-gates.md`, and `requirements.md` for the retained localhost MVP SMR scope.
+- Implemented runtime slice includes `ConfigService`, `AppLogger`, `AppStartup`, config-backed dependency wiring, route-level diagnostic logging, and startup/runtime version exposure.
+- Regression evidence added after merge-candidate validation: full `tests/unit` and `tests/integration` suites passed with BL-21 changes before merge.
+- Post-MVP deferrals remain unchanged: SMR-02 (live log-level reload), SMR-08 (schema migration/version guard), and SMR-12 (graceful shutdown orchestration).
 
 ---
 
@@ -137,14 +145,12 @@ These tasks must be completed in Sprint 1 because logging, config, and startup i
 **Status:** Deferred under 2026-06-02 pivot to single-user local web MVP.
 **Deferred scope note:** Keep WEB requirements documented for later reactivation; no Sprint 1 implementation tasks are active for BL-22.
 
-**Exit criteria:** Diagnostic log baseline active with privacy guard; config.json defaults/validation applied for active MVP keys; startup data-dir and persistence fail-fast checks active; app version exposed in startup/runtime metadata. Live log-level reload, schema migration guard, and graceful-shutdown orchestration remain explicitly deferred to Post-MVP.
-
 ---
 
-### ResultError Structured Errors (SRG-14, SRG-15, SRG-16)
+### Structured Error Handling (SRG-14, SRG-15, SRG-16)
 **Tasks:**
-- S1-29: Implement `ResultError` with machine-readable codes: `NOT_FOUND`, `VALIDATION_ERROR`, `CAPACITY_EXCEEDED`, `STALE_VERSION`, `SAVE_ERROR`
-- S1-30: Ensure all `NoteService` and repository operations return `ResultError` on failure rather than raising unhandled exceptions (SRG-14)
+- S1-29: Implement structured domain error mapping with machine-readable codes: `NOT_FOUND`, `VALIDATION_ERROR`, `CAPACITY_EXCEEDED`, `STALE_VERSION`, `SAVE_ERROR`
+- S1-30: Ensure all `NoteService` and repository operations return structured domain errors on failure rather than raising unhandled exceptions (SRG-14)
 - S1-31: Ensure failed operations do not partially persist data — transaction rollback guarantees pre-op state preserved (SRG-15)
 
 ---
@@ -160,17 +166,20 @@ S1-01 (Note model) → S1-02 (NoteRepository interface)
   → S1-14 (NoteService.list)      → S1-15–S1-17 (UI list)
   → S1-18 (NoteService.search)    → S1-19–S1-20 (UI search)
 S1-26 (AuditEntry) → S1-27 (integrate into NoteService)
-S1-29 (ResultError) → all NoteService methods
+S1-29 (structured domain errors) → all NoteService methods
 S1-21–S1-25 (boundaries + tests) — run in parallel with above
 ```
 
 ## Sprint 1 Exit Criteria
 - All tasks S1-01 through S1-31 complete
+- BL-21 retained MVP tasks complete: S1-32, S1-33, S1-35, S1-36, S1-37, S1-38, S1-39, and S1-41
+- BL-21 deferred tasks remain explicitly deferred: S1-34, S1-40, and S1-42 [Post-MVP]
 - Unit tests pass for NoteService (with fake repo) and SqlNoteRepository (with temp DB)
 - Integration test: full create → edit → list → search → soft-delete → restore round-trip passes
 - Persistence layer contains no plaintext title or body fields
 - Audit log written for all operations
 - No unhandled exceptions on any invalid input scenario
+- Serviceability baseline active: runtime config defaults/validation, diagnostic logging with plaintext guards, startup fail-fast checks, and runtime version metadata
 
 ---
 
