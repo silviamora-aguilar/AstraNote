@@ -931,22 +931,21 @@ Scope convention: SRG acceptance criteria inherit the scope tag in each SRG head
 - Log scan for private note content returns no matches.
 
 ### SMR-04 — Tier-Tagged Error Propagation [MVP]
-**Requirement**: Errors from Storage or Security tier shall be wrapped in a `ResultError` with a `source_tier` field before reaching the Service tier. The UI tier shall not receive raw storage or crypto exceptions.
+**Requirement**: Errors from Storage or Security tier shall be translated into stable domain errors before reaching the Service tier. The UI tier shall not receive raw storage or crypto exceptions. Strict `source_tier` tagging is deferred to Post-MVP.
 
 **User Story**: As a developer, I want errors labeled with their originating tier so I can pinpoint whether a failure is in storage, security, or business logic without reading stack traces.
 
 **Acceptance Criteria**:
-- Every error leaving the Storage or Security tier is wrapped in a ResultError with `source_tier` set.
-- The UI tier receives only ResultError objects — no raw exceptions propagate to the UI.
-- source_tier values are one of: `storage`, `security`, `service`, `ui`.
+- Every error leaving the Storage or Security tier is translated into a stable domain error before crossing the service boundary.
+- The UI tier receives only mapped user-safe error payloads; no raw exceptions propagate to the UI.
 
 ### SMR-05 — UI Error Rendering [MVP]
-**Requirement**: The UI tier shall render a user-safe error state for every ResultError it receives, without exposing machine-readable codes or stack traces to the user.
+**Requirement**: The UI tier shall render a user-safe error state for every mapped domain error it receives, without exposing machine-readable codes or stack traces to the user.
 
 **User Story**: As a user, I want error messages to be clear and safe so I am never shown internal codes or stack traces.
 
 **Acceptance Criteria**:
-- All ResultError responses are shown as user-friendly messages in the UI.
+- All mapped domain-error responses are shown as user-friendly messages in the UI.
 - No machine-readable error codes or stack traces are displayed to the user.
 - The full error detail (code + source_tier) is logged at WARNING or ERROR level for diagnostics.
 

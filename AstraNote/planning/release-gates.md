@@ -28,7 +28,7 @@ All MVP backlog items must be complete and verified:
 | BL-12: Architecture boundaries | NFR-13–16 | ✅ |
 | BL-13: Security stack | SRG-01, 02, 04, 05, 07, 08, 10, 11, 12, 13–26 | ✅ |
 | BL-23: Interface localization toggle | REQ-28 | ✅ |
-| BL-21: Serviceability/manageability | SMR-01, 03, 04, 05, 06, 07, 09, 10, 11 (SMR-02, 08, 12 deferred [Post-MVP]) | ☐ |
+| BL-21: Serviceability/manageability | SMR-01, 03, 04, 05, 06, 07, 09, 10, 11 (SMR-02, 08, 12 deferred [Post-MVP]) | ✅ |
 | BL-22: Web multi-user foundation | WEB-01–11 | Deferred [Post-MVP] |
 | BL-24: Nested list depth (3 levels) | REQ-29 | Deferred [Post-MVP] |
 | BL-25: Image paste in note body | REQ-30 | Deferred [Post-MVP] |
@@ -42,11 +42,11 @@ All test suites must pass with zero failures:
 
 | Suite | File | Status |
 |---|---|---|
-| Unit — NoteService | tests/unit/test_note_service_create.py, tests/unit/test_note_service_delete.py | ☐ |
-| Unit — Repository/Storage | tests/integration/test_create_note_api.py, tests/integration/test_update_note_api.py, tests/integration/test_concurrency_routes.py | ☐ |
-| Unit — Security Layer | tests/unit (dedicated security unit suite pending) | ☐ |
-| Integration — API/UI flows | tests/integration/test_*_api.py, tests/integration/test_*_ui.py, tests/integration/test_ui_wiring.py | ☐ |
-| Security Validation | tests (SRG validation currently distributed; dedicated tests/security/* suite pending) | ☐ |
+| Unit — NoteService | tests/unit/test_note_service_create.py, tests/unit/test_note_service_delete.py | ✅ |
+| Unit — Repository/Storage | tests/integration/test_create_note_api.py, tests/integration/test_update_note_api.py, tests/integration/test_concurrency_routes.py | ✅ |
+| Unit — Security Layer | tests/unit/test_security_encryption.py, tests/unit/test_unlock_session_manager.py, tests/unit/test_pin_settings_manager.py, tests/unit/test_private_note_service.py | ✅ |
+| Integration — API/UI flows | tests/integration/test_*_api.py, tests/integration/test_*_ui.py, tests/integration/test_ui_wiring.py | ✅ |
+| Security Validation | tests/unit/test_audit_logging.py, tests/unit/test_security_encryption.py, tests/integration/test_private_unlock_ui.py, tests/integration/test_trash_ui.py | ✅ |
 | Performance | tests/performance/test_performance.py | ✅ |
 | Web Multi-User | tests/integration/test_web_multi_user.py | Deferred [Post-MVP] |
 
@@ -92,12 +92,12 @@ Fill in the **Measured** column with actual benchmark results before checking of
 
 | Check | Status |
 |---|---|
-| No direct UI → repository/security imports exist; UI uses API/service boundary only (NFR-13, WEB-04) | ☐ |
-| NoteRepository and KeyDerivationService accessed only through interfaces (NFR-14) | ☐ |
-| Replacing SqlNoteRepository with a fake in tests requires no UI code changes (NFR-16) | ☐ |
-| No unhandled exceptions reachable through any user input path (SRG-14) | ☐ |
-| All error responses use ResultError with machine-readable codes (SRG-14) | ☐ |
-| All writes use transaction commit/rollback safety (SRG-15) | ☐ |
+| No direct UI → repository/security imports exist; UI uses API/service boundary only (NFR-13, WEB-04) | ✅ |
+| NoteRepository and private-note/runtime dependencies are accessed through interfaces or service/provider boundaries (NFR-14) | ✅ |
+| Replacing SqlNoteRepository with a fake in tests requires no UI code changes (NFR-16) | ✅ |
+| No unhandled exceptions reachable through any user input path (SRG-14) | ✅ |
+| Error responses use stable machine-readable codes with user-safe UI/API mapping (SRG-14, SRG-16) | ✅ |
+| All writes use transaction commit/rollback safety (SRG-15) | ✅ |
 | Owner scoping enforced for all note reads/writes (WEB-02, WEB-06) | Deferred [Post-MVP] |
 
 ---
@@ -164,7 +164,14 @@ Signed off by: _______________
 - ✅ BL-11 deferred to Post-MVP for this demo cycle.
 - ✅ NFR-10 and NFR-12 moved to Post-MVP scope in `planning/requirements.md`.
 - ✅ BL-21 rebaselined for localhost single-user MVP: SMR-02, SMR-08, and SMR-12 deferred to Post-MVP; remaining SMR items retained as MVP serviceability baseline.
-- ✅ Current active open implementation gate for MVP is BL-21.
+- ✅ BL-21 implementation merged and validated on `main`; remaining MVP work is documentation and release-evidence cleanup rather than a new implementation slice.
+
+## BL-21 Closure Checkpoint (2026-06-04)
+
+- ✅ Runtime config, structured diagnostic logging, and startup fail-fast validation are merged on `main`.
+- ✅ `/health` exposes runtime version metadata and runtime dependencies honor configured `max_notes` and inactivity timeout values.
+- ✅ Broader regression evidence recorded after merge-candidate validation: `tests/unit` 71 passed and `tests/integration` 71 passed.
+- ✅ Localhost duplicate-title allocation under concurrent create paths is now verified and release-aligned for the single-user MVP baseline.
 
 ## Demo Hardening Checkpoint (2026-06-03)
 
