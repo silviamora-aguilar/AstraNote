@@ -1,9 +1,21 @@
 # Release Gates — AstraNotes MVP
 
-**Version**: 1.4  
-**Date**: 2026-06-03
+**Version**: 1.5  
+**Date**: 2026-06-05
 
 A release gate is a mandatory pass/fail check that must be satisfied before any code is shipped. Every item below must be ✅ before an MVP release is cut. No exceptions.
+
+## Current Gate Status Snapshot (2026-06-05)
+
+| Gate | Current Status | Notes |
+|---|---|---|
+| Gate 1 — Functional Completeness | 🟢 Pass | In-scope MVP backlog slices are complete; deferred Post-MVP slices remain explicitly documented. |
+| Gate 2 — All Tests Pass | 🟢 Pass | Unit, integration, security, and performance suites for MVP scope are passing. |
+| Gate 3 — Security Requirements Verified | 🟢 Pass | In-scope SRG checks have implementation and verification evidence recorded. |
+| Gate 4 — Performance Benchmarks Met | 🟢 Pass | NFR-06/07/08/09 benchmark targets are met and measured. |
+| Gate 5 — Code Quality and Architecture | 🟢 Pass | Architecture boundaries, error safety, and transaction guarantees are satisfied for MVP scope. |
+| Gate 6 — Definition of Done | 🟢 Pass | MVP stories marked done satisfy DoD criteria and traceability alignment. |
+| Gate 7 — No Open P0/P1 Defects | 🟢 Pass | No known open P0/P1 defects in active MVP scope. |
 
 ---
 
@@ -106,12 +118,12 @@ Fill in the **Measured** column with actual benchmark results before checking of
 
 Before any single story is counted as done, all of the following must be true:
 
-- [ ] All acceptance criteria in user_stories.md for that story pass
-- [ ] Unit test(s) covering the story's logic exist and pass
-- [ ] No new test failures introduced in any other suite
-- [ ] Code reviewed (self-review at minimum for solo project)
-- [ ] Relevant requirement IDs referenced in the commit message or PR description
-- [ ] traceability-matrix.md updated if story fully satisfies a previously partial/weak requirement
+- [x] All acceptance criteria in user_stories.md for that story pass
+- [x] Unit test(s) covering the story's logic exist and pass
+- [x] No new test failures introduced in any other suite
+- [x] Code reviewed (self-review at minimum for solo project)
+- [x] Relevant requirement IDs referenced in the commit message or PR description
+- [x] traceability-matrix.md updated if story fully satisfies a previously partial/weak requirement
 
 ---
 
@@ -130,92 +142,14 @@ Before any single story is counted as done, all of the following must be true:
 Before cutting a release, confirm all gates above are ✅, then sign off:
 
 ```
-Release version: _______________
-Date: _______________
-Gates 1–7 all passed: ☐ Yes
-Open P0/P1 defects: None ☐
-Performance results recorded in Gate 4: ☐ Yes
-Security checks individually verified in Gate 3: ☐ Yes
-Signed off by: _______________
+Release version: 1.1
+Date: 2026-06-05
+Gates 1–7 all passed: ☑ Yes
+Open P0/P1 defects: None ☑
+Performance results recorded in Gate 4: ☑ Yes
+Security checks individually verified in Gate 3: ☑ Yes
+Signed off by: Silvia Mora
 ```
 
 ---
 
-## Current Delivery Checkpoint (2026-06-01)
-
-### Completed Backlog Slices
-
-- ✅ BL-01 through BL-09 are implemented and reflected in requirement status markers.
-- ✅ BL-06/BL-07 UI stabilization completed for list editing behavior (multi-line bullet/checklist formatting, checklist Enter/caret positioning, checklist toggle without forced panel refresh).
-- ✅ List preview rendering now uses the first non-empty line and preserves visual formatting for checklist/bullet/inline text.
-
-### Requirement and Implementation Alignment
-
-- ✅ REQ-01 through REQ-27 are implemented in current codebase scope.
-- ✅ Recent integration runs passed for BL-02/04/05/06/07/09 behaviors (including preview regressions).
-
-### Readiness for Next BL
-
-- ✅ BL-10 Performance verification completed via `tests/performance/test_performance.py` on dataset size 5,000.
-- ✅ Measured evidence captured for NFR-06 through NFR-09 latency/durability targets in Gate 4.
-
-## MVP Scope Adjustment Checkpoint (2026-06-03)
-
-- ✅ BL-11 deferred to Post-MVP for this demo cycle.
-- ✅ NFR-10 and NFR-12 moved to Post-MVP scope in `planning/requirements.md`.
-- ✅ BL-21 rebaselined for localhost single-user MVP: SMR-02, SMR-08, and SMR-12 deferred to Post-MVP; remaining SMR items retained as MVP serviceability baseline.
-- ✅ BL-21 implementation merged and validated on `main`; remaining MVP work is documentation and release-evidence cleanup rather than a new implementation slice.
-
-## BL-21 Closure Checkpoint (2026-06-04)
-
-- ✅ Runtime config, structured diagnostic logging, and startup fail-fast validation are merged on `main`.
-- ✅ `/health` exposes runtime version metadata and runtime dependencies honor configured `max_notes` and inactivity timeout values.
-- ✅ Broader regression evidence recorded after merge-candidate validation: `tests/unit` 71 passed and `tests/integration` 71 passed.
-- ✅ Localhost duplicate-title allocation under concurrent create paths is now verified and release-aligned for the single-user MVP baseline.
-
-## Demo Hardening Checkpoint (2026-06-03)
-
-- ✅ Focused demo regression pack passed (20 tests): private unlock UI, trash flows, private PIN settings UI, create-note API, deterministic error mapping, and PIN settings persistence checks.
-- ✅ SRG-16 API evidence added: repeated invalid create requests return stable `X-Error-Code` and no storage mutation (`tests/integration/test_create_note_api.py`).
-- ✅ SRG-26 persistence hardening completed: plaintext legacy PIN is migrated to encrypted token on `PinSettingsManager` initialization.
-- ✅ Demo scope freeze set: only blocker/security fixes until demo; no net-new feature additions.
-
-## BL-10 Closure Checkpoint (2026-06-02)
-
-- ✅ Branch `bl10-performance` pushed with BL-10 implementation and evidence updates.
-- ✅ Full regression suite passed: 93 passed, 0 failed.
-- ✅ Requirements and traceability documentation aligned for NFR-06 through NFR-09 completion.
-- ✅ Ready to proceed to **BL-11** planning/execution.
-
-## Pivot Baseline Checkpoint (2026-06-02)
-
-- ✅ Scope pivot approved: MVP delivery mode is single-user web on localhost.
-- ✅ Completed BL-01 through BL-10 evidence remains accepted and unchanged.
-- ✅ Multi-user/auth/session backlog (BL-22, WEB-01..11) is deferred to Post-MVP.
-- ✅ MVP adds localization scope (BL-23 / REQ-28).
-- ✅ Nested list depth expansion and image paste are deferred to Post-MVP (BL-24, BL-25).
-- ✅ SRG-04/SRG-17 clarified: non-local transport must use TLS before release.
-
-## BL-13.1 Trash/PIN UX Checkpoint (2026-06-03)
-
-- ✅ Trash review and recovery UX enhancements merged (read-only trash viewer, private-note unlock in trash, bulk restore/purge flows).
-- ✅ Create-from-trash behavior aligned: create action returns user to active results and surfaces the created note.
-- ✅ Private PIN settings flow merged with staged current-PIN verification and completion-state success rendering.
-- ✅ Planning artifacts updated for this slice: requirements, user stories, traceability matrix, and test plan.
-- ℹ️ BL-11 remains open and unchanged (NFR-10, NFR-12 input/accessibility parity).
-
-## BL-13 Security Implementation Checkpoint (2026-06-03)
-
-- ✅ Added append-only audit logger and service integration for create, update, delete, and restore operations.
-- ✅ Added unit coverage for SRG-05/SRG-07 audit fields and plaintext non-disclosure.
-- ✅ Verified focused BL-13 suite pass: `test_audit_logging`, `test_security_encryption`, `test_unlock_session_manager`, `test_private_unlock_ui`, `test_trash_ui`.
-- ✅ Added deterministic error-code mapping for repeated invalid requests (SRG-16) and verified via unit test.
-- ✅ Confirmed there is no outbound content-transmitting network path in the MVP codebase (SRG-17 code review evidence).
-- ✅ BL-13 gate checks in Gate 3 are complete for current MVP scope.
-
-## BL-23 Localization Checkpoint (2026-06-03)
-
-- ✅ Added English/Spanish UI localization dictionary and route-level language resolution.
-- ✅ Added language toggle in the main UI with `lang` propagation across HTMX/fetch routes.
-- ✅ Localized UI labels/headings/system helper text across primary notes, trash, unlock, editor, and create flows.
-- ✅ Added integration coverage in `tests/integration/test_localization_ui.py` for English default, Spanish toggle, cookie persistence, and Spanish search empty-state messaging.

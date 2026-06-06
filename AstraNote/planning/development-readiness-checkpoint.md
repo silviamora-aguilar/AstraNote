@@ -22,31 +22,31 @@ Read the project in this order before coding:
 
 ### Scope and Decisions
 - [x] Scope track is finalized as single-user local web MVP
-- [ ] Backend framework decision is approved
-- [ ] Frontend rendering strategy is approved
-- [ ] Persistence strategy is approved
-- [ ] Private-note security strategy is approved (encryption + 4-digit unlock)
+- [x] Backend framework decision is approved
+- [x] Frontend rendering strategy is approved
+- [x] Persistence strategy is approved
+- [x] Private-note security strategy is approved (encryption + 4-digit unlock)
 
 ### Planning Consistency
-- [ ] Requirements, user stories, backlog, traceability, and test plan are synchronized
-- [ ] Sprint plans reflect the same approved baseline
-- [ ] Release gates and customer acceptance are aligned to the same scope
+- [x] Requirements, user stories, backlog, traceability, and test plan are synchronized
+- [x] Sprint plans reflect the same approved baseline
+- [x] Release gates and customer acceptance are aligned to the same scope
 
 ### Architecture Readiness
-- [ ] System design document exists and is current
-- [ ] Architecture decisions are recorded in ADR form
-- [ ] Repository, service, UI, and security boundaries are defined
-- [ ] Lucid update follow-up is explicitly tracked
+- [x] System design document exists and is current
+- [x] Architecture decisions are recorded in ADR form
+- [x] Repository, service, UI, and security boundaries are defined
+- [x] Lucid update follow-up is explicitly tracked
 
 ### Quality Readiness
-- [ ] Definition of Done exists
-- [ ] Test strategy exists
-- [ ] Release gates exist
-- [ ] Acceptance document exists
+- [x] Definition of Done exists
+- [x] Test strategy exists
+- [x] Release gates exist
+- [x] Acceptance document exists
 
 ### Development Start Decision
 - Go if every critical checkbox above is complete and there is no unresolved infrastructure ambiguity.
-- No-Go if any core architecture, persistence, or auth decision is still open.
+- No-Go if any core architecture, persistence, or private-note security decision is still open.
 
 ## 3. Day 0 Checklist
 
@@ -61,14 +61,14 @@ Read the project in this order before coding:
 
 By the end of Week 1, the project should be able to answer yes to the following:
 
-- [ ] Private-note unlock/session scaffolding exists
-- [ ] Protected route boundary exists
-- [ ] Repository interface exists
-- [ ] Private-note security scaffolding exists
-- [ ] First persistence-backed note flow is scaffolded
-- [ ] Traceability and tests can point to at least one implemented slice
-- [ ] No document contradictions remain in the active baseline
+- [x] Private-note unlock/session scaffolding exists
+- [x] Protected route boundary exists
+- [x] Repository interface exists
+- [x] Private-note security scaffolding exists
+- [x] First persistence-backed note flow is scaffolded
+- [x] Traceability and tests can point to at least one implemented slice
+- [x] No document contradictions remain in the active baseline
 
 ## 5. Current Recommendation
 
-Based on the current document set, AstraNotes is ready to begin implementation under the single-user local web pivot. The only explicitly deferred documentation task is Lucid diagram realignment to the updated pivot baseline.
+Based on the current document set, AstraNotes is ready to begin implementation as a single-user local web application.

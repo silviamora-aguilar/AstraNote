@@ -1,87 +1,93 @@
-# Product Requirements Document — AstraNotes
+# Product Requirements Document - AstraNotes
 
 ## 1. Purpose
 
-This Product Requirements Document frames the business goals, scope boundaries, and acceptance-level view of AstraNotes. It sits above the detailed requirement baseline and provides the product-level interpretation of what the MVP must achieve.
+This document gives the product-level framing for the delivered AstraNotes MVP. It sits above the detailed requirement baseline and explains the user value, scope boundaries, and acceptance criteria that the project now satisfies.
 
 ## 2. Product Overview
 
-AstraNotes is a web-based multi-user note-taking application designed to support everyday note capture, organization, privacy-sensitive note handling, and structured engineering delivery. The MVP emphasizes correctness, maintainability, and security-aware behavior rather than broad platform reach.
+AstraNotes is a local, single-user note-taking web application designed for fast browser-based note capture, Markdown-style editing, private-note protection, and careful handling of deleted content. The MVP is intentionally narrow: it prioritizes correctness, clarity, and reviewability over multi-user breadth.
 
 ## 3. Business Goals
 
 ### Primary Goals
-- Deliver a complete graduate-course product artifact chain from scope through release readiness
-- Demonstrate a realistic multi-user web architecture with clear boundaries between UI, service, storage, and security
-- Provide a usable note workflow for authenticated users with reliable persistence and privacy controls
 
-### Secondary Goals
-- Preserve a low-risk delivery path for a single academic quarter
-- Keep the implementation stack approachable enough to complete with quality
-- Maintain a migration path toward stronger production infrastructure later
+- Deliver a complete, review-ready graduate-course artifact chain
+- Show that the team can build and document a real browser app end-to-end
+- Provide a polished note workflow with privacy controls and recoverable deletion
+
+### Supporting Goals
+
+- Keep the scope small enough to finish cleanly within the academic timeline
+- Make the implementation easy to review, test, and explain
+- Leave a clear path for Post-MVP growth without overbuilding the baseline
 
 ## 4. Target Users
 
-- Primary: course reviewers, instructors, and demonstrators validating software engineering execution
-- Secondary: end users who need a structured note system with optional private-note handling
+- Primary: course reviewers, instructors, and demonstrators
+- Secondary: a single local user managing notes in a browser
 
 ## 5. Product Objectives
 
-- Users can authenticate and manage their own notes only
-- Users can create, update, delete, restore, list, and search notes without data corruption
-- Users can author structured note content with lists and formatting
-- Users can mark notes private and rely on stronger protections for protected content
-- The product exposes traceable engineering evidence for planning, quality, security, and release decisions
+- Create, edit, delete, restore, list, and search notes without data loss
+- Support structured body content with lists and text formatting
+- Protect private note content with PIN-based unlock and encrypted storage
+- Keep the note list readable, recoverable, and consistent after save or refresh
+- Provide traceable evidence for requirements, testing, and release readiness
 
 ## 6. Scope Boundaries
 
-### In Scope
-- Browser-based desktop web experience
-- Multi-user access with per-user data isolation
-- FastAPI backend with Jinja2 + HTMX frontend rendering
-- SQLite persistence with PostgreSQL-ready schema discipline
-- Server-side session cookies with inactivity timeout and CSRF protection
-- CRUD, search, authoring, privacy state, soft delete/restore, audit logging
+### In Scope for the MVP
 
-### Out of Scope
-- Native mobile applications
-- Real-time collaboration or shared editing
-- Cross-device sync
-- Full cloud-native microservices deployment
-- Advanced plugin ecosystem
+- Browser-based local web experience on 127.0.0.1
+- FastAPI backend with Jinja2 + HTMX front-end rendering
+- SQLite-backed persistence for the local baseline
+- CRUD, search, formatting, privacy toggle, soft delete, restore, and Trash review
+- Diagnostic and audit logging
+- English/Spanish UI text toggle
+
+### Out of Scope for the MVP
+
+- Multi-user accounts and shared ownership scoping
+- Device sync or cloud collaboration
+- Native mobile packaging
+- Real-time collaboration
+- Per-note key isolation
+- Image paste support and advanced content types
 
 ## 7. Product-Level Feature Set
 
-### Core User Value
+### User Value
+
 - Capture notes quickly
 - Find notes reliably
-- Edit and organize content clearly
-- Recover from accidental deletion within retention boundaries
-- Protect sensitive notes through private-note controls
+- Edit and format content clearly
+- Recover from accidental deletion within the retention window
+- Keep sensitive content hidden until it is explicitly unlocked
 
-### Engineering Value
-- Traceability from requirement to test and release gate
-- Controlled delivery through sprint staging and readiness checkpoints
-- Architecture that supports backend replacement and future hardening
+### Delivery Value
+
+- Show that the team can define, implement, test, and gate an MVP cleanly
+- Preserve traceability from requirement to implementation to evidence
+- Keep the design understandable for course review
 
 ## 8. Acceptance-Level Product Criteria
 
-The product is acceptable at MVP level when all of the following are true:
+The MVP is acceptable when all of the following are true:
 
-- authenticated users can complete core note workflows in browser,
-- no user can access another user's notes,
-- persistence is durable and transaction-safe,
-- private-note content is encrypted at rest,
-- session inactivity and authorization controls are enforced server-side,
-- automated tests and release gates show objective evidence of readiness,
-- the shared review environment is reachable for instructor evaluation.
+- A local browser user can complete the core note workflows
+- Private-note content is encrypted at rest and hidden until unlock succeeds
+- Deleted notes move to Trash and can be restored during retention
+- The UI text toggle works without translating user-authored note content
+- Release gates and tests show objective evidence that the baseline is complete
+- The documented HTML review flow matches the source Markdown artifacts
 
 ## 9. Dependencies and Assumptions
 
-- The approved technology decisions remain unchanged unless formally revised in ADRs
-- Lucid UML artifacts will be refreshed to the web multi-user baseline in a follow-up pass
-- Mobile-web parity remains Post-MVP unless the course rubric explicitly elevates it
+- The approved MVP stack remains FastAPI, Jinja2 + HTMX, and SQLite
+- The shared giraffe-branded review pages remain the primary review path for the course
+- Post-MVP items stay deferred unless the rubric or instructor feedback changes scope
 
 ## 10. Relationship to Detailed Requirements
 
-This PRD is intentionally shorter and more product-facing than [planning/requirements.md](../planning/requirements.md). The detailed requirement baseline remains the canonical source for REQ, NFR, SRG, SMR, and WEB identifiers. This document provides the business framing and acceptance view that explains why those detailed requirements exist.
+This PRD is a product-facing companion to [planning/requirements.md](../planning/requirements.md). The requirements document remains the canonical source for requirement IDs and detailed behavior. This PRD explains why the MVP exists and how the implemented baseline should be judged.

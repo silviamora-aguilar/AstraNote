@@ -6,19 +6,19 @@
   <title>AstraNotes Document Viewer</title>
   <style>
     :root {
-      --bg: #f4efec;
-      --surface: #ffffff;
-      --surface-2: #f8f4f1;
-      --text: #1f2c3a;
-      --muted: #617080;
-      --line: #e7ddd8;
-      --accent: #285f8f;
-      --accent-2: #d06e42;
+      --bg: #f5efe2;
+      --surface: #fffdf6;
+      --surface-2: #fbf4dd;
+      --text: #20353a;
+      --muted: #62736b;
+      --line: #e6dcc5;
+      --accent: #117f7a;
+      --accent-2: #d7ae31;
       --shadow: 0 14px 36px rgba(39, 31, 28, 0.08);
       --code-bg: #162230;
       --code-text: #f3f7fb;
-      --table-head: #f2f7fb;
-      --note: #fff8f1;
+      --table-head: #ecf8f7;
+      --note: #fff7cf;
     }
 
     * {
@@ -28,8 +28,9 @@
     body {
       margin: 0;
       background:
-        radial-gradient(circle at top right, rgba(208, 110, 66, 0.14), transparent 28%),
-        linear-gradient(180deg, #f8f2ef 0%, var(--bg) 100%);
+        radial-gradient(circle at top right, rgba(215, 174, 49, 0.16), transparent 28%),
+        radial-gradient(circle at top left, rgba(17, 127, 122, 0.12), transparent 24%),
+        linear-gradient(180deg, #fbf6eb 0%, var(--bg) 100%);
       color: var(--text);
       font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
       line-height: 1.6;
@@ -42,13 +43,19 @@
     }
 
     .hero {
-      background: linear-gradient(120deg, #24476f 0%, #2b628f 56%, #cf754d 100%);
+      background:
+        radial-gradient(circle at 78% 16%, rgba(255, 237, 165, 0.26), transparent 18%),
+        linear-gradient(120deg, #0f7f7a 0%, #18a39c 56%, #e2b739 100%);
       color: #f5f8fb;
       border-radius: 24px;
       padding: 28px 24px;
       box-shadow: var(--shadow);
       position: relative;
       overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) auto;
+      gap: 18px;
+      align-items: center;
     }
 
     .hero::after {
@@ -60,6 +67,26 @@
       top: -80px;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(255,255,255,0.22), rgba(255,255,255,0));
+    }
+
+    .hero-mark {
+      position: relative;
+      z-index: 1;
+      width: 138px;
+      height: 138px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .hero-mark img {
+      width: 102px;
+      height: 102px;
+      object-fit: contain;
     }
 
     .eyebrow {
@@ -233,13 +260,12 @@
 
     .content table {
       width: 100%;
+      table-layout: fixed;
       border-collapse: collapse;
       margin: 1rem 0 1.2rem;
-      overflow: hidden;
       border-radius: 12px;
       border: 1px solid var(--line);
-      display: block;
-      overflow-x: auto;
+      display: table;
     }
 
     .content thead {
@@ -249,10 +275,14 @@
     .content th,
     .content td {
       text-align: left;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-bottom: 1px solid var(--line);
       vertical-align: top;
-      min-width: 120px;
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      font-size: 0.9rem;
     }
 
     .content a {
@@ -263,6 +293,10 @@
 
     .content a:hover {
       text-decoration: underline;
+    }
+
+    .content a {
+      color: var(--accent);
     }
 
     .content strong {
@@ -293,6 +327,20 @@
         border-radius: 18px;
       }
 
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-mark {
+        width: 118px;
+        height: 118px;
+      }
+
+      .hero-mark img {
+        width: 86px;
+        height: 86px;
+      }
+
       .content {
         padding: 20px 16px 26px;
       }
@@ -305,15 +353,20 @@
 <body>
   <main class="page">
     <header class="hero">
-      <div class="eyebrow">AstraNotes Documentation Viewer</div>
-      <h1 id="viewer-title">Loading document</h1>
-      <p id="viewer-subtitle">Rendering Markdown as browser-friendly HTML for faster review.</p>
-      <div class="hero-actions">
-        <a class="btn" id="back-link" href="sdlc-document-map.html">Back to SDLC Map</a>
-        <a class="btn secondary" id="source-link" href="#">Open Markdown Source</a>
+      <div>
+        <div class="eyebrow">AstraNotes Documentation Viewer</div>
+        <h1 id="viewer-title">Loading document</h1>
+        <p id="viewer-subtitle">Rendering Markdown as browser-friendly HTML for faster review.</p>
+        <div class="hero-actions">
+          <a class="btn" id="back-link" href="sdlc-document-map.html">Back to SDLC Map</a>
+          <a class="btn secondary" id="source-link" href="#">Open Markdown Source</a>
+        </div>
+        <div class="hero-meta">
+          <div class="pill" id="source-pill">Source: —</div>
+        </div>
       </div>
-      <div class="hero-meta">
-        <div class="pill" id="source-pill">Source: —</div>
+      <div class="hero-mark" aria-hidden="true">
+        <img src="../src/app/static/giraffe_logo.jpg" alt="AstraNotes giraffe logo" />
       </div>
     </header>
 

@@ -1,76 +1,72 @@
-# AstraNote Storage Design
+# Storage Design Notes
 
-## Overview
+## Current MVP Storage Baseline
 
-AstraNote requires a simple, cross-platform storage system to persist user notes locally. This design focuses on minimal complexity while ensuring reliability, portability, and future extensibility.
+AstraNotes MVP uses local SQLite persistence through SQLAlchemy. The active backend is `SqlNoteRepository`; legacy file-per-note JSON storage is not the current implementation.
 
-## Goals
+## Storage Goals (Implemented)
 
-- Store notes with basic metadata (title, content, timestamps)
-- Support cross-platform operation (Windows, macOS, Linux)
-- Enable easy retrieval and basic search
-- Provide a foundation for future features like cloud sync and encryption
+- Reliable local persistence for single-user localhost workflows.
+- Encrypted-at-rest note content for both private and non-private notes.
+- Soft delete and trash retention behavior with automatic expiry purge.
+- Audit and diagnostic logging without plaintext note leakage.
 
-## Core Data Model
+## Primary Persistence Artifacts
 
-### Note
-Each note contains:
+| Artifact | Location | Purpose |
+|---|---|---|
+| SQLite DB (`astranote.db`) | Configured data directory | Primary note store |
+| Audit log (`audit-log.jsonl`) | Configured data directory | Append-only audit trail |
+| Diagnostic log (`astranote.log`) | Configured data directory | Runtime diagnostics |
+| Runtime config (`config.json`) | Configured data directory | Supported settings and PIN token metadata |
 
-- `id`: Unique identifier (UUID)
-- `title`: Note title (string)
-- `content`: Full note text (string)
-- `created_at`: Creation timestamp (ISO 8601)
-- `updated_at`: Last modification timestamp (ISO 8601)
-- `tags`: List of tag strings (optional)
+Default data directory is OS-specific via `ConfigService`, and can be overridden with `ASTRANOTE_DATA_DIR` or `ASTRANOTE_CONFIG_PATH`.
 
-Notes are stored as JSON objects for simplicity and portability.
+## Note Record Shape (SQLite)
 
-## Storage Architecture
+The repository persists note rows with these fields:
 
-### Local File-Based Storage
+- `note_id` (PK)
+- `title` (encrypted payload string)
+- `body` (encrypted payload string)
+- `is_private` (bool)
+- `pin_salt` (nullable; required for private-note decryption key derivation)
+- `is_deleted` (bool)
+- `created_at`
+- `updated_at`
+- `deleted_at` (nullable)
 
-- **Format**: JSON files for individual notes
-- **Location**: User-specific directory (`~/.astranote/notes/`)
-- **Naming**: Files named by note ID (e.g., `note-uuid.json`)
-- **Index**: Simple JSON index file (`index.json`) mapping IDs to file paths and basic metadata
+Constraint behavior:
 
-### Directory Structure
+- Unique title constraint for active/deleted state: `(title, is_deleted)`.
+- Write serialization lock in repository for duplicate-title-safe create/update under concurrent local requests.
 
-```
-~/.astranote/
-├── notes/
-│   ├── note-uuid1.json
-│   ├── note-uuid2.json
-│   └── ...
-└── index.json
-```
+## Encryption-at-Rest Design
 
-### Operations
+- `CryptoService` encrypts `title` and `body` before persistence.
+- Public note fields are encrypted with a master-derived key.
+- Private note fields are encrypted with a PIN-derived key per-note salt.
+- PBKDF2-HMAC-SHA256 is used with 260,000 iterations.
+- Encryption format is encoded as versioned payload text (`enc:v1:...`).
+- Legacy plaintext read fallback exists only to avoid data loss on pre-encryption local stores.
 
-- **Save Note**: Write note JSON to file, update index
-- **Load Note**: Read JSON from file using ID
-- **List Notes**: Parse index for all notes
-- **Search Notes**: Basic text search through titles and content
-- **Delete Note**: Remove file and update index
+## Lifecycle and Retention Behavior
 
-## Cross-Platform Considerations
+- Delete is soft delete (`is_deleted=true`, `deleted_at` set).
+- Trash view operates on soft-deleted rows.
+- Retention window is 15 days.
+- Expired soft-deleted rows are purged by service-level purge calls during list/search flows.
 
-- Use `pathlib` for path handling
-- Store data in user home directory (`Path.home()`)
-- Ensure UTF-8 encoding for text
-- Handle file system permissions gracefully
+## Startup and Integrity Guardrails
 
-## Future Extensions
+- `AppStartup` verifies data directory existence/writability.
+- Startup verifies SQLite store readability/structural validity.
+- On startup verification failure, app fails fast with a clear error instead of launching partially.
 
-- **Database Backend**: Migrate to SQLite for better query performance
-- **Cloud Sync**: Add sync adapters for remote storage
-- **Encryption**: Implement optional note encryption
-- **Attachments**: Support file attachments with notes
-- **Vector Search**: Add AI-powered semantic search
+## Scope Notes
 
-## Implementation Notes
+Not part of current MVP storage design:
 
-- Keep storage layer abstracted behind a simple interface
-- Use environment variables for custom storage paths
-- Include basic error handling for file operations
-- Version the storage format for future migrations
+- Multi-user owner scoping columns and account/session tables.
+- External DB migration tooling requirement (schema is currently bootstrapped by repository initialization and compatibility column checks).
+- Cloud sync or remote storage adapters.

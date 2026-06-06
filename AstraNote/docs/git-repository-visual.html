@@ -6,13 +6,13 @@
   <title>AstraNote Git Repository Visual</title>
   <style>
     :root {
-      --bg: #f4f1ec;
-      --panel: #ffffff;
-      --text: #1d2a36;
-      --muted: #5e6d7b;
-      --line: #e2d9d2;
-      --accent: #25608f;
-      --accent-2: #d97745;
+      --bg: #f5efe2;
+      --panel: #fffdf6;
+      --text: #20353a;
+      --muted: #5f6f67;
+      --line: #e3dac1;
+      --accent: #117f7a;
+      --accent-2: #d7ae31;
       --ok: #2f7d5b;
       --warn: #b7791f;
       --danger: #b04f49;
@@ -24,8 +24,8 @@
     body {
       margin: 0;
       background:
-        radial-gradient(circle at 90% 10%, rgba(217, 119, 69, 0.16), transparent 28%),
-        radial-gradient(circle at 15% 0%, rgba(37, 96, 143, 0.12), transparent 28%),
+        radial-gradient(circle at 90% 10%, rgba(215, 174, 49, 0.18), transparent 28%),
+        radial-gradient(circle at 15% 0%, rgba(17, 127, 122, 0.12), transparent 28%),
         var(--bg);
       color: var(--text);
       font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
@@ -38,11 +38,19 @@
     }
 
     .hero {
-      background: linear-gradient(120deg, #20486c, #2b6596 55%, #cf784f);
+      background:
+        radial-gradient(circle at 82% 18%, rgba(255, 237, 165, 0.22), transparent 18%),
+        linear-gradient(120deg, #0f7f7a, #18a39c 55%, #e2b739);
       color: #f5f8fb;
       border-radius: 20px;
       padding: 24px;
       box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) auto;
+      gap: 16px;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
     }
 
     .hero h1 {
@@ -89,10 +97,28 @@
 
     .card .head {
       padding: 12px 14px;
-      background: #fbf8f4;
+      background: #f8f7e7;
       border-bottom: 1px solid var(--line);
       font-weight: 700;
       color: #304456;
+    }
+
+    .hero-mark {
+      width: 120px;
+      height: 120px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .hero-mark img {
+      width: 88px;
+      height: 88px;
+      object-fit: contain;
     }
 
     .card .body {
@@ -186,6 +212,12 @@
       margin: 0;
     }
 
+    @media (max-width: 840px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 980px) {
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .sections { grid-template-columns: 1fr; }
@@ -199,12 +231,17 @@
 <body>
   <main class="page">
     <section class="hero">
-      <h1>Git Repository Visual</h1>
-      <p>Snapshot view of your repository state, branch, commit history, changed files, and directory tree.</p>
-      <div class="meta">
-        <div class="pill">Repo Root: /Users/smora/Library/Mobile Documents/com~apple~CloudDocs/Python Projects/CSEN296B - AI software Development</div>
-        <div class="pill">Current Folder: AstraNote</div>
-        <div class="pill">Generated: 2026-05-18</div>
+      <div>
+        <h1>Git Repository Visual</h1>
+        <p>Snapshot view of your repository state, branch, commit history, changed files, and directory tree.</p>
+        <div class="meta">
+          <div class="pill">Repo Root: /Users/smora/Library/Mobile Documents/com~apple~CloudDocs/Python Projects/CSEN296B - AI software Development</div>
+          <div class="pill">Current Folder: AstraNote</div>
+          <div class="pill">Generated: 2026-05-18</div>
+        </div>
+      </div>
+      <div class="hero-mark" aria-hidden="true">
+        <img src="../src/app/static/giraffe_logo.jpg" alt="AstraNotes giraffe logo" />
       </div>
     </section>
 
@@ -346,9 +383,7 @@ tests/feature/features
 tests/feature/steps
 planning
 planning/requirements.md
-planning/lucidchart_requirements_export.txt
 planning/customer-acceptance-document.md
-planning/lucidchart_class_diagram_context.txt
 planning/sprint-one-plan.md
 planning/release-gates.md
 planning/traceability-matrix.md

@@ -1,70 +1,56 @@
-# AstraNote Storage Options Decision Map
+# AstraNote Storage Decision Map
 
-This document visualizes storage options for AstraNote, with pros/cons and architecture considerations.
+This document captures why AstraNote selected its current MVP storage implementation and what options remain for Post-MVP evolution.
 
-## 📊 Option landscape
+## Current Decision Snapshot
+
+- Current MVP choice: SQLite via `SqlNoteRepository`.
+- Runtime shape: single-user local web app on localhost.
+- Security requirement: encrypted note title/body at rest with private-note PIN flows.
+- Supporting artifacts: `astranote.db`, `audit-log.jsonl`, `astranote.log`, and `config.json` in the runtime data directory.
+
+## Option Landscape and Evolution Path
 
 ```mermaid
 flowchart TD
-    A[JSON files (MVP)] -->|low complexity|B[SQLite]
-    A -->|fast iteration|C[Key-Value Store]
-    A -->|simple mapping|D[Hybrid JSON+Index]
-    B -->|ORM abstraction|E[ORM (SQLAlchemy)]
-    B -->|fast queries|F[Vector Store]
-    B -->|sync support|G[Cloud/Remote DB]
-    B -->|mobile-specific|H[Native (Realm/CoreData)]
+    A[Historical Option: File JSON]
+    B[Current MVP Choice: SQLite + SQLAlchemy]
+    C[Post-MVP: Hosted SQL with auth/session]
+    D[Post-MVP: Cloud sync and multi-device]
+    E[Post-MVP: Specialized search stores]
 
-    subgraph Primary Options
-      A
-      B
-      C
-      D
-      E
-      F
-      G
-      H
-    end
+    A -->|superseded for MVP baseline| B
+    B -->|if multi-user scope is activated| C
+    C -->|if sync/collaboration is needed| D
+    B -->|optional enhancement| E
 
-    classDef good fill:#90EE90,stroke:#008000,stroke-width:2px;
-    classDef warn fill:#FFD700,stroke:#DAA520,stroke-width:2px;
-    classDef bad fill:#FFB6C1,stroke:#C71585,stroke-width:2px;
+    classDef selected fill:#90EE90,stroke:#2e7d32,stroke-width:2px;
+    classDef historical fill:#ffe0b2,stroke:#ef6c00,stroke-width:2px;
+    classDef future fill:#bbdefb,stroke:#1565c0,stroke-width:2px;
 
-    class A good
-    class B good
-    class C warn
-    class D warn
-    class E good
-    class F warn
-    class G good
-    class H warn
+    class B selected
+    class A historical
+    class C,D,E future
 ```
 
-## ✅ Criteria summary
+## Decision Criteria Summary
 
-| Option | Storage interface | Persistency | Error handling | Privacy | Testability | Extensibility | Scalability / Concurrency |
-|---|---|---|---|---|---|---|---|
-| JSON files | simple CRUD + scan | cheap, file-based | manual recovery, atomic write required | local only, encryption needed | easy with temp dirs | backend swap possible | weak at high count/concurrency |
-| SQLite | SQL/ORM-based | ACID | built-in, handle locks | local, encrypt at rest | in-memory DB tests | migrations, extensions | strong for local, moderate for concurrent writes |
-| ORM | high-level models | DB-enabled | exception mapping | same as DB | good via fixtures | engine-agnostic | good for scale with right engine |
-| Key-Value | key CRUD | fast key writes | engine-specific | can encrypt | simple | good for limited query | good for high throughput |
-| Hybrid | file+index API | JSON+DB | consistency in two stores | moderate with E2E | moderate | incremental migration | moderate |
-| Vector | sem search API | separate vector DB | service errors | semantic privacy concerns | can be mocked | augment only | scalable search |
-| Cloud | network API | remote ACID | network/failover | strong with security | integration tests | multi-tenant | excellent concurrency |
-| Native | platform API | native store | platform errors | good in app sandbox | hard cross-platform | platform specific | great for mobile |
+| Option | Status | Strengths | Risks / Limits |
+|---|---|---|---|
+| File JSON | Historical (not active MVP backend) | very simple local bootstrap | weak query/concurrency ergonomics, harder long-term evolution |
+| SQLite + SQLAlchemy | Selected for MVP | ACID persistence, straightforward local operations, testable repository boundary | single-node/local assumptions, migration governance still lightweight in MVP |
+| Hosted SQL (Post-MVP) | Deferred | stronger multi-user readiness and deployment flexibility | requires auth/session hardening and deployment/security work |
+| Cloud sync layers (Post-MVP) | Deferred | enables multi-device experience | higher complexity in conflict resolution and operational cost |
+| Specialized search stores (Post-MVP) | Deferred | richer search capabilities | additional infra and data consistency concerns |
 
-## 📌 Implementation considerations
+## Why SQLite Was Chosen for MVP
 
-- Start with a `StorageBackend` interface in code and keep it small
-- Define storage behavior fresh: `save_note`, `get_note`, `delete_note`, `list_notes`, `search_notes`
-- Provide migration utility (JSON → SQLite/Cloud) later
-- Add locks/atomic file operations to guard JSON path
-- Keep backups for privacy and recovery
+1. Aligns with local localhost delivery and single-user scope.
+2. Supports current encryption-at-rest model without introducing remote dependency complexity.
+3. Works cleanly with service/repository boundaries already implemented.
+4. Keeps startup, test, and grading workflows reliable for course delivery.
 
----
+## Reader Guidance
 
-## 🧭 Recommendation for AstraNote
-
-1. Begin with JSON for MVP, with strict atomic-write semantics
-2. Add a SQLite backend in parallel, with consistent interface
-3. Add optional vector store for semantic search
-4. Add cloud sync once multi-user and device sync required
+- Read `storage_design.md` for implementation truth (what exists now).
+- Read this decision map for tradeoffs, rationale, and future direction.
