@@ -44,12 +44,17 @@ class UnlockSessionManager:
         now = datetime.now(timezone.utc)
         state = self._states.setdefault(
             note_id,
-            _UnlockState(failed_attempts=0, lockout_level=0, lockout_until=None, unlocked_until=None),
+            _UnlockState(
+                failed_attempts=0, lockout_level=0, lockout_until=None, unlocked_until=None
+            ),
         )
 
         if state.lockout_until is not None and state.lockout_until > now:
             remaining = int((state.lockout_until - now).total_seconds())
-            return False, f"Enter correct pin to unlock private note. Try again in {max(1, remaining)}s."
+            return (
+                False,
+                f"Enter correct pin to unlock private note. Try again in {max(1, remaining)}s.",
+            )
 
         try:
             is_valid_pin = self._crypto_service.verify_pin(pin)
@@ -73,7 +78,9 @@ class UnlockSessionManager:
     def lock(self, note_id: str) -> None:
         state = self._states.setdefault(
             note_id,
-            _UnlockState(failed_attempts=0, lockout_level=0, lockout_until=None, unlocked_until=None),
+            _UnlockState(
+                failed_attempts=0, lockout_level=0, lockout_until=None, unlocked_until=None
+            ),
         )
         state.unlocked_until = None
 

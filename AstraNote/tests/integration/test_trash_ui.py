@@ -15,7 +15,9 @@ from src.main import app
 @pytest.mark.integration
 def test_deleted_note_appears_in_trash_and_can_be_restored(client) -> None:
     title = f"Trash Restore {uuid4()}"
-    created = client.post("/ui/notes", data={"title": title, "body": "restore me", "is_private": "false"})
+    created = client.post(
+        "/ui/notes", data={"title": title, "body": "restore me", "is_private": "false"}
+    )
     assert created.status_code == 201
 
     match = re.search(r'id="note-([a-zA-Z0-9-]+)"', created.text)
@@ -41,7 +43,9 @@ def test_deleted_note_appears_in_trash_and_can_be_restored(client) -> None:
 @pytest.mark.integration
 def test_notes_older_than_15_days_in_trash_are_auto_purged(client) -> None:
     title = f"Trash Purge {uuid4()}"
-    created = client.post("/ui/notes", data={"title": title, "body": "purge me", "is_private": "false"})
+    created = client.post(
+        "/ui/notes", data={"title": title, "body": "purge me", "is_private": "false"}
+    )
     assert created.status_code == 201
 
     match = re.search(r'id="note-([a-zA-Z0-9-]+)"', created.text)
@@ -71,7 +75,9 @@ def test_bulk_delete_forever_removes_selected_trashed_notes(client) -> None:
     note_ids: list[str] = []
 
     for title in titles:
-        created = client.post("/ui/notes", data={"title": title, "body": "bulk purge", "is_private": "false"})
+        created = client.post(
+            "/ui/notes", data={"title": title, "body": "bulk purge", "is_private": "false"}
+        )
         assert created.status_code == 201
         match = re.search(r'id="note-([a-zA-Z0-9-]+)"', created.text)
         assert match is not None
@@ -161,7 +167,9 @@ def test_trash_viewer_renders_checklist_and_inline_formatting_as_html(client) ->
 @pytest.mark.integration
 def test_create_note_from_trash_context_is_visible_in_active_view(client) -> None:
     existing_title = f"Trash Seed {uuid4()}"
-    seed_created = client.post("/ui/notes", data={"title": existing_title, "body": "seed", "is_private": "false"})
+    seed_created = client.post(
+        "/ui/notes", data={"title": existing_title, "body": "seed", "is_private": "false"}
+    )
     assert seed_created.status_code == 201
 
     seed_match = re.search(r'id="note-([a-zA-Z0-9-]+)"', seed_created.text)

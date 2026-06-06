@@ -1,55 +1,60 @@
-# Executive One-Pager — AstraNotes
+# Executive One-Pager - AstraNotes
 
 ## Executive Summary
 
-AstraNotes is a web-based multi-user note-taking system being built for a graduate software engineering course to demonstrate disciplined end-to-end product engineering: requirements definition, architecture, planning, traceability, testing, and controlled delivery. The product combines practical note management workflows with security-sensitive private-note handling, making it a strong vehicle for showing both user-facing value and engineering rigor.
+AstraNotes is a local, single-user note-taking MVP built for a graduate software engineering course. The project demonstrates disciplined end-to-end delivery: requirements, architecture, planning, implementation, traceability, testing, and release control. The finished baseline is intentionally narrow so the quality of the product and the quality of the documentation can both be reviewed clearly.
 
-## Market Opportunity and Problem
+## Problem and Opportunity
 
-Many note tools optimize either for convenience or for heavy enterprise collaboration. AstraNotes targets a smaller but meaningful middle ground for course scope: a lightweight note system with modern web interaction, structured authoring, and privacy-aware handling of sensitive notes. The project matters because it models a realistic product problem where usability, performance, data protection, and maintainability must all be balanced within a constrained delivery window.
+Many note tools are either too simple to be interesting or too broad to complete well in a course setting. AstraNotes occupies the useful middle ground: a focused browser app with Markdown-style editing, recoverable deletion, private-note protection, and strong documentation discipline. That makes it a good demonstration of how to build something small without making it shallow.
+
+AstraNotes also stands out by supporting both English and Spanish UI text. That gives the product a more inclusive feel and makes the browser experience more approachable for speakers of either language, which is a nice differentiator. 
 
 ## Product Positioning
 
-- Web-based, multi-user, browser-accessible product
-- Focused MVP rather than feature sprawl
-- Engineering-first implementation with strong traceability and release controls
-- Security-aware note handling through encrypted private-note content, session controls, and auditability
+- Local browser-first MVP
+- Single-user rather than multi-user
+- Security-aware note handling with encrypted private content
+- Strong traceability across requirements, planning, and release gates
+- Review-friendly documentation and HTML artifacts
 
 ## MVP Scope
 
-### Included in MVP
-- Authenticated multi-user access
-- Create, edit, delete, list, and search notes
-- Markdown-oriented text authoring, lists, and formatting
-- Private-note workflow with encrypted-at-rest content
-- Soft delete and restore
-- Audit logging, diagnostic logging, and structured errors
-- Web multi-user API boundary and shared deployment readiness
+### Included in the MVP
 
-### Explicitly Out of Scope for MVP
-- Native mobile apps
-- Rich real-time collaboration
-- Device sync across platforms
+- Create, edit, delete, restore, list, and search notes
+- Markdown-compatible text formatting, bullet lists, and checklists
+- Private-note unlock with a 4-digit PIN
+- Soft delete with Trash review and retention
+- Audit and diagnostic logging
+- English/Spanish UI text toggle
+- Local 127.0.0.1 browser delivery
+
+### Explicitly Out of Scope for the MVP
+
+- Multi-user accounts and shared note ownership
+- Device sync and real-time collaboration
+- Native mobile packaging
 - Per-note key isolation
-- Post-MVP mobile accessibility hardening items already tagged in requirements
+- Image paste and other richer media workflows
 
-## Why AstraNotes Matters
+## Why It Matters
 
-The project matters academically because it demonstrates more than coding. It shows that the team can define requirements, make architecture decisions deliberately, lock implementation assumptions before scaffolding, map backlog to delivery phases, enforce quality gates, and prepare stakeholder acceptance artifacts. It is a compact but credible representation of graduate-level software engineering practice.
+The project matters because it shows more than code completion. It shows scope control, technical decision making, testability, release gating, and clear presentation of evidence. For a course review, that is the difference between a feature demo and a complete engineering artifact.
 
 ## Delivery Strategy
 
 - Backend: FastAPI
 - Frontend: Jinja2 + HTMX
-- Persistence: SQLite now, PostgreSQL-ready migration discipline
-- Auth/session: server-side sessions with secure HttpOnly cookies and CSRF protection on write endpoints
+- Persistence: SQLite for the delivered baseline
+- Security: encrypted private-note content and PIN-based unlock controls
 
 ## Success Criteria
 
-The AstraNotes MVP is successful when:
+The MVP is successful when:
 
-- the approved 91-item requirement baseline is internally consistent across planning artifacts,
-- BL-01 through BL-13, BL-21, and BL-22 are implemented or demonstrably ready per plan,
-- all release gates are satisfied,
-- customer acceptance sign-off is complete, and
-- a shared reviewable deployment exists for instructor evaluation.
+- the local note workflows work end to end,
+- the requirements and planning artifacts agree with the implemented baseline,
+- the release gates are green for the MVP slice,
+- the HTML review pages present the same story as the Markdown sources, and
+- the reviewer can understand the product in one pass without guessing scope.

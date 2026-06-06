@@ -11,7 +11,11 @@ from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, Response
 from cryptography.exceptions import InvalidTag
 
-from src.app.api.error_mapping import log_note_exception, map_note_error_message, map_note_error_status
+from src.app.api.error_mapping import (
+    log_note_exception,
+    map_note_error_message,
+    map_note_error_status,
+)
 from src.app.dependencies import (
     get_private_note_service,
     get_note_service,
@@ -20,7 +24,6 @@ from src.app.dependencies import (
 from src.app.presentation import render_note_body_html
 from src.app.presentation.localization import get_ui_strings, resolve_ui_language
 from src.app.services import NoteService, PinChangeResult, PrivateNoteService
-
 
 router = APIRouter(tags=["notes-ui"])
 
@@ -93,7 +96,9 @@ def _build_note_groups(notes):
         "today_notes": today_notes,
         "recent_notes": recent_notes,
         "last_month_notes": last_month_notes,
-        "last_month_label": datetime(last_month_year, last_month, 1, tzinfo=timezone.utc).strftime("%B %Y"),
+        "last_month_label": datetime(last_month_year, last_month, 1, tzinfo=timezone.utc).strftime(
+            "%B %Y"
+        ),
         "this_year_label": str(now.year),
         "this_year_notes": this_year_notes,
     }
@@ -416,7 +421,9 @@ def get_trashed_note_viewer_panel(
             "note": note,
             "created_display": _format_created_pacific(note.created_at),
             "modified_display": _format_modified_pacific(note.updated_at),
-            "deleted_display": _format_modified_pacific(note.deleted_at) if note.deleted_at else "Recently",
+            "deleted_display": (
+                _format_modified_pacific(note.deleted_at) if note.deleted_at else "Recently"
+            ),
             "rendered_body_html": render_note_body_html(note.body or ""),
             **_ui_context(request),
         },
@@ -446,11 +453,15 @@ def update_note_editor_panel(
         )
 
     if existing_note.is_private and not private_note_service.is_unlocked(existing_note.note_id):
-        return _render_unlock_panel(request, existing_note, _ui_context(request)["i18n"]["unlock_wrong_pin"])
+        return _render_unlock_panel(
+            request, existing_note, _ui_context(request)["i18n"]["unlock_wrong_pin"]
+        )
 
     resolved_body = "" if body is None else body
     try:
-        note = note_service.update(note_id=note_id, title=title, body=resolved_body, is_private=is_private)
+        note = note_service.update(
+            note_id=note_id, title=title, body=resolved_body, is_private=is_private
+        )
     except Exception as exc:
         log_note_exception(exc, surface="ui", operation="update", note_id=note_id)
         current_note = note_service.get_note(note_id)
@@ -517,10 +528,14 @@ def toggle_checklist_item_htmx(
             status_code=404,
         )
     if existing_note.is_private and not private_note_service.is_unlocked(existing_note.note_id):
-        return _render_unlock_panel(request, existing_note, _ui_context(request)["i18n"]["unlock_wrong_pin"])
+        return _render_unlock_panel(
+            request, existing_note, _ui_context(request)["i18n"]["unlock_wrong_pin"]
+        )
 
     try:
-        note = note_service.toggle_checklist_item(note_id=note_id, line_index=line_index, checked=checked)
+        note = note_service.toggle_checklist_item(
+            note_id=note_id, line_index=line_index, checked=checked
+        )
     except Exception as exc:
         log_note_exception(exc, surface="ui", operation="toggle_checklist", note_id=note_id)
         return templates.TemplateResponse(
@@ -574,13 +589,17 @@ def unlock_private_note_htmx(
 
     if not note.is_private:
         if view == "trash":
-            return get_trashed_note_viewer_panel(request, note_id, note_service, private_note_service)
+            return get_trashed_note_viewer_panel(
+                request, note_id, note_service, private_note_service
+            )
         return get_note_editor_panel(request, note_id, note_service, private_note_service)
 
     unlocked, _error_message = private_note_service.attempt_unlock(note_id, pin)
     if not unlocked:
         unlock_post_url = f"/ui/notes/{note.note_id}/unlock?view=trash" if view == "trash" else None
-        return _render_unlock_panel(request, note, _ui_context(request)["i18n"]["unlock_wrong_pin"], unlock_post_url)
+        return _render_unlock_panel(
+            request, note, _ui_context(request)["i18n"]["unlock_wrong_pin"], unlock_post_url
+        )
 
     if view == "trash":
         return get_trashed_note_viewer_panel(request, note_id, note_service, private_note_service)
@@ -603,10 +622,15 @@ def verify_private_pin_settings_current_pin(
     lang_ctx = _ui_context(request)
     verification_result = private_note_service.verify_current_pin(current_pin)
     if verification_result.code == "current_pin_format":
-        return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} must be exactly 4 digits.")
+        return _render_pin_settings_panel(
+            request,
+            error_message=f"{lang_ctx['i18n']['current_pin_label']} must be exactly 4 digits.",
+        )
 
     if verification_result.code == "current_pin_incorrect":
-        return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} is incorrect.")
+        return _render_pin_settings_panel(
+            request, error_message=f"{lang_ctx['i18n']['current_pin_label']} is incorrect."
+        )
 
     return _render_pin_settings_panel(
         request,
@@ -633,10 +657,14 @@ def update_private_pin_settings(
 
     recovery_message = ""
     if change_result.recovered_count > 0:
-        recovery_message = f"Recovered {change_result.recovered_count} private notes from a previous PIN. "
+        recovery_message = (
+            f"Recovered {change_result.recovered_count} private notes from a previous PIN. "
+        )
 
     if change_result.code == "current_pin_incorrect":
-        return _render_pin_settings_panel(request, error_message=f"{lang_ctx['i18n']['current_pin_label']} is incorrect.")
+        return _render_pin_settings_panel(
+            request, error_message=f"{lang_ctx['i18n']['current_pin_label']} is incorrect."
+        )
 
     if change_result.code == "new_pin_format":
         return _render_pin_settings_panel(
@@ -660,16 +688,23 @@ def update_private_pin_settings(
         )
 
     if change_result.code == "pin_unchanged":
+        different_pin_message = (
+            f"{lang_ctx['i18n']['new_pin_label']} must be different from "
+            f"{lang_ctx['i18n']['current_pin_label']}."
+        )
         return _render_pin_settings_panel(
             request,
-            error_message=f"{lang_ctx['i18n']['new_pin_label']} must be different from {lang_ctx['i18n']['current_pin_label']}.",
+            error_message=different_pin_message,
             verified_current_pin=change_result.verified_current_pin,
         )
 
     if change_result.code == "update_failed":
+        update_failed_message = (
+            f"Unable to update {lang_ctx['i18n']['change_private_pin'].lower()} right now."
+        )
         return _render_pin_settings_panel(
             request,
-            error_message=f"Unable to update {lang_ctx['i18n']['change_private_pin'].lower()} right now.",
+            error_message=update_failed_message,
             verified_current_pin=change_result.verified_current_pin,
         )
 

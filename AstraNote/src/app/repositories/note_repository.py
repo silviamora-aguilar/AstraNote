@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import List
 
 from src.app.models.note import Note
 
@@ -51,12 +52,28 @@ class NoteRepository(ABC):
         """Get a note by id if it exists."""
 
     @abstractmethod
-    def list(self) -> list[Note]:
+    def list(self) -> List[Note]:
         """List active notes."""
 
     @abstractmethod
-    def search(self, query: str) -> list[Note]:
+    def search(self, query: str) -> List[Note]:
         """Search notes by query."""
+
+    def list_deleted(self) -> List[Note]:
+        """List soft-deleted notes when supported by the implementation."""
+        return []
+
+    def hard_delete(self, note_id: str) -> bool:
+        """Permanently delete a note when supported by the implementation."""
+        return False
+
+    def purge_soft_deleted_older_than(self, retention_days: int) -> int:
+        """Purge expired deleted notes when supported by the implementation."""
+        return 0
+
+    def rotate_private_pin(self, old_pin: str, new_pin: str) -> int:
+        """Re-encrypt private-note data after an app PIN change when supported."""
+        return 0
 
     @abstractmethod
     def soft_delete(self, note_id: str) -> bool:

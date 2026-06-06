@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
 from src.app.models.note import Note
@@ -18,7 +19,30 @@ MAX_TITLE_LENGTH = 255
 MAX_BODY_LENGTH = 10_000
 TRASH_RETENTION_DAYS = 15
 CAPACITY_ERROR_MESSAGE = "Note limit reached (10,000). Delete notes to create a new one."
-ALLOWED_TITLE_PUNCTUATION = {" ", ".", ",", "-", "'", '"', "@", "#", "&", ":", ";", "!", "?", "(", ")", "[", "]", "/", "+", "_", "¿", "¡"}
+ALLOWED_TITLE_PUNCTUATION = {
+    " ",
+    ".",
+    ",",
+    "-",
+    "'",
+    '"',
+    "@",
+    "#",
+    "&",
+    ":",
+    ";",
+    "!",
+    "?",
+    "(",
+    ")",
+    "[",
+    "]",
+    "/",
+    "+",
+    "_",
+    "¿",
+    "¡",
+}
 CHECKLIST_LINE_RE = re.compile(r"^(\s*[-*+]\s+\[)( |x|X)(\]\s.*)$")
 UNICODE_CHECKLIST_LINE_RE = re.compile(r"^(\s*)(☐|☑)\s+(.*)$")
 
@@ -55,12 +79,19 @@ class NoteNotFoundError(ValueError):
 class NoteService:
     """Business rules for note operations."""
 
-    def __init__(self, repository: NoteRepository, audit_logger: _AuditSink | None = None, max_notes: int = MAX_NOTES) -> None:
+    def __init__(
+        self,
+        repository: NoteRepository,
+        audit_logger: _AuditSink | None = None,
+        max_notes: int = MAX_NOTES,
+    ) -> None:
         self.repository = repository
         self._audit_logger = audit_logger
         self._max_notes = max_notes
 
-    def _audit(self, action: str, note_id: str, outcome: str, error_code: str | None = None) -> None:
+    def _audit(
+        self, action: str, note_id: str, outcome: str, error_code: str | None = None
+    ) -> None:
         if self._audit_logger is None:
             return
         try:
@@ -181,7 +212,8 @@ class NoteService:
         if not normalized_query:
             return deleted_notes
         return [
-            note for note in deleted_notes
+            note
+            for note in deleted_notes
             if normalized_query in note.title.lower() or normalized_query in note.body.lower()
         ]
 
@@ -190,6 +222,12 @@ class NoteService:
         if not hasattr(self.repository, "restore"):
             self._audit("restore", note_id, "failure", "SAVE_ERROR")
             raise NotePersistenceError("Restore is not supported")
+
+        note = self.repository.get(note_id)
+        if note is None or not note.is_deleted or self._restore_window_expired(note.deleted_at):
+            self._audit("restore", note_id, "failure", "NOT_FOUND")
+            raise NoteNotFoundError("Note not found in trash")
+
         try:
             restored = self.repository.restore(note_id)
         except NoteRepositoryError as exc:
@@ -208,6 +246,9 @@ class NoteService:
 
         restored_count = 0
         for note_id in unique_note_ids:
+            note = self.repository.get(note_id)
+            if note is None or not note.is_deleted or self._restore_window_expired(note.deleted_at):
+                continue
             try:
                 if self.repository.restore(note_id):
                     restored_count += 1
@@ -297,7 +338,9 @@ class NoteService:
             lines[target_line_idx] = f"{line_match.group(1)}{replacement_mark}{line_match.group(3)}"
         elif unicode_match is not None:
             replacement_mark = "☑" if checked else "☐"
-            lines[target_line_idx] = f"{unicode_match.group(1)}{replacement_mark} {unicode_match.group(3)}"
+            lines[target_line_idx] = (
+                f"{unicode_match.group(1)}{replacement_mark} {unicode_match.group(3)}"
+            )
         else:
             raise NoteValidationError("Checklist item format is invalid")
         updated_body = "\n".join(lines)
@@ -323,8 +366,9 @@ class NoteService:
                 raise NoteValidationError("Title cannot contain newlines")
             if char.isalnum() or char in ALLOWED_TITLE_PUNCTUATION:
                 continue
+            allowed_punctuation = ". , - ' \" @ # & : ; ! ? ( ) [ ] / + _ ¿ ¡"
             raise NoteValidationError(
-                "Title contains unsupported symbols. Allowed punctuation: . , - ' \" @ # & : ; ! ? ( ) [ ] / + _ ¿ ¡"
+                "Title contains unsupported symbols. Allowed punctuation: " f"{allowed_punctuation}"
             )
 
         return trimmed_title
@@ -344,3 +388,12 @@ class NoteService:
             # Purge is best-effort and should not block core note operations.
             return
 
+    def _restore_window_expired(self, deleted_at: datetime | None) -> bool:
+        if deleted_at is None:
+            return False
+
+        if deleted_at.tzinfo is None:
+            deleted_at = deleted_at.replace(tzinfo=timezone.utc)
+
+        cutoff = datetime.now(timezone.utc) - timedelta(days=TRASH_RETENTION_DAYS)
+        return deleted_at < cutoff

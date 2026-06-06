@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import os
 from dataclasses import dataclass
+from typing import cast
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -43,8 +44,12 @@ class CryptoService:
     """Performs AES-GCM encryption for note title/body fields."""
 
     def __init__(self, master_secret: str | None = None, private_pin: str | None = None) -> None:
-        self._master_secret = master_secret or os.getenv("ASTRANOTE_MASTER_SECRET", "astranote-dev-master-secret")
-        self._private_pin = private_pin or os.getenv("ASTRANOTE_PRIVATE_PIN", "1234")
+        resolved_master_secret = master_secret or os.getenv(
+            "ASTRANOTE_MASTER_SECRET", "astranote-dev-master-secret"
+        )
+        resolved_private_pin = private_pin or os.getenv("ASTRANOTE_PRIVATE_PIN", "1234")
+        self._master_secret = cast(str, resolved_master_secret)
+        self._private_pin = cast(str, resolved_private_pin)
         self._master_key = self._derive_master_key()
         self._pin_key_cache: dict[tuple[str, str], bytes] = {}
 

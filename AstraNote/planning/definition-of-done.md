@@ -4,6 +4,16 @@
 
 This document defines the evidence and gates that each story and backlog item must satisfy before it can be considered done.
 
+## Current MVP Compliance Snapshot (2026-06-05)
+
+| Area | Current Status | Notes |
+|---|---|---|
+| Story-level DoD compliance | 🟢 | In-scope MVP stories meet acceptance + test + traceability expectations. |
+| Backlog-item completion criteria | 🟢 | Completed MVP backlog slices satisfy their defined exit criteria. |
+| Evidence completeness | 🟢 | Test evidence, traceability updates, and implementation artifacts are present for active MVP scope. |
+| Security/error-safety expectations | 🟢 | User-safe error handling and security verification evidence are captured for in-scope SRG/SMR items. |
+| Deferred Post-MVP scope handling | 🟢 | Deferred items remain explicitly documented in requirements, release gates, and traceability artifacts. |
+
 ## 1. Story-Level Definition of Done
 
 A user story is done only when all of the following are true:
@@ -46,7 +56,7 @@ The following must be true before marking any item done:
 
 - no unhandled exception on expected or invalid user paths,
 - no plaintext note content in logs or audit output,
-- owner scoping enforced for protected note actions,
+- owner scoping enforced for protected note actions when WEB-01–WEB-11 are in active scope,
 - transaction safety or rollback behavior preserved for writes,
 - architecture boundaries remain intact.
 
@@ -69,12 +79,12 @@ The following must be true before marking any item done:
 
 ## 6. Minimum Done Checklist
 
-- [ ] Acceptance criteria complete
-- [ ] Unit/integration/security tests updated and passing as applicable
-- [ ] No regression introduced
-- [ ] Requirement IDs referenced
-- [ ] Traceability updated if status changed
-- [ ] No P0/P1 defects introduced
+- Acceptance criteria complete
+- Unit/integration/security tests updated and passing as applicable
+- No regression introduced
+- Requirement IDs referenced
+- Traceability updated if status changed
+- No P0/P1 defects introduced
 
 ## 7. Relationship to Release Gates
 

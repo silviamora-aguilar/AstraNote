@@ -1,102 +1,63 @@
 # Architectural Decisions
 
-## GithubIssues + Project for management
+## Local-First Single-User Web MVP
 
-- **Decision**: Github Issues + Github Project. 
-- **Rationale**: Fast, easy, links to PR. Experience to be gained by using github.
-- **Trade-offs**: Not as friendly for non-tehcnical people to access 
-- **AI Prompt Influence**: Used AI to explore options and confirm github issues as starting point.
-- **Alternatives considered**:Jira tracking (too much overhead for 1 person)
+- **Decision**: The delivered baseline is a local, single-user browser app running on 127.0.0.1.
+- **Rationale**: This keeps the MVP small enough to complete cleanly while still delivering a real web experience for course review.
+- **Trade-offs**: Multi-user auth, sharing, and session management are intentionally deferred to Post-MVP.
+- **Alternatives considered**: Multi-user delivery for the MVP, which was broader than the completed baseline.
 
-TODO: Create Github Project and link issues.
+## FastAPI Backend Framework
 
-## JSON for MVP Storage
+- **Decision**: Use FastAPI as the backend framework.
+- **Rationale**: FastAPI keeps the route layer thin, provides validation, and fits the API + server-rendered UI split used by the project.
+- **Architecture impact**: Request handling stays at the route layer while business logic remains in services and repositories.
+- **Trade-offs**: More structure than a minimal Flask app, but clearer contracts and better maintainability.
+- **Alternatives considered**: Flask and Django.
 
-- **Decision**: Single `notes.json` file for all notes (not per-note files).
-- **Rationale**: A single file simplifies atomic write semantics (write to temp → rename replaces the file atomically), avoids index/data split consistency problems, and aligns with the deployment diagram artifact `/data/notes.json` and the SRG-25 plaintext allowlist design. Per-note files with a separate `index.json` (as explored in `storage_design.md`) were rejected for MVP because two-file atomicity is harder to implement correctly without a database.
-- **Storage shape**: `notes.json` is a JSON array of note objects. Only the SRG-25 allowlist fields (`note_id`, `created_at`, `updated_at`, `is_private`, `is_deleted`, `deleted_at`) are stored in plaintext; `title`, `body`, and `version_content` are always encrypted.
-- **Trade-offs**: Entire file must be read/written on every operation — acceptable for ≤5,000 notes (NFR-06). For higher scale, replace `JsonNoteRepository` with a SQLite backend without changing `NoteService` or UI code (NFR-16).
-- **AI Prompt Influence**: Used AI to explore options and confirm JSON as starting point.
-- **Alternatives considered**: SQLite, ORM, Key-value store, Hybrid JSON + index, per-note file + index (see `storage_decision_map.md`)
+## Jinja2 + HTMX Rendering Strategy
 
-## Persistence Backend
+- **Decision**: Use Jinja2 templates plus HTMX for dynamic behavior.
+- **Rationale**: This keeps the front end in Python and HTML, avoids a separate SPA build chain, and supports interactive workflows without heavy JavaScript.
+- **Architecture impact**: Server-rendered pages and partial updates share the same backend routes and view model.
+- **Trade-offs**: Less decoupled than a pure API + SPA architecture, but much easier to finish and review within course scope.
+- **Alternatives considered**: React SPA, vanilla JS, and a full Django template stack.
 
-- **Decision**: SQLite for development and course delivery; PostgreSQL-ready schema design from day one.
-- **Rationale**: SQLite requires zero installation and no separate server, eliminating infrastructure ramp-up time. Writing PostgreSQL-ready code (UUID keys, Alembic migrations, standard SQL column types via SQLAlchemy) means switching to PostgreSQL requires only a one-line connection string change — no model rewrites.
-- **Architecture impact**: `SqlNoteRepository` uses SQLAlchemy ORM with Alembic for schema migrations. No raw SQL strings. All queries scoped by `owner_user_id` for multi-user isolation.
-- **Trade-offs**: SQLite handles concurrent writes poorly at scale; acceptable for a course demo with a small number of users. PostgreSQL can be substituted before final demo if infrastructure signal matters for grading.
-- **Alternatives considered**: PostgreSQL (production-grade but requires server setup and management overhead for a first project), MySQL (similar overhead to PostgreSQL, no advantage here), MongoDB (incompatible with SQLAlchemy and harder to model owned relationships).
+## SQLite Persistence for the MVP Baseline
 
-## Course Pivot: Web-Based Multi-User Delivery
+- **Decision**: Use SQLite for local persistence in the delivered MVP.
+- **Rationale**: SQLite is easy to run, easy to reset, and sufficient for the single-user baseline.
+- **Architecture impact**: The repository layer owns atomic writes, soft delete state, and encrypted note payload storage.
+- **Trade-offs**: SQLite is not the final answer for scale, but it is the correct answer for the local baseline.
+- **Alternatives considered**: PostgreSQL and JSON-file storage.
 
-- **Decision**: Delivery target is now web-based multi-user architecture. Desktop-only assumptions are deprecated for scaffolding.
-- **Rationale**: Updated course constraints require browser-accessible workflows and concurrent users in a shared deployment.
-- **Architecture impact**: Keep three-tier boundaries, but swap desktop UI for Web UI + HTTP API boundary. All note operations must be authenticated and user-scoped.
-- **Storage impact**: Prefer a server-side transactional backend (`SqlNoteRepository`) for multi-user correctness. Existing JSON design remains useful for local prototyping and tests.
-- **Security impact**: Existing SRG requirements remain in force; add server-side authn/authz enforcement for every API request.
-- **Trade-offs**: Slightly higher initial complexity (auth, API contracts, deployment), but aligns implementation with grading rubric and future extensibility.
-- **Alternatives considered**: Keep desktop MVP and defer web migration (rejected due to rubric change).
+## Private-Note Encryption and PIN Handling
 
-## Backend Framework Selection
+- **Decision**: Private notes use a separate app-wide 4-digit PIN and encrypted-at-rest content.
+- **Rationale**: The PIN is simple enough for the user to remember while still being protected by a strong key-derivation step.
+- **Architecture impact**: The crypto layer derives the note key from the PIN and stores only the minimum allowed plaintext metadata.
+- **Trade-offs**: The user manages one additional secret, but the model keeps private-note handling understandable and testable.
+- **Alternatives considered**: Reusing the login password, or leaving private-note content unencrypted.
 
-- **Decision**: Use FastAPI as the backend framework for the web multi-user MVP.
-- **Rationale**: FastAPI provides built-in request/response validation, automatic OpenAPI docs for demo/review, and a clean API-first model that fits the three-tier architecture.
-- **Architecture impact**: API handlers will remain thin and delegate to service-layer use cases; storage/security logic stays behind interfaces.
-- **Trade-offs**: Slightly steeper learning curve than Flask and more initial structure, but better long-term maintainability and clearer contracts.
-- **Alternatives considered**: Flask (simpler but more manual wiring), Django (feature-rich but heavier than needed for this MVP).
+## Soft Delete and Trash Retention
 
-## Frontend Rendering Strategy
+- **Decision**: Deletion is soft-delete by default with a Trash view and 15-day retention.
+- **Rationale**: The project needs safe recovery from accidental deletion and a clear audit trail.
+- **Architecture impact**: Deleted notes retain minimal metadata and can be restored or purged through the service layer.
+- **Trade-offs**: More state to manage than hard delete, but better user safety and better reviewability.
+- **Alternatives considered**: Immediate hard delete.
 
-- **Decision**: Jinja2 server-side templates + HTMX for dynamic behavior.
-- **Rationale**: Keeps the entire codebase in Python/HTML with no separate JavaScript framework. HTMX adds live search, instant updates, and dynamic interactions via HTML attributes — no JavaScript written by the developer. Produces a modern-feeling UI without the React/Vue learning overhead.
-- **Architecture impact**: FastAPI serves both HTML pages (via Jinja2 `TemplateResponse`) and JSON endpoints. HTMX uses `hx-get`, `hx-post`, `hx-target` attributes to swap page fragments. No separate frontend build toolchain (no npm, no Node.js, no webpack).
-- **Trade-offs**: Less portable than a pure API + SPA architecture; adding a native mobile app later would require adding JSON API endpoints alongside the template routes. Acceptable for course scope.
-- **Alternatives considered**: React SPA (too high learning curve for a beginner in one quarter), vanilla JS sprinkles (viable but less expressive than HTMX for partial page updates), Django templates (would require switching backend framework).
+## English/Spanish Interface Toggle
 
-## Authentication and Session Strategy
+- **Decision**: The UI includes a translation toggle for interface text only.
+- **Rationale**: This satisfies the localization requirement without changing user-authored note content.
+- **Architecture impact**: Template keys and language state are handled at the presentation layer.
+- **Trade-offs**: Limited to the core UI vocabulary, but sufficient for the MVP.
+- **Alternatives considered**: Full content translation and browser language auto-detection.
 
-- **Decision**: Use server-side sessions with secure HttpOnly cookies.
-- **Rationale**: Lowest implementation risk for a first web project while satisfying course security requirements. Sessions are revocable immediately, inactivity timeout is enforced centrally, and no sensitive identity payload is exposed to browser JavaScript.
-- **Architecture impact**: Add `AuthService` and `SessionRepository` abstractions. The browser stores only a random session identifier cookie; authoritative session state lives server-side in the database and is checked on every authenticated request.
-- **Security controls**: Enable `HttpOnly`, `Secure`, and `SameSite` cookie settings; enforce CSRF tokens for all state-changing endpoints (`POST`, `PUT`, `PATCH`, `DELETE`); enforce server-side idle timeout (default 15 minutes) aligned with SRG-21.
-- **Trade-offs**: Requires server-side session storage and lookup per request. Horizontal scale requires shared session storage (acceptable for course scope).
-- **Alternatives considered**: JWT access tokens (more complex revocation/idle timeout behavior), OAuth-only third-party login (additional integration overhead).
+## Deferred Post-MVP Decisions
 
-## User Model
-
-- **Decision**: Implement a real persistent `User` model stored in the database. Minimal fields: `user_id`, `email`, `password_hash`, `created_at`, `is_active`.
-- **Rationale**: Essential for a multi-user web app. Enables repeat login/logout, note ownership across sessions, per-user audit trails, and session invalidation without deleting the user.
-- **Architecture impact**: Add `User` table as the root entity. Link `Note.owner_user_id`, `Session.user_id`, and `AuditEntry.actor_user_id` back to `User`. All API endpoints enforce owner-scoped access.
-- **Trade-offs**: Requires user signup/account management UI and database schema for user metadata. Minimal footprint for v1.
-- **Alternatives considered**: Stateless single-user per browser (rejected — incompatible with course multi-user requirement), hard-coded users (rejected — no scalability or signup UX).
-
-## Session Storage and Behavior
-
-- **Decision**: Database-backed server-side sessions with the following behavior:
-  - **Session storage**: `sessions` table with fields `session_id`, `user_id`, `created_at`, `last_activity_at`, `expires_at`, `is_revoked`, `ip_address`, `user_agent`.
-  - **Logout scope**: Current session only. Logging out invalidates only the active browser session; other devices remain logged in.
-  - **Idle timeout**: 30 minutes. After 30 minutes of inactivity, session expires and user must re-authenticate.
-  - **Absolute max session lifetime**: 7 days. Even with constant activity, a session expires after 7 days and requires fresh login.
-  - **Remember me**: Not in v1. Every login requires a password entry. Can be added in v2 if user research shows demand.
-- **Rationale**: Database-backed sessions enable reliable logout, multi-device support, auditability, and forced expiration. Reasonable security defaults without over-complicating v1 scope.
-- **Trade-offs**: Each session check requires a database query. Acceptable for course scope and single server. Can optimize with Redis caching before production scale.
-- **Alternatives considered**: In-memory sessions (simplest but loses sessions on app restart), signed cookies (weaker logout semantics).
-
-## Password Hashing vs. Note Passphrase Derivation
-
-- **Decision**: Login password and private note passphrase are completely separate secrets.
-  - **Login password**: Strong account credential, hashed with bcrypt or Argon2, enforced by account security policy (e.g., 12+ chars, complexity rules).
-  - **Private note passphrase**: 4-digit numerical PIN (0000–9999), derived into an encryption key with PBKDF2-HMAC-SHA256 (>=260,000 iterations, SHA256).
-- **Rationale**: 
-  - Separates account security from note encryption strength. Login password controls account access; passphrase controls individual note locks.
-  - 4-digit PIN is simple and memorable (users are familiar from ATMs, phone locks, etc.).
-  - PBKDF2 with high iteration count derives a strong encryption key from the weak passphrase. A 4-digit PIN stretched to AES-256-GCM is no longer weak for the purpose of encrypting a single note.
-  - Users can change login password without invalidating encrypted notes.
-  - Allows weak per-note passphrases without weakening account security.
-- **Architecture impact**: 
-  - `User.password_hash` stores the bcrypt/Argon2 hash of the login password.
-  - `SecureNote.passphrase_salt` and `SecureNote.ciphertext` store the salt and encrypted body. Passphrase is derived on unlock only; never stored plaintext or hashed.
-  - `KeyDerivationService` uses PBKDF2-HMAC-SHA256 with >=260,000 iterations to derive AES-256-GCM key from the 4-digit PIN + salt.
-- **Trade-offs**: Users manage two secrets, but they are radically different in mental load (account password vs. 4-digit PIN). The separation simplifies password rotation and future note-sharing features.
-- **Security note**: A 4-digit space (10,000 possible values) is small, so the salt and high iteration count are critical. Never use these passphrases without a strong key derivation function.
-- **Alternatives considered**: Single password for both (coupling security policies), no per-note encryption (weaker security baseline).
+- Multi-user accounts and ownership-scoped sessions remain deferred
+- Per-note key isolation remains deferred
+- Device sync and real-time collaboration remain deferred
+- Mobile accessibility parity remains deferred

@@ -25,9 +25,17 @@ def create_app() -> FastAPI:
         version=__version__,
         data_dir=str(application.state.config.data_dir_path),
     )
-    application.mount("/static", StaticFiles(directory=Path(__file__).parent / "app" / "static"), name="static")
-    application.mount("/docs", StaticFiles(directory=Path(__file__).parent.parent / "docs"), name="docs")
-    application.mount("/planning", StaticFiles(directory=Path(__file__).parent.parent / "planning"), name="planning")
+    application.mount(
+        "/static", StaticFiles(directory=Path(__file__).parent / "app" / "static"), name="static"
+    )
+    application.mount(
+        "/docs", StaticFiles(directory=Path(__file__).parent.parent / "docs"), name="docs"
+    )
+    application.mount(
+        "/planning",
+        StaticFiles(directory=Path(__file__).parent.parent / "planning"),
+        name="planning",
+    )
     application.include_router(notes_api_router)
     application.include_router(notes_ui_router)
 

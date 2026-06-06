@@ -45,7 +45,15 @@ def test_create_app_health_exposes_version(monkeypatch, tmp_path) -> None:
     config_path = tmp_path / "config.json"
     monkeypatch.setenv("ASTRANOTE_CONFIG_PATH", str(config_path))
 
-    from src.app.dependencies import get_app_logger, get_app_startup, get_config_service, get_crypto_service, get_note_repository, get_pin_settings_manager, get_unlock_session_manager
+    from src.app.dependencies import (
+        get_app_logger,
+        get_app_startup,
+        get_config_service,
+        get_crypto_service,
+        get_note_repository,
+        get_pin_settings_manager,
+        get_unlock_session_manager,
+    )
 
     get_config_service.cache_clear()
     get_app_logger.cache_clear()
@@ -58,7 +66,9 @@ def test_create_app_health_exposes_version(monkeypatch, tmp_path) -> None:
     from src.main import create_app
 
     app = create_app()
-    health = next(route.endpoint for route in app.routes if getattr(route, "path", None) == "/health")()
+    health = next(
+        route.endpoint for route in app.routes if getattr(route, "path", None) == "/health"
+    )()
 
     assert health["status"] == "ok"
     assert health["version"] == "0.1.0"

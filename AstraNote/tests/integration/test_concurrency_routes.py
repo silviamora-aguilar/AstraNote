@@ -53,7 +53,9 @@ async def test_api_route_handles_concurrent_creates_with_unique_titles(tmp_path:
         assert all(response.status_code == 201 for response in responses)
 
         titles = [response.json()["title"] for response in responses]
-        expected_titles = {base_title} | {f"{base_title}{index}" for index in range(1, request_count)}
+        expected_titles = {base_title} | {
+            f"{base_title}{index}" for index in range(1, request_count)
+        }
         assert set(titles) == expected_titles
     finally:
         app.dependency_overrides.clear()
@@ -83,14 +85,18 @@ async def test_ui_route_handles_concurrent_creates_with_unique_titles(tmp_path: 
 
         assert all(response.status_code == 201 for response in responses)
 
-        title_pattern = re.compile(r'<span class="note-title">\s*(.*?)\s*</span>', re.IGNORECASE | re.DOTALL)
+        title_pattern = re.compile(
+            r'<span class="note-title">\s*(.*?)\s*</span>', re.IGNORECASE | re.DOTALL
+        )
         titles: list[str] = []
         for response in responses:
             match = title_pattern.search(response.text)
             assert match is not None
             titles.append(match.group(1))
 
-        expected_titles = {base_title} | {f"{base_title}{index}" for index in range(1, request_count)}
+        expected_titles = {base_title} | {
+            f"{base_title}{index}" for index in range(1, request_count)
+        }
         assert set(titles) == expected_titles
     finally:
         app.dependency_overrides.clear()

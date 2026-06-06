@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-
 SupportedLanguage = str
 DEFAULT_LANGUAGE: SupportedLanguage = "en"
 SUPPORTED_LANGUAGES: set[SupportedLanguage] = {"en", "es"}
@@ -129,7 +128,10 @@ _UI_STRINGS: dict[SupportedLanguage, UIStrs] = {
         "deleted_recently": "recently",
         "deleted_prefix": "Deleted",
         "note_not_found": "Note not found",
-        "pin_data_decrypt_warning": "Private note data could not be decrypted with current PIN settings. Open Private PIN and restore the last valid PIN before changing it again.",
+        "pin_data_decrypt_warning": (
+            "Private note data could not be decrypted with current PIN settings. "
+            "Open Private PIN and restore the last valid PIN before changing it again."
+        ),
         "pin_data_hidden_warning": "Notes are temporarily hidden until PIN settings are corrected.",
         "unlock_title": "Unlock",
         "unlock_subtitle": "This note is private. Enter your 4-digit PIN to continue.",
@@ -138,7 +140,9 @@ _UI_STRINGS: dict[SupportedLanguage, UIStrs] = {
         "edit_note": "Edit Note",
         "save_edits": "Save edits",
         "delete_note": "Delete",
-        "edit_subtitle": "Edit the selected note. Save applies your changes and keeps this panel open.",
+        "edit_subtitle": (
+            "Edit the selected note. Save applies your changes and keeps this panel open."
+        ),
         "title_label": "Title",
         "body_label": "Body",
         "created_label": "Created",
@@ -148,16 +152,28 @@ _UI_STRINGS: dict[SupportedLanguage, UIStrs] = {
         "bullets": "Bullets",
         "checklist": "Checklist",
         "trash_note_title": "Trash Note",
-        "trash_note_subtitle": "This note is in Trash and is read-only. Restore it to make edits.",
+        "trash_note_subtitle": (
+            "This note is in Trash and is read-only. Restore it to make edits."
+        ),
         "create_panel_title": "New Note",
-        "create_panel_subtitle": "Create a new note here. Closing this panel returns you to the notes list only.",
+        "create_panel_subtitle": (
+            "Create a new note here. Closing this panel returns you to the notes list only."
+        ),
         "title_placeholder": "Example: Sprint check-in summary",
         "body_placeholder": "Add details, context, and next steps...",
         "create_note_submit": "Create Note",
-        "create_note_microcopy": "Validation is enforced server-side through NoteService, then rendered back as inline feedback.",
+        "create_note_microcopy": (
+            "Validation is enforced server-side through NoteService, then rendered back "
+            "as inline feedback."
+        ),
         "pin_settings_title": "Private PIN Settings",
-        "pin_settings_subtitle": "Default PIN is 1234. Set a new 4-digit numeric PIN for private notes.",
-        "pin_settings_recovery_copy": "If notes were encrypted under a previous PIN after a manual config edit, enter that previous PIN as Current PIN to recover.",
+        "pin_settings_subtitle": (
+            "Default PIN is 1234. Set a new 4-digit numeric PIN for private notes."
+        ),
+        "pin_settings_recovery_copy": (
+            "If notes were encrypted under a previous PIN after a manual config edit, "
+            "enter that previous PIN as Current PIN to recover."
+        ),
         "show_pin_digits": "Show PIN digits",
         "current_pin_label": "Current PIN",
         "verify_current_pin": "Verify Current PIN",
@@ -206,16 +222,24 @@ _UI_STRINGS: dict[SupportedLanguage, UIStrs] = {
         "deleted_recently": "recientemente",
         "deleted_prefix": "Eliminada",
         "note_not_found": "Nota no encontrada",
-        "pin_data_decrypt_warning": "No se pudo descifrar la informacion de notas privadas con la configuracion actual del PIN. Abre PIN privado y restaura el ultimo PIN valido antes de cambiarlo otra vez.",
-        "pin_data_hidden_warning": "Las notas estan ocultas temporalmente hasta corregir la configuracion del PIN.",
+        "pin_data_decrypt_warning": (
+            "No se pudo descifrar la informacion de notas privadas con la configuracion "
+            "actual del PIN. Abre PIN privado y restaura el ultimo PIN valido antes "
+            "de cambiarlo otra vez."
+        ),
+        "pin_data_hidden_warning": (
+            "Las notas estan ocultas temporalmente hasta corregir la configuracion del PIN."
+        ),
         "unlock_title": "Desbloquear",
-        "unlock_subtitle": "Esta nota es privada. Ingresa tu PIN de 4 digitos para continuar.",
+        "unlock_subtitle": ("Esta nota es privada. Ingresa tu PIN de 4 digitos para continuar."),
         "unlock_wrong_pin": "Ingresa el PIN correcto para desbloquear la nota privada.",
         "unlock_correct_pin": "Ingresa el PIN correcto para desbloquear la nota privada.",
         "edit_note": "Editar nota",
         "save_edits": "Guardar cambios",
         "delete_note": "Eliminar",
-        "edit_subtitle": "Edita la nota seleccionada. Guardar aplica los cambios y mantiene este panel abierto.",
+        "edit_subtitle": (
+            "Edita la nota seleccionada. Guardar aplica los cambios y mantiene este panel abierto."
+        ),
         "title_label": "Titulo",
         "body_label": "Contenido",
         "created_label": "Creada",
@@ -225,16 +249,29 @@ _UI_STRINGS: dict[SupportedLanguage, UIStrs] = {
         "bullets": "Vinetas",
         "checklist": "Checklist",
         "trash_note_title": "Nota en papelera",
-        "trash_note_subtitle": "Esta nota esta en la papelera y es solo lectura. Restaurala para editar.",
+        "trash_note_subtitle": (
+            "Esta nota esta en la papelera y es solo lectura. Restaurala para editar."
+        ),
         "create_panel_title": "Nueva nota",
-        "create_panel_subtitle": "Crea una nueva nota aqui. Al cerrar este panel vuelves a la lista de notas.",
+        "create_panel_subtitle": (
+            "Crea una nueva nota aqui. Al cerrar este panel vuelves a la lista de notas."
+        ),
         "title_placeholder": "Ejemplo: Resumen de sprint",
         "body_placeholder": "Agrega detalles, contexto y siguientes pasos...",
         "create_note_submit": "Crear nota",
-        "create_note_microcopy": "La validacion se aplica en el servidor con NoteService y se muestra como retroalimentacion en linea.",
+        "create_note_microcopy": (
+            "La validacion se aplica en el servidor con NoteService y se muestra como "
+            "retroalimentacion en linea."
+        ),
         "pin_settings_title": "Configuracion de PIN privado",
-        "pin_settings_subtitle": "El PIN por defecto es 1234. Define un nuevo PIN numerico de 4 digitos para notas privadas.",
-        "pin_settings_recovery_copy": "Si las notas fueron cifradas con un PIN previo tras una edicion manual de config, ingresa ese PIN previo como PIN actual para recuperar.",
+        "pin_settings_subtitle": (
+            "El PIN por defecto es 1234. Define un nuevo PIN numerico de 4 digitos "
+            "para notas privadas."
+        ),
+        "pin_settings_recovery_copy": (
+            "Si las notas fueron cifradas con un PIN previo tras una edicion manual "
+            "de config, ingresa ese PIN previo como PIN actual para recuperar."
+        ),
         "show_pin_digits": "Mostrar digitos del PIN",
         "current_pin_label": "PIN actual",
         "verify_current_pin": "Verificar PIN actual",

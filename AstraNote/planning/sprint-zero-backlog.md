@@ -1,96 +1,81 @@
-# Sprint Zero Backlog — AstraNotes
+# Sprint 0-3 Delivery Plan — AstraNotes
 
 ## Purpose
 
-This backlog stages delivery from Sprint 0 through Sprint 3 so work is sequenced across the quarter rather than treated as a single undifferentiated implementation block.
+This is the canonical sprint-planning document for AstraNotes. It consolidates readiness, implementation sequencing, and delivery status from Sprint 0 through Sprint 3.
 
-## Delivery Timeline Overview
+## Current Delivery Status Snapshot
 
-- Sprint 0: readiness and decision lock
-- Sprint 1: single-user web core workflows and architecture foundation
-- Sprint 2: privacy/security completion and localization
-- Sprint 3: integration hardening, release evidence, and final acceptance readiness
+- Sprint 0 (Readiness and decision lock): ✅ Complete
+- Sprint 1 (Core single-user web foundation): ✅ Complete
+- Sprint 2 (Privacy, authoring, and quality hardening): ✅ Complete
+- Sprint 3 (Integration and release-readiness packaging): ✅ Complete for MVP baseline; Post-MVP handoff items remain deferred by design
 
-## Sprint 0 — Readiness and Decision Lock
+## Sprint 0 — Readiness and Decision Lock ✅
 
-### Objectives
-- finalize scope and architecture decisions,
-- ensure planning artifacts are internally consistent,
-- reduce technical risk before coding.
+### Outcomes Completed
 
-### Included Backlog Coverage
-- BL-12 planning aspects (architecture/testability guardrails)
-- BL-21 planning aspects (logging/config/startup integrity decisions)
-- BL-13 planning aspects (security stack completion boundaries)
-- BL-23 planning aspects (localization toggle acceptance coverage)
+- ✅ Scope pivot finalized to single-user localhost MVP.
+- ✅ Requirements, user stories, backlog, and traceability alignment completed.
+- ✅ Technical decision set locked (FastAPI, Jinja2 + HTMX, SQLite, private-note security model).
+- ✅ Startup/release-readiness and planning artifacts prepared for implementation kickoff.
 
-### Sprint 0 Work Packages
-- SZ-01: Freeze approved implementation profile in requirements and ADRs
-- SZ-02: Align user stories, backlog, traceability matrix, and test plan to active single-user MVP scope and explicit Post-MVP WEB deferrals
-- SZ-03: Create readiness artifacts: PRD, executive one-pager, system design document, definition of done, readiness checkpoint
-- SZ-04: Validate SQLite + PostgreSQL-ready migration approach
-- SZ-05: Validate session-cookie + CSRF model conceptually against requirements
-- SZ-06: Prepare Sprint 1 implementation sequencing and dependency order
+### Backlog Coverage
 
-### Exit Criteria
-- all planning artifacts are in lockstep,
-- no open scope ambiguity on framework/persistence/auth,
-- Sprint 1 can begin without architectural blockers.
+- BL-12 planning aspects
+- BL-13 planning aspects
+- BL-21 planning aspects
+- BL-23 planning aspects
 
-## Sprint 1 — Core Single-User Web Foundation
+## Sprint 1 — Core Single-User Web Foundation ✅
 
-### Objectives
-- deliver single-user note workflows,
-- establish API/service/storage boundaries,
-- enforce local persistence integrity and privacy controls.
+### Outcomes Completed
 
-### Included Backlog Items
-- BL-01, BL-02, BL-03, BL-04, BL-05
-- BL-12 implementation tasks
-- BL-21 foundational implementation tasks
-- BL-13 implementation tasks (security core)
+- ✅ Core CRUD/list/search workflows implemented and stabilized.
+- ✅ Soft delete and restore flows implemented.
+- ✅ Architecture boundary guardrails in code and tests.
+- ✅ Serviceability/manageability baseline implemented for retained MVP SMR scope.
 
-### Primary Outcomes
-- single-user CRUD/list/search hardening
-- repository and service boundaries proven through tests
-- encryption-at-rest and private-note unlock path active
-- audit and diagnostic logging foundations active
+### Backlog Coverage
 
-## Sprint 2 — Privacy, Authoring, and Quality Hardening
+- BL-01, BL-02, BL-03, BL-03.1, BL-04, BL-05
+- BL-12
+- BL-13 foundational security slices
+- BL-21 retained MVP scope
 
-### Objectives
-- complete note authoring behaviors,
-- deliver private-note security model,
-- verify performance and durability targets.
+## Sprint 2 — Privacy, Authoring, and Quality Hardening ✅
 
-### Included Backlog Items
+### Outcomes Completed
+
+- ✅ Bullet/checklist editing, formatting, and capacity-limit behavior delivered.
+- ✅ Private-note security stack completed for MVP scope.
+- ✅ Performance verification delivered for NFR-06 through NFR-09.
+- ✅ English/Spanish interface toggle implemented.
+
+### Backlog Coverage
+
 - BL-06, BL-07, BL-08, BL-09, BL-10, BL-23
 
-### Primary Outcomes
-- lists and formatting
-- localization toggle (English/Spanish interface text only)
-- benchmark and durability evidence
+## Sprint 3 — Integration and Release Readiness ✅
 
-## Sprint 3 — Final Integration and Release Readiness
+### Outcomes Completed
 
-### Objectives
-- close remaining gaps,
-- verify gates and acceptance evidence,
-- prepare final instructor/demo review.
+- ✅ Regression hardening and release-gate evidence package completed for MVP scope.
+- ✅ Phase-1 through Phase-6 planning/doc alignment completed for current baseline.
+- ✅ Deferred-scope handoff explicitly documented for Post-MVP backlog items.
 
-### Included Work
-- regression hardening across BL-01 to BL-13, BL-21, BL-23
-- deferred-scope handoff package for BL-22, BL-24, BL-25
-- release-gate completion
-- customer acceptance sign-off collection
-- Lucid diagram refresh to approved baseline
+### Deferred by Design (Not Missed)
 
-### Primary Outcomes
-- release gates satisfied,
-- readiness checkpoint passes,
-- deferred-scope handoff package complete for shared-environment and multi-user follow-on work,
-- final package ready for evaluation.
+- BL-11 [Post-MVP]
+- BL-22 [Post-MVP]
+- BL-24 [Post-MVP]
+- BL-25 [Post-MVP]
+- BL-26 [Post-MVP]
 
-## Staging Logic
+## Delivery Sequencing Logic
 
-The staging intentionally pushes decision and documentation work into Sprint 0, core web foundations into Sprint 1, higher-risk security features into Sprint 2, and release hardening into Sprint 3. This prevents early implementation from drifting away from the approved scope or consuming time needed for acceptance evidence at the end of the quarter.
+The sequence intentionally front-loaded planning and architecture lock (Sprint 0), then delivered core workflows (Sprint 1), security/privacy and quality hardening (Sprint 2), and finally integration evidence plus release readiness (Sprint 3).
+
+## Document Authority
+
+If sprint planning content in older files conflicts with this document, this file is authoritative.

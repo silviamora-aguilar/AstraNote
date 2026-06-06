@@ -6,7 +6,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from src.app.api.error_mapping import log_note_exception, map_note_error_code, map_note_error_message, map_note_error_status
+from src.app.api.error_mapping import (
+    log_note_exception,
+    map_note_error_code,
+    map_note_error_message,
+    map_note_error_status,
+)
 from src.app.api.schemas import (
     BulkDeleteNotesRequest,
     BulkDeleteNotesResponse,
@@ -18,7 +23,6 @@ from src.app.api.schemas import (
 )
 from src.app.dependencies import get_note_service
 from src.app.services import NoteService
-
 
 router = APIRouter(prefix="/api/notes", tags=["notes-api"])
 

@@ -12,7 +12,7 @@ Additional edge cases:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -20,20 +20,18 @@ from src.app.models.note import Note
 from src.app.repositories.note_repository import (
     NoteRepository,
     NoteRepositoryCapacityError,
-    NoteRepositoryError,
     NoteRepositoryNotFoundError,
 )
 from src.app.services.note_service import (
     NoteNotFoundError,
-    NotePersistenceError,
     NoteService,
     NoteValidationError,
 )
 
-
 # ---------------------------------------------------------------------------
 # Minimal fake repository scoped to delete tests
 # ---------------------------------------------------------------------------
+
 
 class FakeDeleteRepository(NoteRepository):
     """In-memory fake that implements the full repository interface."""
@@ -91,7 +89,8 @@ class FakeDeleteRepository(NoteRepository):
     def search(self, query: str) -> list[Note]:
         q = query.lower()
         return [
-            n for n in self.notes
+            n
+            for n in self.notes
             if not n.is_deleted and (q in n.title.lower() or q in n.body.lower())
         ]
 
@@ -103,14 +102,14 @@ class FakeDeleteRepository(NoteRepository):
 
     def title_exists_for_other(self, title: str, note_id: str) -> bool:
         return any(
-            n.title == title and n.note_id != note_id and not n.is_deleted
-            for n in self.notes
+            n.title == title and n.note_id != note_id and not n.is_deleted for n in self.notes
         )
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_service() -> tuple[NoteService, FakeDeleteRepository]:
     repo = FakeDeleteRepository()
@@ -121,6 +120,7 @@ def _make_service() -> tuple[NoteService, FakeDeleteRepository]:
 # ---------------------------------------------------------------------------
 # TP-U11 — soft delete sets is_deleted and deleted_at
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 def test_delete_note_sets_is_deleted_and_deleted_at():
@@ -139,6 +139,7 @@ def test_delete_note_sets_is_deleted_and_deleted_at():
 # ---------------------------------------------------------------------------
 # TP-U12 — soft-deleted note excluded from list
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 def test_delete_note_excluded_from_list():
@@ -170,6 +171,7 @@ def test_delete_note_keeps_other_notes_in_list():
 # TP-U13 — soft-deleted note excluded from search
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.unit
 def test_delete_note_excluded_from_search():
     """TP-U13: after delete, note does not appear in search results."""
@@ -185,6 +187,7 @@ def test_delete_note_excluded_from_search():
 # ---------------------------------------------------------------------------
 # Edge cases
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 def test_delete_unknown_note_raises_not_found():
@@ -214,6 +217,81 @@ def test_get_note_returns_none_after_delete():
     service.delete(note.note_id)
 
     assert service.get_note(note.note_id) is None
+
+
+@pytest.mark.unit
+def test_restore_note_within_retention_window_succeeds():
+    """TP-U24: restore succeeds while deleted_at is still inside the 15-day window."""
+    service, repo = _make_service()
+    note = service.create(title="Restore Me")
+    service.delete(note.note_id)
+
+    service.restore(note.note_id)
+
+    restored = repo.get(note.note_id)
+    assert restored is not None
+    assert restored.note_id == note.note_id
+    assert restored.is_deleted is False
+    assert restored.deleted_at is None
+
+
+@pytest.mark.unit
+def test_restore_note_outside_retention_window_raises_not_found():
+    """TP-U25: restore is rejected after the 15-day trash retention window expires."""
+    service, repo = _make_service()
+    note = service.create(title="Expired Trash Note")
+    service.delete(note.note_id)
+    trashed = repo.get(note.note_id)
+    assert trashed is not None
+    trashed.deleted_at = datetime.now(timezone.utc) - timedelta(days=16)
+
+    with pytest.raises(NoteNotFoundError, match="Note not found in trash"):
+        service.restore(note.note_id)
+
+
+@pytest.mark.unit
+def test_restore_note_just_inside_retention_window_succeeds():
+    """Edge case: a note just inside the retention cutoff should still restore."""
+    service, repo = _make_service()
+    note = service.create(title="Retention Boundary Allowed")
+    service.delete(note.note_id)
+    trashed = repo.get(note.note_id)
+    assert trashed is not None
+    trashed.deleted_at = datetime.now(timezone.utc) - timedelta(days=15) + timedelta(seconds=1)
+
+    service.restore(note.note_id)
+
+    restored = repo.get(note.note_id)
+    assert restored is not None
+    assert restored.is_deleted is False
+
+
+@pytest.mark.unit
+def test_restore_note_just_outside_retention_window_is_rejected():
+    """Edge case: a note just outside the retention cutoff should not restore."""
+    service, repo = _make_service()
+    note = service.create(title="Retention Boundary Rejected")
+    service.delete(note.note_id)
+    trashed = repo.get(note.note_id)
+    assert trashed is not None
+    trashed.deleted_at = datetime.now(timezone.utc) - timedelta(days=15, seconds=1)
+
+    with pytest.raises(NoteNotFoundError, match="Note not found in trash"):
+        service.restore(note.note_id)
+
+
+@pytest.mark.unit
+def test_restore_preserves_original_note_id():
+    """TP-U26 slice: restoring a note keeps the original note_id intact."""
+    service, repo = _make_service()
+    note = service.create(title="Persistent Identity")
+    service.delete(note.note_id)
+
+    service.restore(note.note_id)
+
+    restored = repo.get(note.note_id)
+    assert restored is not None
+    assert restored.note_id == note.note_id
 
 
 @pytest.mark.unit

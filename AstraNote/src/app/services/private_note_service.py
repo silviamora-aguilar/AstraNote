@@ -79,48 +79,17 @@ class PrivateNoteService:
         if not self._pin_crypto.validate_pin_format(current_pin):
             return PinChangeResult(code="current_pin_incorrect")
 
-        active_pin = self._pin_settings.get_pin()
-        effective_current_pin = current_pin
-        recovered_count = 0
+        resolution = self._resolve_current_pin(current_pin)
+        if resolution is None:
+            return PinChangeResult(code="current_pin_incorrect")
 
-        if not self._pin_settings.verify_pin(current_pin):
-            try:
-                recovered_count = self._pin_rotation.rotate_private_pin(old_pin=current_pin, new_pin=active_pin)
-            except Exception:
-                recovered_count = 0
+        effective_current_pin, recovered_count = resolution
 
-            if recovered_count <= 0:
-                return PinChangeResult(code="current_pin_incorrect")
-
-            effective_current_pin = active_pin
-            self._unlock.reset_all()
-
-        if not self._pin_crypto.validate_pin_format(new_pin):
-            return PinChangeResult(
-                code="new_pin_format",
-                verified_current_pin=effective_current_pin,
-                recovered_count=recovered_count,
-            )
-
-        if new_pin != confirm_pin:
-            return PinChangeResult(
-                code="pin_mismatch",
-                verified_current_pin=effective_current_pin,
-                recovered_count=recovered_count,
-            )
-
-        if effective_current_pin == new_pin:
-            if recovered_count > 0:
-                return PinChangeResult(
-                    code="pin_unchanged_after_recovery",
-                    verified_current_pin=effective_current_pin,
-                    recovered_count=recovered_count,
-                )
-            return PinChangeResult(
-                code="pin_unchanged",
-                verified_current_pin=effective_current_pin,
-                recovered_count=recovered_count,
-            )
+        validation_result = self._validate_new_pin_inputs(
+            effective_current_pin, recovered_count, new_pin, confirm_pin
+        )
+        if validation_result is not None:
+            return validation_result
 
         try:
             self._pin_rotation.rotate_private_pin(old_pin=effective_current_pin, new_pin=new_pin)
@@ -139,4 +108,53 @@ class PrivateNoteService:
             verified_current_pin=new_pin,
             recovered_count=recovered_count,
             pin_update_completed=True,
+        )
+
+    def _resolve_current_pin(self, current_pin: str) -> tuple[str, int] | None:
+        active_pin = self._pin_settings.get_pin()
+        if self._pin_settings.verify_pin(current_pin):
+            return current_pin, 0
+
+        try:
+            recovered_count = self._pin_rotation.rotate_private_pin(
+                old_pin=current_pin, new_pin=active_pin
+            )
+        except Exception:
+            recovered_count = 0
+
+        if recovered_count <= 0:
+            return None
+
+        self._unlock.reset_all()
+        return active_pin, recovered_count
+
+    def _validate_new_pin_inputs(
+        self,
+        effective_current_pin: str,
+        recovered_count: int,
+        new_pin: str,
+        confirm_pin: str,
+    ) -> PinChangeResult | None:
+        if not self._pin_crypto.validate_pin_format(new_pin):
+            return PinChangeResult(
+                code="new_pin_format",
+                verified_current_pin=effective_current_pin,
+                recovered_count=recovered_count,
+            )
+
+        if new_pin != confirm_pin:
+            return PinChangeResult(
+                code="pin_mismatch",
+                verified_current_pin=effective_current_pin,
+                recovered_count=recovered_count,
+            )
+
+        if effective_current_pin != new_pin:
+            return None
+
+        unchanged_code = "pin_unchanged_after_recovery" if recovered_count > 0 else "pin_unchanged"
+        return PinChangeResult(
+            code=unchanged_code,
+            verified_current_pin=effective_current_pin,
+            recovered_count=recovered_count,
         )

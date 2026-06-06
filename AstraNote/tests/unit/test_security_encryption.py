@@ -18,13 +18,24 @@ def test_repository_persists_title_and_body_encrypted_at_rest(tmp_path: Path) ->
     try:
         service = NoteService(repository)
 
-        created = service.create(title="Highly Sensitive", body="top secret payload", is_private=False)
+        created = service.create(
+            title="Highly Sensitive",
+            body="top secret payload",
+            is_private=False,
+        )
 
         with repository.engine.connect() as conn:
-            row = conn.execute(
-                text("SELECT title, body, is_private, pin_salt FROM notes WHERE note_id = :note_id"),
-                {"note_id": created.note_id},
-            ).mappings().one()
+            row = (
+                conn.execute(
+                    text(
+                        "SELECT title, body, is_private, pin_salt FROM notes "
+                        "WHERE note_id = :note_id"
+                    ),
+                    {"note_id": created.note_id},
+                )
+                .mappings()
+                .one()
+            )
 
         assert row["title"] != "Highly Sensitive"
         assert row["body"] != "top secret payload"
@@ -43,13 +54,24 @@ def test_repository_uses_pin_salt_for_private_note_encryption(tmp_path: Path) ->
     try:
         service = NoteService(repository)
 
-        created = service.create(title="Private Secret", body="classified", is_private=True)
+        created = service.create(
+            title="Private Secret",
+            body="classified",
+            is_private=True,
+        )
 
         with repository.engine.connect() as conn:
-            row = conn.execute(
-                text("SELECT title, body, is_private, pin_salt FROM notes WHERE note_id = :note_id"),
-                {"note_id": created.note_id},
-            ).mappings().one()
+            row = (
+                conn.execute(
+                    text(
+                        "SELECT title, body, is_private, pin_salt FROM notes "
+                        "WHERE note_id = :note_id"
+                    ),
+                    {"note_id": created.note_id},
+                )
+                .mappings()
+                .one()
+            )
 
         assert row["title"] != "Private Secret"
         assert row["body"] != "classified"

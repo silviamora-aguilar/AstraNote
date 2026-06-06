@@ -116,8 +116,12 @@ def test_bl10_performance_gate_nfr06_to_nfr09(performance_client: TestClient) ->
 
         assert response.status_code == 200, response.text
 
-        # NFR-09 durability check: successful write must be visible immediately after success returns.
-        verify = performance_client.get("/api/notes/search", params={"q": updated_body})
+        # NFR-09 durability check: successful write must be visible immediately
+        # after success returns.
+        verify = performance_client.get(
+            "/api/notes/search",
+            params={"q": updated_body},
+        )
         assert verify.status_code == 200, verify.text
         bodies = [row["body"] for row in verify.json()]
         assert updated_body in bodies
@@ -137,12 +141,12 @@ def test_bl10_performance_gate_nfr06_to_nfr09(performance_client: TestClient) ->
         )
     )
 
-    assert read_p95 <= READ_P95_TARGET_MS, (
-        f"Read p95 {read_p95:.2f} ms exceeds {READ_P95_TARGET_MS:.2f} ms"
-    )
-    assert write_p95 <= WRITE_P95_TARGET_MS, (
-        f"Write p95 {write_p95:.2f} ms exceeds {WRITE_P95_TARGET_MS:.2f} ms"
-    )
-    assert all_ops_p99 <= ALL_OPS_P99_TARGET_MS, (
-        f"All-ops p99 {all_ops_p99:.2f} ms exceeds {ALL_OPS_P99_TARGET_MS:.2f} ms"
-    )
+    assert (
+        read_p95 <= READ_P95_TARGET_MS
+    ), f"Read p95 {read_p95:.2f} ms exceeds {READ_P95_TARGET_MS:.2f} ms"
+    assert (
+        write_p95 <= WRITE_P95_TARGET_MS
+    ), f"Write p95 {write_p95:.2f} ms exceeds {WRITE_P95_TARGET_MS:.2f} ms"
+    assert (
+        all_ops_p99 <= ALL_OPS_P99_TARGET_MS
+    ), f"All-ops p99 {all_ops_p99:.2f} ms exceeds {ALL_OPS_P99_TARGET_MS:.2f} ms"

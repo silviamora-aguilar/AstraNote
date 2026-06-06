@@ -26,7 +26,9 @@ class AppLogger:
         self._logger.propagate = False
         self._logger.handlers.clear()
 
-        handler = RotatingFileHandler(self._path, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8")
+        handler = RotatingFileHandler(
+            self._path, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8"
+        )
         handler.setFormatter(logging.Formatter("%(message)s"))
         self._logger.addHandler(handler)
 
@@ -50,10 +52,15 @@ class AppLogger:
         disallowed_keys = {"title", "body", "version_content", "private_note"}
         leaked_keys = sorted(disallowed_keys.intersection(context.keys()))
         if leaked_keys:
-            raise ValueError(f"Diagnostic log context may not include note plaintext fields: {', '.join(leaked_keys)}")
+            leaked_fields = ", ".join(leaked_keys)
+            raise ValueError(
+                "Diagnostic log context may not include note plaintext fields: " f"{leaked_fields}"
+            )
 
         payload = {
-            "timestamp_utc": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+            "timestamp_utc": __import__("datetime")
+            .datetime.now(__import__("datetime").timezone.utc)
+            .isoformat(),
             "severity": logging.getLevelName(level),
             "message": message,
         }

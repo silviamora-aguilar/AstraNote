@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AstraNotes SDLC Document Map</title>
+  <title>Silvia's SDLC document map</title>
   <style>
     :root {
       --bg: #f3efee;
@@ -53,10 +53,16 @@
       position: relative;
       overflow: hidden;
       border-radius: 26px;
-      background: linear-gradient(112deg, var(--hero-a) 0%, var(--hero-b) 52%, var(--hero-c) 100%);
+      background:
+        radial-gradient(circle at 82% 14%, rgba(255, 235, 165, 0.32), transparent 20%),
+        linear-gradient(112deg, var(--hero-a) 0%, var(--hero-b) 54%, var(--hero-c) 100%);
       color: #f5f8fb;
       padding: 34px 30px 32px;
       box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) auto;
+      gap: 24px;
+      align-items: center;
     }
 
     .hero::after {
@@ -68,6 +74,29 @@
       height: 320px;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(255, 216, 184, 0.28) 0%, rgba(255, 216, 184, 0.05) 48%, rgba(255, 216, 184, 0) 70%);
+    }
+
+    .hero-mark {
+      position: relative;
+      z-index: 1;
+      width: 168px;
+      height: 168px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-mark img {
+      width: 128px;
+      height: 128px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 8px 20px rgba(17, 39, 34, 0.2));
     }
 
     .kicker {
@@ -162,12 +191,12 @@
       line-height: 1.2;
     }
 
-    .chip-1 { background: linear-gradient(130deg, #4c95c6, var(--chip-1)); }
-    .chip-2 { background: linear-gradient(130deg, #2fa286, var(--chip-2)); }
-    .chip-3 { background: linear-gradient(130deg, #cf7f46, var(--chip-3)); }
-    .chip-4 { background: linear-gradient(130deg, #8e6ad0, var(--chip-4)); }
-    .chip-5 { background: linear-gradient(130deg, #d49a2f, var(--chip-5)); }
-    .chip-6 { background: linear-gradient(130deg, #9c6592, var(--chip-6)); }
+    .chip-1 { background: linear-gradient(130deg, #1d9a94, var(--chip-1)); }
+    .chip-2 { background: linear-gradient(130deg, #efcf63, var(--chip-2)); color: #31321f; }
+    .chip-3 { background: linear-gradient(130deg, #43b7ad, var(--chip-3)); }
+    .chip-4 { background: linear-gradient(130deg, #d5ad2f, var(--chip-4)); color: #31321f; }
+    .chip-5 { background: linear-gradient(130deg, #147775, var(--chip-5)); }
+    .chip-6 { background: linear-gradient(130deg, #f0d36c, var(--chip-6)); color: #31321f; }
 
     .grid-top {
       margin-top: 16px;
@@ -207,7 +236,7 @@
 
     .coverage-list li {
       border: 1px solid var(--line);
-      background: #fffdfc;
+      background: #fffef8;
       border-radius: 11px;
       padding: 8px 10px;
       font-size: 0.92rem;
@@ -219,29 +248,62 @@
       padding: 0;
       list-style: none;
       display: grid;
-      gap: 8px;
+      gap: 10px;
     }
 
-    .shortcut-list li.shortcut-row {
+    .shortcut-item {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fffef8 0%, #fffaf0 100%);
     }
 
-    .shortcut-list a {
-      display: block;
+    .shortcut-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #304046;
+      line-height: 1.25;
+    }
+
+    .shortcut-actions {
+      display: inline-flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .shortcut-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-decoration: none;
-      color: #264f79;
-      border: 1px solid #d8e5f1;
-      background: #f4f9ff;
       border-radius: 999px;
       padding: 8px 12px;
-      font-size: 0.9rem;
-      font-weight: 600;
+      font-size: 0.86rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+      min-width: 118px;
     }
 
-    .shortcut-list a:hover {
-      background: #eaf4ff;
+    .shortcut-btn.md {
+      background: #eef9f7;
+      color: #0f736f;
+      border-color: #b8e1dc;
+    }
+
+    .shortcut-btn.html {
+      background: #fff2bf;
+      color: #765600;
+      border-color: #ebd58a;
+    }
+
+    .shortcut-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(18, 28, 24, 0.08);
     }
 
     .phase-block {
@@ -409,13 +471,31 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .shortcut-list li.shortcut-row {
-        grid-template-columns: 1fr;
-      }
-
       .hero {
         border-radius: 20px;
         padding: 24px 18px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-mark {
+        width: 132px;
+        height: 132px;
+      }
+
+      .hero-mark img {
+        width: 98px;
+        height: 98px;
+      }
+
+      .shortcut-item {
+        grid-template-columns: 1fr;
+      }
+
+      .shortcut-actions {
+        justify-content: flex-start;
       }
 
       .section,
@@ -435,13 +515,18 @@
 <body>
   <main class="page">
     <header class="hero">
-      <div class="kicker">AstraNotes Course Artifact Guide</div>
-      <h1>SDLC document map for everything created so far</h1>
-      <p>
-        This page groups the project documents by software development life cycle phase so you can review the updated
-        single-user MVP baseline in a clear reading sequence.
-      </p>
-      <div class="hero-pill">Recommended reading flow: Vision -> Requirements -> Design -> Planning -> Verification -> Acceptance</div>
+      <div>
+        <div class="kicker">AstraNotes Course Artifact Guide</div>
+        <h1>Silvia's SDLC document map</h1>
+        <p>
+          This page groups the project documents by software development life cycle phase so you can review the updated
+          single-user MVP baseline in a clear reading sequence.
+        </p>
+        <div class="hero-pill">Recommended reading flow: Vision -> Requirements -> Design -> Planning -> Verification -> Acceptance</div>
+      </div>
+      <div class="hero-mark" aria-hidden="true">
+        <img src="../src/app/static/giraffe_logo.jpg" alt="AstraNotes giraffe logo" />
+      </div>
     </header>
 
     <section class="section">
@@ -465,25 +550,56 @@
         <p class="sub">Single-user local MVP planning baseline is synchronized across requirements, user stories, backlog, traceability, tests, sprint plans, release gates, and customer acceptance.</p>
         <ul class="coverage-list">
           <li>Decision lock complete: FastAPI, Jinja2 + HTMX, SQLite, encrypted note storage, and private note unlock controls.</li>
-          <li>Requirement baseline now split into active MVP and deferred Post-MVP sections with revision history.</li>
-          <li>Delivery status: BL-01 through BL-10 are implemented and validated (core CRUD/search/list/format/privacy + performance verification).</li>
-          <li>BL-13 security stack is complete, including deterministic API error codes (SRG-16), TLS release-gate verification for current MVP scope (SRG-17), and plaintext PIN persistence removal (SRG-26).</li>
-          <li>BL-11 (NFR-10, NFR-12 keyboard/input accessibility parity) is deferred to Post-MVP for the current demo cycle.</li>
-          <li>Current active open MVP implementation gates are BL-12 and BL-21.</li>
-          <li>Post-MVP deferrals are documented for multi-user web foundations, deep nested lists, image paste, and NFR-01 through NFR-05 load targets.</li>
+          <li>Post-MVP deferrals are explicitly tagged with <code>[Post-MVP]</code> in requirements for out-of-scope clarity (including deferred SMR items, multi-user web foundations, deep nested lists, image paste, and NFR-01 through NFR-05 load targets).</li>
         </ul>
       </article>
 
       <article class="card">
-        <h3>Reading shortcuts</h3>
+        <h3>Document Favorites</h3>
         <p class="sub">Open these first if you need the fastest orientation before implementation starts.</p>
         <ul class="shortcut-list">
-          <li><a href="../planning/requirements.md">Open requirements baseline</a></li>
-          <li><a href="../planning/user_stories.md">Open user stories</a></li>
-          <li><a href="../planning/backlog.md">Open prioritized backlog</a></li>
-          <li><a href="../planning/traceability-matrix.md">Open traceability matrix</a></li>
-          <li><a href="../planning/test-plan.md">Open test plan</a></li>
-          <li><a href="../planning/release-gates.md">Open release gates</a></li>
+          <li class="shortcut-item">
+            <span class="shortcut-title">Requirements Baseline</span>
+            <span class="shortcut-actions">
+              <a class="shortcut-btn md" href="../planning/requirements.md">Open Markdown</a>
+              <a class="shortcut-btn html" href="markdown-viewer.html?source=../planning/requirements.md&title=Requirements%20Baseline">Open HTML</a>
+            </span>
+          </li>
+          <li class="shortcut-item">
+            <span class="shortcut-title">User Stories</span>
+            <span class="shortcut-actions">
+              <a class="shortcut-btn md" href="../planning/user_stories.md">Open Markdown</a>
+              <a class="shortcut-btn html" href="markdown-viewer.html?source=../planning/user_stories.md&title=User%20Stories">Open HTML</a>
+            </span>
+          </li>
+          <li class="shortcut-item">
+            <span class="shortcut-title">Product Backlog</span>
+            <span class="shortcut-actions">
+              <a class="shortcut-btn md" href="../planning/backlog.md">Open Markdown</a>
+              <a class="shortcut-btn html" href="markdown-viewer.html?source=../planning/backlog.md&title=Product%20Backlog">Open HTML</a>
+            </span>
+          </li>
+          <li class="shortcut-item">
+            <span class="shortcut-title">Traceability Matrix</span>
+            <span class="shortcut-actions">
+              <a class="shortcut-btn md" href="../planning/traceability-matrix.md">Open Markdown</a>
+              <a class="shortcut-btn html" href="markdown-viewer.html?source=../planning/traceability-matrix.md&title=Traceability%20Matrix">Open HTML</a>
+            </span>
+          </li>
+          <li class="shortcut-item">
+            <span class="shortcut-title">Test Plan</span>
+            <span class="shortcut-actions">
+              <a class="shortcut-btn md" href="../planning/test-plan.md">Open Markdown</a>
+              <a class="shortcut-btn html" href="markdown-viewer.html?source=../planning/test-plan.md&title=Test%20Plan">Open HTML</a>
+            </span>
+          </li>
+          <li class="shortcut-item">
+            <span class="shortcut-title">Release Gates</span>
+            <span class="shortcut-actions">
+              <a class="shortcut-btn md" href="../planning/release-gates.md">Open Markdown</a>
+              <a class="shortcut-btn html" href="markdown-viewer.html?source=../planning/release-gates.md&title=Release%20Gates">Open HTML</a>
+            </span>
+          </li>
         </ul>
       </article>
     </section>
@@ -492,7 +608,7 @@
       <header class="phase-block-head">
         <div class="phase-label">Phase 1</div>
         <h2 class="phase-title">Vision and business framing</h2>
-        <p class="phase-desc">Start here when students need the big picture before diving into detailed requirements.</p>
+        <p class="phase-desc">Start here when you need the big picture before diving into detailed requirements.</p>
       </header>
       <p class="phase-content-note">These documents explain the product idea, scope boundaries, and baseline assumptions for the rest of the SDLC artifacts.</p>
       <div class="doc-grid">
@@ -583,11 +699,19 @@
         <article class="doc-card">
           <div class="doc-tag">Storage Analysis</div>
           <h4>Storage Design Notes</h4>
-          <p>Storage strategy alternatives, tradeoff notes, and migration-minded persistence planning.</p>
-          <p class="fit-note">SDLC fit: Documents persistence engineering rationale before implementation.</p>
+          <p>Current MVP storage baseline: SQLite schema shape, encrypted fields, runtime artifacts, and startup guardrails.</p>
+          <p class="fit-note">SDLC fit: Canonical implementation view of persistence decisions now in code.</p>
           <div class="actions">
-            <a class="btn" href="storage_design.md">Open Markdown</a>
-            <a class="btn" href="storage_decision_map.md">Open Decision Map</a>
+            <a class="btn primary" href="storage_design.md">Open Markdown</a>
+          </div>
+        </article>
+        <article class="doc-card">
+          <div class="doc-tag">Decision Rationale</div>
+          <h4>Storage Decision Map</h4>
+          <p>Tradeoffs, historical context, and Post-MVP storage evolution path from the current baseline.</p>
+          <p class="fit-note">SDLC fit: Explains why the storage approach was chosen and how it may evolve.</p>
+          <div class="actions">
+            <a class="btn primary" href="storage_decision_map.md">Open Markdown</a>
           </div>
         </article>
       </div>
@@ -608,25 +732,11 @@
           <div class="actions"><a class="btn primary" href="../planning/backlog.md">Open Markdown</a></div>
         </article>
         <article class="doc-card">
-          <div class="doc-tag">Readiness</div>
-          <h4>Sprint Zero Plan</h4>
-          <p>Pre-scaffolding decision lock, risk spikes, and readiness criteria before coding starts.</p>
-          <p class="fit-note">SDLC fit: Controls setup risk and ensures planning coherence before build.</p>
-          <div class="actions"><a class="btn primary" href="../planning/sprint-zero-plan.md">Open Markdown</a></div>
-        </article>
-        <article class="doc-card">
           <div class="doc-tag">Staged Delivery</div>
-          <h4>Sprint Zero Backlog</h4>
-          <p>Quarter staging view that breaks work across Sprint 0 through Sprint 3.</p>
-          <p class="fit-note">SDLC fit: Shows how backlog and delivery timeline are intentionally sequenced.</p>
+          <h4>Sprint 0-3 Delivery Plan</h4>
+          <p>Canonical sprint-planning document covering readiness, implementation sequencing, and delivery status from Sprint 0 through Sprint 3.</p>
+          <p class="fit-note">SDLC fit: Single source of truth for sprint execution scope and completion state.</p>
           <div class="actions"><a class="btn primary" href="../planning/sprint-zero-backlog.md">Open Markdown</a></div>
-        </article>
-        <article class="doc-card">
-          <div class="doc-tag">Delivery Sprints</div>
-          <h4>Sprint One and Two Plan</h4>
-          <p>Detailed tasks, dependencies, and exit criteria aligned to the single-user MVP sequence.</p>
-          <p class="fit-note">SDLC fit: Converts backlog scope into executable sprint sequences.</p>
-          <div class="actions"><a class="btn primary" href="../planning/sprint-one-plan.md">Open Markdown</a></div>
         </article>
         <article class="doc-card">
           <div class="doc-tag">Go / No-Go</div>
@@ -701,16 +811,16 @@
       </header>
       <div class="doc-grid">
         <article class="doc-card">
-          <div class="doc-tag">Model Context</div>
-          <h4>Lucid Class Diagram Context</h4>
-          <p>Context payload used for class diagram drafting and iteration support.</p>
-          <div class="actions"><a class="btn" href="../planning/lucidchart_class_diagram_context.txt">Open Text</a></div>
-        </article>
-        <article class="doc-card">
-          <div class="doc-tag">Export</div>
-          <h4>Lucid Requirements Export</h4>
-          <p>Requirements export prepared for external model and diagram tool integration.</p>
-          <div class="actions"><a class="btn" href="../planning/lucidchart_requirements_export.txt">Open Text</a></div>
+          <div class="doc-tag">Working UML</div>
+          <h4>Lucid UML Diagrams</h4>
+          <p>Shared Lucid workspace for the current UML set used in traceability review. Each button opens a different tab in the same Lucid document.</p>
+          <div class="actions">
+            <a class="btn" href="https://lucid.app/lucidchart/633a4be6-a4d5-4060-a3ce-33c4b0de31da/edit?page=page1">Class</a>
+            <a class="btn" href="https://lucid.app/lucidchart/633a4be6-a4d5-4060-a3ce-33c4b0de31da/edit?page=ys13FnQ0SMe5&invitationId=inv_7ad44362-6475-4d58-9070-9a437eb2397b#">Object</a>
+            <a class="btn" href="https://lucid.app/lucidchart/633a4be6-a4d5-4060-a3ce-33c4b0de31da/edit?invitationId=inv_7ad44362-6475-4d58-9070-9a437eb2397b&page=oK13x_1gW6Ww#">Use Case</a>
+            <a class="btn" href="https://lucid.app/lucidchart/633a4be6-a4d5-4060-a3ce-33c4b0de31da/edit?invitationId=inv_7ad44362-6475-4d58-9070-9a437eb2397b&page=z913i2atQ1e2#">Activity</a>
+            <a class="btn" href="https://lucid.app/lucidchart/633a4be6-a4d5-4060-a3ce-33c4b0de31da/edit?invitationId=inv_7ad44362-6475-4d58-9070-9a437eb2397b&page=NA63k4AeeP5f#">Deployment</a>
+          </div>
         </article>
       </div>
     </section>
@@ -740,20 +850,6 @@
         link.insertAdjacentElement('afterend', htmlLink);
       });
 
-      document.querySelectorAll('.shortcut-list a[href$=".md"]').forEach((link) => {
-        const href = link.getAttribute('href');
-        const item = link.parentElement;
-        item.classList.add('shortcut-row');
-        if (item.querySelector(`a[data-html-for="${href}"]`)) {
-          return;
-        }
-
-        const htmlLink = document.createElement('a');
-        htmlLink.href = buildViewerHref(href, link.textContent.trim());
-        htmlLink.textContent = 'Open HTML';
-        htmlLink.setAttribute('data-html-for', href);
-        item.appendChild(htmlLink);
-      });
     })();
   </script>
 </body>

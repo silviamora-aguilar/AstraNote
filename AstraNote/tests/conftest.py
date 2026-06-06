@@ -10,15 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from src.app.dependencies import (
-    get_app_logger,
-    get_config_service,
-    get_crypto_service,
-    get_note_repository,
-    get_note_service,
-    get_pin_settings_manager,
-    get_unlock_session_manager,
-)
+from src.app.dependencies import get_note_repository
 from src.app.repositories import SqlNoteRepository
 
 # Update these as your models are created
@@ -42,16 +34,14 @@ def db_engine():
 @pytest.fixture(scope="function")
 def db_session(db_engine):
     """Create a fresh database session for each test."""
-    TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=db_engine
-    )
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
     session = TestingSessionLocal()
-    
+
     # Uncomment when models are defined
     # Base.metadata.create_all(bind=db_engine)
-    
+
     yield session
-    
+
     session.close()
     # Base.metadata.drop_all(bind=db_engine)
 
@@ -84,7 +74,9 @@ def client(tmp_path):
     get_pin_cached.cache_clear()
 
     shared_crypto = get_crypto_cached()
-    repository = SqlNoteRepository(database_url=f"sqlite:///{db_path}", crypto_service=shared_crypto)
+    repository = SqlNoteRepository(
+        database_url=f"sqlite:///{db_path}", crypto_service=shared_crypto
+    )
     app.dependency_overrides[get_note_repository] = lambda: repository
 
     with TestClient(app) as test_client:
@@ -111,7 +103,7 @@ def authenticated_client(client):
     # )
     # assert response.status_code == 200
     # return client
-    
+
     return client
 
 

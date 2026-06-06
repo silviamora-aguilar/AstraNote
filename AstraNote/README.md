@@ -1,73 +1,102 @@
 # AstraNotes
 
-A web-based multi-user note-taking application with private-note encryption, Markdown authoring, and secure server-side storage.
+AstraNotes is a local, single-user note-taking MVP for browser-based desktop workflows. It focuses on fast note capture, private-note protection, an English/Spanish UI toggle, and a clean review trail across requirements, planning, and acceptance documents.
 
-## Project Structure
+## Project Status
+
+Delivered MVP baseline for local browser use on `127.0.0.1`. Multi-user accounts, shared ownership scoping, and other expansion items remain Post-MVP.
+
+## Technology Stack
+
+- FastAPI for the backend application and route handling
+- Jinja2 + HTMX for server-rendered UI interactions
+- SQLite for local persistence during the MVP baseline
+- Structured encryption and PIN handling for private-note content
+
+## MVP Snapshot
+
+The delivered MVP includes:
+
+- Create, edit, delete, restore, list, and search notes
+- Limited markdown-style body authoring with bullet lists and checklists
+- Private-note toggles with PIN-based unlock and encrypted-at-rest storage
+- Soft delete with Trash review and 15-day retention
+- Audit and diagnostic logging for note operations
+- English/Spanish UI text toggle
+- Local browser delivery on 127.0.0.1 for the course review baseline
+
+## Quick Start
+
+1. Install dependencies: `pip install -r requirements.txt`
+2. Start the app: `uvicorn src.main:app --reload`
+3. Open the local address printed by Uvicorn in your browser
+
+## Feature Highlights
+
+- Browser-first note editing and review flow
+- PIN-protected private notes with encrypted storage
+- Trash workflow for safe restore and purge behavior
+- Requirements, planning, and acceptance artifacts aligned to the implemented MVP
+- Spanish and English UI text support for the browser interface
+
+## What is out of scope for this MVP
+
+- Multi-user accounts, login, and shared ownership scoping
+- Device sync and collaboration
+- Native mobile packaging
+- Per-note key isolation
+- Plugin architecture or advanced content types such as image paste
+
+## Repository Layout
 
 ```
 AstraNotes/
-├── src/                 # Main application source code
+├── src/                 # Application source code
 ├── tests/               # Unit, integration, and security tests
-├── docs/                # Architecture and design documentation
-├── data/                # Runtime data (notes.json, audit-log.jsonl, config.json)
-├── planning/            # Requirements, user stories, backlog, sprint plans, test plan, release gates
-├── README.md            # This file
+├── docs/                # Product, architecture, and review documents
+├── planning/            # Requirements, backlog, traceability, gates, and plans
+├── assets/              # Shared visual assets such as the giraffe logo
+├── README.md            # Project overview
 ├── requirements.txt     # Python dependencies
-├── setup.py             # Package configuration
-└── .gitignore           # Git ignore patterns
+├── pyproject.toml       # Tooling and project metadata
+└── setup.py             # Package configuration
 ```
 
-## MVP Features
+## Run the App
 
-- Create, edit, delete, and search notes
-- Markdown-compatible body formatting (bold, italic, underline, bullet lists, checklists)
-- Note privacy toggle with passphrase-based unlock and encrypted-at-rest storage
-- Soft delete with 30-day retention and restore
-- Audit logging for all note operations
-- Browser-based experience with authenticated user accounts and per-user data isolation
+### Prerequisites
 
-## Out of Scope for MVP
-
-- Native desktop client packaging
-- AI summarization or semantic search
-- Native mobile application
-- Per-note key isolation (Post-MVP)
-
-## Getting Started
-
-### Requirements
 - Python 3.9+
-- pip or conda
-- Browser for frontend testing (Chrome, Firefox, or Safari)
+- A modern browser such as Chrome, Firefox, or Safari
 
-### Installation
+### Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Running the Application
+### Start the application
 
 ```bash
 uvicorn src.main:app --reload
 ```
 
-## Development
+Then open the local app in your browser at the address printed by Uvicorn.
 
-### Running Tests
+## Test the MVP
 
 ```bash
 pytest tests/
 ```
 
-### Storage Design
+## Design References
 
-- See `docs/storage_design.md` for the architecture and implementation plan for AstraNote storage.
+- [docs/sdlc-document-map.html](docs/sdlc-document-map.html) for the full document map
+- [docs/product-requirements-document.md](docs/product-requirements-document.md) for the product framing
+- [docs/executive-one-pager.md](docs/executive-one-pager.md) for the short project overview
+- [docs/storage_design.md](docs/storage_design.md) for storage tradeoffs and rationale
+- [planning/requirements.md](planning/requirements.md) for the canonical requirement baseline
 
-### Contributing
+## Runtime Data
 
-Please follow the guidelines in CONTRIBUTING.md (when created)
-
-## License
-
-MIT License - See LICENSE file for details
+The application creates and updates runtime data under the `data/` directory. On first launch, the app should create what it needs automatically.

@@ -43,7 +43,9 @@ def _patch_ui_context(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.unit
-def test_update_private_pin_rejects_invalid_current_pin_format(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_update_private_pin_rejects_invalid_current_pin_format(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _patch_render_pin_panel(monkeypatch)
     _patch_ui_context(monkeypatch)
     private_note_service = Mock()
@@ -61,11 +63,15 @@ def test_update_private_pin_rejects_invalid_current_pin_format(monkeypatch: pyte
     assert result["success"] is None
     assert result["verified_current_pin"] is None
     assert result["pin_update_completed"] is False
-    private_note_service.change_pin.assert_called_once_with(current_pin="12ab", new_pin="5678", confirm_pin="5678")
+    private_note_service.change_pin.assert_called_once_with(
+        current_pin="12ab", new_pin="5678", confirm_pin="5678"
+    )
 
 
 @pytest.mark.unit
-def test_update_private_pin_successfully_rotates_and_persists_new_pin(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_update_private_pin_successfully_rotates_and_persists_new_pin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _patch_render_pin_panel(monkeypatch)
     _patch_ui_context(monkeypatch)
     private_note_service = Mock()
@@ -87,11 +93,15 @@ def test_update_private_pin_successfully_rotates_and_persists_new_pin(monkeypatc
     assert result["success"] == "Private PIN updated."
     assert result["verified_current_pin"] == "5678"
     assert result["pin_update_completed"] is True
-    private_note_service.change_pin.assert_called_once_with(current_pin="1234", new_pin="5678", confirm_pin="5678")
+    private_note_service.change_pin.assert_called_once_with(
+        current_pin="1234", new_pin="5678", confirm_pin="5678"
+    )
 
 
 @pytest.mark.unit
-def test_update_private_pin_rejects_when_current_pin_wrong_and_no_recovery(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_update_private_pin_rejects_when_current_pin_wrong_and_no_recovery(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _patch_render_pin_panel(monkeypatch)
     _patch_ui_context(monkeypatch)
     private_note_service = Mock()
@@ -109,11 +119,15 @@ def test_update_private_pin_rejects_when_current_pin_wrong_and_no_recovery(monke
     assert result["success"] is None
     assert result["verified_current_pin"] is None
     assert result["pin_update_completed"] is False
-    private_note_service.change_pin.assert_called_once_with(current_pin="1234", new_pin="9999", confirm_pin="9999")
+    private_note_service.change_pin.assert_called_once_with(
+        current_pin="1234", new_pin="9999", confirm_pin="9999"
+    )
 
 
 @pytest.mark.unit
-def test_update_private_pin_recovery_branch_allows_pin_unchanged_message(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_update_private_pin_recovery_branch_allows_pin_unchanged_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _patch_render_pin_panel(monkeypatch)
     _patch_ui_context(monkeypatch)
     private_note_service = Mock()
@@ -135,11 +149,15 @@ def test_update_private_pin_recovery_branch_allows_pin_unchanged_message(monkeyp
     assert result["success"] == "Recovered 2 private notes from a previous PIN. PIN unchanged."
     assert result["verified_current_pin"] == "5678"
     assert result["pin_update_completed"] is False
-    private_note_service.change_pin.assert_called_once_with(current_pin="1234", new_pin="5678", confirm_pin="5678")
+    private_note_service.change_pin.assert_called_once_with(
+        current_pin="1234", new_pin="5678", confirm_pin="5678"
+    )
 
 
 @pytest.mark.unit
-def test_update_private_pin_mismatch_preserves_verified_current_pin(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_update_private_pin_mismatch_preserves_verified_current_pin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     _patch_render_pin_panel(monkeypatch)
     _patch_ui_context(monkeypatch)
     private_note_service = Mock()
@@ -160,4 +178,6 @@ def test_update_private_pin_mismatch_preserves_verified_current_pin(monkeypatch:
     assert result["success"] is None
     assert result["verified_current_pin"] == "1234"
     assert result["pin_update_completed"] is False
-    private_note_service.change_pin.assert_called_once_with(current_pin="1234", new_pin="1111", confirm_pin="2222")
+    private_note_service.change_pin.assert_called_once_with(
+        current_pin="1234", new_pin="1111", confirm_pin="2222"
+    )

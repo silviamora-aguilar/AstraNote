@@ -90,7 +90,8 @@ class FakeNoteRepository(NoteRepository):
         return [
             note
             for note in self.notes
-            if not note.is_deleted and (lowered in note.title.lower() or lowered in note.body.lower())
+            if not note.is_deleted
+            and (lowered in note.title.lower() or lowered in note.body.lower())
         ]
 
     def soft_delete(self, note_id: str) -> bool:
@@ -117,11 +118,11 @@ def test_create_note_persists_and_sets_generated_id_and_timestamps() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    note = service.create(title='My First Note', body='hello')
+    note = service.create(title="My First Note", body="hello")
 
     assert note.note_id
-    assert note.title == 'My First Note'
-    assert note.body == 'hello'
+    assert note.title == "My First Note"
+    assert note.body == "hello"
     assert note.created_at == note.updated_at
     assert repo.get(note.note_id) is not None
 
@@ -131,13 +132,13 @@ def test_create_note_applies_duplicate_title_suffix() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    first = service.create(title='Title', body='a')
-    second = service.create(title='Title', body='b')
-    third = service.create(title='Title', body='c')
+    first = service.create(title="Title", body="a")
+    second = service.create(title="Title", body="b")
+    third = service.create(title="Title", body="c")
 
-    assert first.title == 'Title'
-    assert second.title == 'Title1'
-    assert third.title == 'Title2'
+    assert first.title == "Title"
+    assert second.title == "Title1"
+    assert third.title == "Title2"
 
 
 @pytest.mark.unit
@@ -145,8 +146,8 @@ def test_create_note_rejects_symbol_in_title() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    with pytest.raises(NoteValidationError, match='unsupported symbols'):
-        service.create(title='bad<title')
+    with pytest.raises(NoteValidationError, match="unsupported symbols"):
+        service.create(title="bad<title")
 
 
 @pytest.mark.unit
@@ -154,8 +155,8 @@ def test_create_note_rejects_empty_title_after_trim() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    with pytest.raises(NoteValidationError, match='Title is required'):
-        service.create(title='   ')
+    with pytest.raises(NoteValidationError, match="Title is required"):
+        service.create(title="   ")
 
 
 @pytest.mark.unit
@@ -163,8 +164,19 @@ def test_create_note_rejects_title_above_max_length() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    with pytest.raises(NoteValidationError, match='Title must be 1-255 characters'):
-        service.create(title='a' * 256)
+    with pytest.raises(NoteValidationError, match="Title must be 1-255 characters"):
+        service.create(title="a" * 256)
+
+
+@pytest.mark.unit
+def test_create_note_accepts_title_at_max_length_boundary() -> None:
+    repo = FakeNoteRepository()
+    service = NoteService(repo)
+
+    title = "T" * 255
+    note = service.create(title=title)
+
+    assert note.title == title
 
 
 @pytest.mark.unit
@@ -172,8 +184,8 @@ def test_create_note_rejects_title_with_newline() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    with pytest.raises(NoteValidationError, match='newlines'):
-        service.create(title='line1\nline2')
+    with pytest.raises(NoteValidationError, match="newlines"):
+        service.create(title="line1\nline2")
 
 
 @pytest.mark.unit
@@ -181,8 +193,19 @@ def test_create_note_rejects_body_above_limit() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    with pytest.raises(NoteValidationError, match='0-10000'):
-        service.create(title='Valid Title', body='a' * 10001)
+    with pytest.raises(NoteValidationError, match="0-10000"):
+        service.create(title="Valid Title", body="a" * 10001)
+
+
+@pytest.mark.unit
+def test_create_note_accepts_body_at_max_length_boundary() -> None:
+    repo = FakeNoteRepository()
+    service = NoteService(repo)
+
+    body = "b" * 10000
+    note = service.create(title="Boundary body", body=body)
+
+    assert len(note.body) == 10000
 
 
 @pytest.mark.unit
@@ -190,8 +213,8 @@ def test_create_note_accepts_spanish_accented_letters_in_title() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    note = service.create(title='Pañuelos de muñeca')
-    assert note.title == 'Pañuelos de muñeca'
+    note = service.create(title="Pañuelos de muñeca")
+    assert note.title == "Pañuelos de muñeca"
 
 
 @pytest.mark.unit
@@ -199,8 +222,8 @@ def test_create_note_accepts_spanish_inverted_punctuation_in_title() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    note = service.create(title='¿Qué tal?')
-    assert note.title == '¿Qué tal?'
+    note = service.create(title="¿Qué tal?")
+    assert note.title == "¿Qué tal?"
 
 
 @pytest.mark.unit
@@ -208,10 +231,10 @@ def test_create_note_accepts_spanish_characters_in_body() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    note = service.create(title='Nota', body='Él dijo: ¡Hola! ¿Cómo estás, señor García?')
-    assert 'ñ' in note.body
-    assert '¡' in note.body
-    assert '¿' in note.body
+    note = service.create(title="Nota", body="Él dijo: ¡Hola! ¿Cómo estás, señor García?")
+    assert "ñ" in note.body
+    assert "¡" in note.body
+    assert "¿" in note.body
 
 
 @pytest.mark.unit
@@ -220,10 +243,10 @@ def test_create_note_blocks_when_capacity_is_reached() -> None:
     service = NoteService(repo)
 
     for index in range(10_000):
-        service.create(title=f'Title {index}')
+        service.create(title=f"Title {index}")
 
     with pytest.raises(NoteCapacityError, match=re.escape(CAPACITY_ERROR_MESSAGE)):
-        service.create(title='Overflow')
+        service.create(title="Overflow")
 
 
 @pytest.mark.unit
@@ -231,7 +254,7 @@ def test_list_notes_returns_active_repository_notes() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    created = service.create(title='List Me', body='x')
+    created = service.create(title="List Me", body="x")
     notes = service.list_notes()
 
     assert len(notes) == 1
@@ -243,14 +266,16 @@ def test_update_note_persists_title_body_and_updates_timestamp() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    created = service.create(title='Original', body='before')
-    updated = service.update(note_id=created.note_id, title='Updated', body='after', is_private=True)
+    created = service.create(title="Original", body="before")
+    updated = service.update(
+        note_id=created.note_id, title="Updated", body="after", is_private=True
+    )
 
     assert updated.note_id == created.note_id
     assert updated.created_at == created.created_at
     assert updated.updated_at > created.created_at
-    assert updated.title == 'Updated'
-    assert updated.body == 'after'
+    assert updated.title == "Updated"
+    assert updated.body == "after"
     assert updated.is_private is True
 
 
@@ -259,13 +284,13 @@ def test_update_note_applies_duplicate_suffix_excluding_current_note() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    existing = service.create(title='Title', body='a')
-    target = service.create(title='Another', body='b')
+    existing = service.create(title="Title", body="a")
+    target = service.create(title="Another", body="b")
 
-    updated = service.update(note_id=target.note_id, title='Title', body='c', is_private=False)
+    updated = service.update(note_id=target.note_id, title="Title", body="c", is_private=False)
 
-    assert existing.title == 'Title'
-    assert updated.title == 'Title1'
+    assert existing.title == "Title"
+    assert updated.title == "Title1"
 
 
 @pytest.mark.unit
@@ -273,11 +298,13 @@ def test_update_note_keeps_same_title_without_self_suffix() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    created = service.create(title='Stable', body='a')
-    updated = service.update(note_id=created.note_id, title='Stable', body='changed', is_private=False)
+    created = service.create(title="Stable", body="a")
+    updated = service.update(
+        note_id=created.note_id, title="Stable", body="changed", is_private=False
+    )
 
-    assert updated.title == 'Stable'
-    assert updated.body == 'changed'
+    assert updated.title == "Stable"
+    assert updated.body == "changed"
 
 
 @pytest.mark.unit
@@ -285,38 +312,49 @@ def test_update_note_raises_not_found_for_missing_note() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
 
-    with pytest.raises(NoteNotFoundError, match='Note not found'):
-        service.update(note_id='missing-note-id', title='Any title', body='x')
+    with pytest.raises(NoteNotFoundError, match="Note not found"):
+        service.update(note_id="missing-note-id", title="Any title", body="x")
 
 
 @pytest.mark.unit
 def test_update_note_rejects_invalid_title() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
-    created = service.create(title='Valid', body='a')
+    created = service.create(title="Valid", body="a")
 
-    with pytest.raises(NoteValidationError, match='unsupported symbols'):
-        service.update(note_id=created.note_id, title='bad<title', body='x')
+    with pytest.raises(NoteValidationError, match="unsupported symbols"):
+        service.update(note_id=created.note_id, title="bad<title", body="x")
 
 
 @pytest.mark.unit
 def test_update_note_rejects_empty_title_after_trim() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
-    created = service.create(title='Valid', body='a')
+    created = service.create(title="Valid", body="a")
 
-    with pytest.raises(NoteValidationError, match='Title is required'):
-        service.update(note_id=created.note_id, title='   ', body='x')
+    with pytest.raises(NoteValidationError, match="Title is required"):
+        service.update(note_id=created.note_id, title="   ", body="x")
 
 
 @pytest.mark.unit
 def test_update_note_rejects_title_above_max_length() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
-    created = service.create(title='Valid', body='a')
+    created = service.create(title="Valid", body="a")
 
-    with pytest.raises(NoteValidationError, match='Title must be 1-255 characters'):
-        service.update(note_id=created.note_id, title='a' * 256, body='x')
+    with pytest.raises(NoteValidationError, match="Title must be 1-255 characters"):
+        service.update(note_id=created.note_id, title="a" * 256, body="x")
+
+
+@pytest.mark.unit
+def test_update_note_accepts_body_at_max_length_boundary() -> None:
+    repo = FakeNoteRepository()
+    service = NoteService(repo)
+    created = service.create(title="Valid", body="a")
+
+    updated = service.update(note_id=created.note_id, title="Valid", body="x" * 10000)
+
+    assert len(updated.body) == 10000
 
 
 @pytest.mark.unit
@@ -324,36 +362,36 @@ def test_toggle_checklist_item_persists_checked_state_immediately() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
     note = service.create(
-        title='Checklist',
-        body='- [ ] first task\n- [x] second task',
+        title="Checklist",
+        body="- [ ] first task\n- [x] second task",
     )
 
     updated = service.toggle_checklist_item(note.note_id, line_index=0, checked=True)
 
-    assert '- [x] first task' in updated.body
+    assert "- [x] first task" in updated.body
     reloaded = service.get_note(note.note_id)
     assert reloaded is not None
-    assert '- [x] first task' in reloaded.body
+    assert "- [x] first task" in reloaded.body
 
 
 @pytest.mark.unit
 def test_toggle_checklist_item_persists_unchecked_state_immediately() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
-    note = service.create(title='Checklist', body='- [x] done task')
+    note = service.create(title="Checklist", body="- [x] done task")
 
     updated = service.toggle_checklist_item(note.note_id, line_index=0, checked=False)
 
-    assert updated.body == '- [ ] done task'
+    assert updated.body == "- [ ] done task"
 
 
 @pytest.mark.unit
 def test_toggle_checklist_item_rejects_out_of_range_index() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
-    note = service.create(title='Checklist', body='- [ ] first task')
+    note = service.create(title="Checklist", body="- [ ] first task")
 
-    with pytest.raises(NoteValidationError, match='out of range'):
+    with pytest.raises(NoteValidationError, match="out of range"):
         service.toggle_checklist_item(note.note_id, line_index=2, checked=True)
 
 
@@ -361,10 +399,10 @@ def test_toggle_checklist_item_rejects_out_of_range_index() -> None:
 def test_toggle_checklist_item_supports_unicode_checkbox_lines() -> None:
     repo = FakeNoteRepository()
     service = NoteService(repo)
-    note = service.create(title='Checklist', body='☐ first task\n☑ second task')
+    note = service.create(title="Checklist", body="☐ first task\n☑ second task")
 
     checked = service.toggle_checklist_item(note.note_id, line_index=0, checked=True)
-    assert checked.body.split('\n')[0].startswith('☑ ')
+    assert checked.body.split("\n")[0].startswith("☑ ")
 
     unchecked = service.toggle_checklist_item(note.note_id, line_index=1, checked=False)
-    assert unchecked.body.split('\n')[1].startswith('☐ ')
+    assert unchecked.body.split("\n")[1].startswith("☐ ")

@@ -23,11 +23,11 @@ def test_private_note_editor_requires_unlock(client) -> None:
     assert page_response.status_code == 200
 
     # Grab note id from newly created item and request editor panel.
-    marker = "id=\"note-"
+    marker = 'id="note-'
     start = create_response.text.find(marker)
     assert start != -1
     note_id_start = start + len(marker)
-    note_id_end = create_response.text.find("\"", note_id_start)
+    note_id_end = create_response.text.find('"', note_id_start)
     note_id = create_response.text[note_id_start:note_id_end]
 
     editor_response = client.get(f"/ui/notes/{note_id}/editor")
@@ -49,11 +49,11 @@ def test_private_note_unlock_with_wrong_then_correct_pin(client) -> None:
     )
     assert create_response.status_code == 201
 
-    marker = "id=\"note-"
+    marker = 'id="note-'
     start = create_response.text.find(marker)
     assert start != -1
     note_id_start = start + len(marker)
-    note_id_end = create_response.text.find("\"", note_id_start)
+    note_id_end = create_response.text.find('"', note_id_start)
     note_id = create_response.text[note_id_start:note_id_end]
 
     wrong_response = client.post(f"/ui/notes/{note_id}/unlock", data={"pin": "0000"})
