@@ -5,7 +5,12 @@ from __future__ import annotations
 from fastapi import status
 
 from src.app.dependencies import get_app_logger
-from src.app.services import NoteCapacityError, NoteNotFoundError, NotePersistenceError, NoteValidationError
+from src.app.services import (
+    NoteCapacityError,
+    NoteNotFoundError,
+    NotePersistenceError,
+    NoteValidationError,
+)
 
 
 def map_note_error_status(exc: Exception) -> int:
@@ -43,10 +48,18 @@ def map_note_error_code(exc: Exception) -> str:
     return "INTERNAL_ERROR"
 
 
-def log_note_exception(exc: Exception, *, surface: str, operation: str, note_id: str | None = None) -> None:
+def log_note_exception(
+    exc: Exception, *, surface: str, operation: str, note_id: str | None = None
+) -> None:
     """Write a user-safe diagnostic entry for note route failures."""
     logger = get_app_logger()
-    level = "warning" if isinstance(exc, (NoteValidationError, NoteCapacityError, NoteNotFoundError, NotePersistenceError)) else "error"
+    level = (
+        "warning"
+        if isinstance(
+            exc, (NoteValidationError, NoteCapacityError, NoteNotFoundError, NotePersistenceError)
+        )
+        else "error"
+    )
     getattr(logger, level)(
         f"{surface} note operation failed.",
         tier=surface,

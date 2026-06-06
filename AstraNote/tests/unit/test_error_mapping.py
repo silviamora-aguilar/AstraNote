@@ -5,7 +5,12 @@ from __future__ import annotations
 import pytest
 
 from src.app.api.error_mapping import map_note_error_code
-from src.app.services import NoteCapacityError, NoteNotFoundError, NotePersistenceError, NoteValidationError
+from src.app.services import (
+    NoteCapacityError,
+    NoteNotFoundError,
+    NotePersistenceError,
+    NoteValidationError,
+)
 
 
 @pytest.mark.unit

@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from threading import Lock
+from typing import Any, List
 
 from sqlalchemy import (
     Boolean,
@@ -19,7 +20,7 @@ from sqlalchemy import (
     select,
     text,
 )
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 from sqlalchemy.pool import NullPool
 
@@ -66,12 +67,14 @@ class SqlNoteRepository(NoteRepository):
             db_rel_path = database_url.removeprefix("sqlite:///./")
             Path(db_rel_path).parent.mkdir(parents=True, exist_ok=True)
 
-        engine_kwargs = {"future": True}
+        engine_kwargs: dict[str, Any] = {"future": True}
         if database_url.startswith("sqlite:///"):
             engine_kwargs["poolclass"] = NullPool
 
         self.engine = create_engine(database_url, **engine_kwargs)
-        self._session_factory = sessionmaker(bind=self.engine, autoflush=False, autocommit=False, future=True)
+        self._session_factory = sessionmaker(
+            bind=self.engine, autoflush=False, autocommit=False, future=True
+        )
         self._crypto = crypto_service or CryptoService()
         self._title_write_lock = Lock()
         Base.metadata.create_all(self.engine)
@@ -94,7 +97,9 @@ class SqlNoteRepository(NoteRepository):
             for stmt in alter_stmts:
                 conn.execute(text(stmt))
 
-    def _encrypt_title_body(self, title: str, body: str, is_private: bool, pin_salt: str | None) -> tuple[str, str, str | None]:
+    def _encrypt_title_body(
+        self, title: str, body: str, is_private: bool, pin_salt: str | None
+    ) -> tuple[str, str, str | None]:
         if is_private:
             effective_salt = pin_salt or self._crypto.new_pin_salt()
             return (
@@ -162,7 +167,10 @@ class SqlNoteRepository(NoteRepository):
                             candidate = title
                             suffix = 1
                             while True:
-                                if not any(self._to_domain(record).title == candidate for record in active_records):
+                                if not any(
+                                    self._to_domain(record).title == candidate
+                                    for record in active_records
+                                ):
                                     break
                                 candidate = f"{title}{suffix}"
                                 suffix += 1
@@ -240,12 +248,19 @@ class SqlNoteRepository(NoteRepository):
                             if record is None or record.is_deleted:
                                 raise NoteRepositoryNotFoundError("note not found")
 
-                            active_records = [r for r in self._list_active_records(session) if r.note_id != note_id]
+                            active_records = [
+                                r
+                                for r in self._list_active_records(session)
+                                if r.note_id != note_id
+                            ]
 
                             candidate = title
                             suffix = 1
                             while True:
-                                if not any(self._to_domain(active_record).title == candidate for active_record in active_records):
+                                if not any(
+                                    self._to_domain(active_record).title == candidate
+                                    for active_record in active_records
+                                ):
                                     break
                                 candidate = f"{title}{suffix}"
                                 suffix += 1
@@ -288,7 +303,7 @@ class SqlNoteRepository(NoteRepository):
             records = session.scalars(stmt).all()
             return [self._to_domain(record) for record in records]
 
-    def search(self, query: str) -> list[Note]:
+    def search(self, query: str) -> List[Note]:
         normalized_query = query.lower()
         with self._session_factory() as session:
             records = self._list_active_records(session)
@@ -326,7 +341,7 @@ class SqlNoteRepository(NoteRepository):
             except SQLAlchemyError as exc:
                 raise NoteRepositoryError("Failed to restore note") from exc
 
-    def list_deleted(self) -> list[Note]:
+    def list_deleted(self) -> List[Note]:
         with self._session_factory() as session:
             stmt = (
                 select(NoteRecord)
@@ -353,14 +368,11 @@ class SqlNoteRepository(NoteRepository):
         with self._session_factory() as session:
             try:
                 with session.begin():
-                    stmt = (
-                        select(NoteRecord)
-                        .where(
-                            and_(
-                                NoteRecord.is_deleted.is_(True),
-                                NoteRecord.deleted_at.is_not(None),
-                                NoteRecord.deleted_at < cutoff,
-                            )
+                    stmt = select(NoteRecord).where(
+                        and_(
+                            NoteRecord.is_deleted.is_(True),
+                            NoteRecord.deleted_at.is_not(None),
+                            NoteRecord.deleted_at < cutoff,
                         )
                     )
                     records = list(session.scalars(stmt).all())
@@ -372,7 +384,9 @@ class SqlNoteRepository(NoteRepository):
 
     def count_active_notes(self) -> int:
         with self._session_factory() as session:
-            stmt = select(func.count()).select_from(NoteRecord).where(NoteRecord.is_deleted.is_(False))
+            stmt = (
+                select(func.count()).select_from(NoteRecord).where(NoteRecord.is_deleted.is_(False))
+            )
             count = session.scalar(stmt)
             return int(count or 0)
 
@@ -383,7 +397,9 @@ class SqlNoteRepository(NoteRepository):
 
     def rotate_private_pin(self, old_pin: str, new_pin: str) -> int:
         """Re-encrypt private note fields when app-level PIN changes."""
-        if not self._crypto.validate_pin_format(old_pin) or not self._crypto.validate_pin_format(new_pin):
+        if not self._crypto.validate_pin_format(old_pin) or not self._crypto.validate_pin_format(
+            new_pin
+        ):
             raise NoteRepositoryError("Failed to rotate private note PIN")
 
         updated_count = 0
@@ -397,10 +413,18 @@ class SqlNoteRepository(NoteRepository):
                     for record in records:
                         if not record.pin_salt:
                             continue
-                        plaintext_title = self._crypto.decrypt_private_with_pin(record.title, record.pin_salt, old_pin)
-                        plaintext_body = self._crypto.decrypt_private_with_pin(record.body, record.pin_salt, old_pin)
-                        record.title = self._crypto.encrypt_private_with_pin(plaintext_title, record.pin_salt, new_pin)
-                        record.body = self._crypto.encrypt_private_with_pin(plaintext_body, record.pin_salt, new_pin)
+                        plaintext_title = self._crypto.decrypt_private_with_pin(
+                            record.title, record.pin_salt, old_pin
+                        )
+                        plaintext_body = self._crypto.decrypt_private_with_pin(
+                            record.body, record.pin_salt, old_pin
+                        )
+                        record.title = self._crypto.encrypt_private_with_pin(
+                            plaintext_title, record.pin_salt, new_pin
+                        )
+                        record.body = self._crypto.encrypt_private_with_pin(
+                            plaintext_body, record.pin_salt, new_pin
+                        )
                         updated_count += 1
             except Exception as exc:
                 raise NoteRepositoryError("Failed to rotate private note PIN") from exc

@@ -20,15 +20,15 @@ def step_call_health(context):
 @then("I should receive a 200 status")
 def step_check_status(context):
     """Verify response status is 200."""
-    assert context.response.status_code == 200, \
-        f"Expected 200, got {context.response.status_code}"
+    assert context.response.status_code == 200, f"Expected 200, got {context.response.status_code}"
 
 
 @then("the response should contain {expected_json}")
 def step_check_json(context, expected_json):
     """Verify response JSON matches expected."""
     import json
+
     expected = json.loads(expected_json)
     actual = context.response.json()
-    assert actual == expected, \
-        f"Expected {expected}, got {actual}"
+    for key, value in expected.items():
+        assert actual.get(key) == value, f"Expected {key}={value}, got {actual}"

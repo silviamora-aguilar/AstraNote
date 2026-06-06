@@ -22,7 +22,9 @@ def test_audit_log_writes_create_update_delete_restore_entries(tmp_path: Path) -
     service = NoteService(repository, audit_logger=logger)
 
     created = service.create(title="Audit Note", body="payload", is_private=False)
-    service.update(created.note_id, title="Audit Note Updated", body="updated payload", is_private=False)
+    service.update(
+        created.note_id, title="Audit Note Updated", body="updated payload", is_private=False
+    )
     service.delete(created.note_id)
     service.restore(created.note_id)
 

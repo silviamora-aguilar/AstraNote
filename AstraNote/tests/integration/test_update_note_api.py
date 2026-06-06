@@ -35,10 +35,14 @@ def test_update_note_endpoint_returns_200_and_updated_payload(client) -> None:
 @pytest.mark.integration
 def test_update_note_endpoint_applies_duplicate_suffix(client) -> None:
     existing_title = f"Duplicate Seed {uuid4()}"
-    first = client.post("/api/notes", json={"title": existing_title, "body": "a", "is_private": False})
+    first = client.post(
+        "/api/notes", json={"title": existing_title, "body": "a", "is_private": False}
+    )
     assert first.status_code == 201
 
-    second = client.post("/api/notes", json={"title": f"Second {uuid4()}", "body": "b", "is_private": False})
+    second = client.post(
+        "/api/notes", json={"title": f"Second {uuid4()}", "body": "b", "is_private": False}
+    )
     assert second.status_code == 201
     second_id = second.json()["note_id"]
 

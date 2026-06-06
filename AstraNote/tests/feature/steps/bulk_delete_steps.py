@@ -26,9 +26,9 @@ def step_bulk_delete_two_notes(context):
 
 @then("the bulk delete response should be successful")
 def step_bulk_delete_success(context):
-    assert context.bulk_delete_response.status_code == 200, (
-        f"Expected 200, got {context.bulk_delete_response.status_code}"
-    )
+    assert (
+        context.bulk_delete_response.status_code == 200
+    ), f"Expected 200, got {context.bulk_delete_response.status_code}"
 
 
 @then("exactly two notes should be deleted")
@@ -41,6 +41,6 @@ def step_bulk_delete_count(context):
 def step_unselected_note_still_active(context):
     remaining_note_id = context.created_notes[1]["note_id"]
     delete_response = context.client.delete(f"/api/notes/{remaining_note_id}")
-    assert delete_response.status_code == 204, (
-        f"Expected unselected note to remain active; delete returned {delete_response.status_code}"
-    )
+    assert (
+        delete_response.status_code == 204
+    ), f"Expected unselected note to remain active; delete returned {delete_response.status_code}"

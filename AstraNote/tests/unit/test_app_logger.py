@@ -14,7 +14,9 @@ def test_app_logger_writes_structured_entry(tmp_path) -> None:
     log_path = tmp_path / "astranote.log"
     logger = AppLogger(log_path, level="INFO")
 
-    logger.warning("Route failure.", tier="ui", operation="create", note_id="n-1", error_code="SAVE_ERROR")
+    logger.warning(
+        "Route failure.", tier="ui", operation="create", note_id="n-1", error_code="SAVE_ERROR"
+    )
 
     entry = json.loads(log_path.read_text(encoding="utf-8").strip())
     assert entry["severity"] == "WARNING"

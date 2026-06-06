@@ -56,7 +56,9 @@ def test_unlock_internal_pin_error_returns_same_user_message(tmp_path: Path) -> 
 
 
 @pytest.mark.unit
-def test_unlock_lockout_triggers_after_five_failures_and_does_not_carry_over(tmp_path: Path) -> None:
+def test_unlock_lockout_triggers_after_five_failures_and_does_not_carry_over(
+    tmp_path: Path,
+) -> None:
     state_file = tmp_path / "security-state.json"
     manager = UnlockSessionManager(CryptoService(private_pin="1234"), state_file=state_file)
 
@@ -79,7 +81,9 @@ def test_unlock_lockout_triggers_after_five_failures_and_does_not_carry_over(tmp
 @pytest.mark.unit
 def test_unlock_inactivity_expires_session(tmp_path: Path) -> None:
     state_file = tmp_path / "security-state.json"
-    manager = UnlockSessionManager(CryptoService(private_pin="1234"), state_file=state_file, unlock_timeout_minutes=15)
+    manager = UnlockSessionManager(
+        CryptoService(private_pin="1234"), state_file=state_file, unlock_timeout_minutes=15
+    )
 
     unlocked, error = manager.attempt_unlock("note-a", "1234")
     assert unlocked is True

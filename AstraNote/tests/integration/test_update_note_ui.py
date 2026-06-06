@@ -30,10 +30,10 @@ def test_htmx_get_editor_panel_renders_selected_note(client) -> None:
     assert "Edit Note" in panel_response.text
     assert seed_title in panel_response.text
     assert "Save edits" in panel_response.text
-    assert "name=\"is_private\"" in panel_response.text
+    assert 'name="is_private"' in panel_response.text
     assert "Body formatting tools" in panel_response.text
     assert f"applyWysiwygFormat('bold', 'body-{note_id}')" in panel_response.text
-    assert f"id=\"body-{note_id}\"" in panel_response.text
+    assert f'id="body-{note_id}"' in panel_response.text
     assert "body-wysiwyg" in panel_response.text
 
 
@@ -42,7 +42,7 @@ def test_notes_page_uses_list_selection_not_inline_dropdown_editor(client) -> No
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "id=\"editor-slot\"" in response.text
+    assert 'id="editor-slot"' in response.text
     assert "Edit note" not in response.text
 
 
@@ -52,12 +52,12 @@ def test_create_panel_template_includes_formatting_toolbar(client) -> None:
 
     assert response.status_code == 200
     assert "Body formatting tools" in response.text
-    assert "data-format-action=\"bullet\"" in response.text
-    assert "data-format-action=\"checklist\"" in response.text
-    assert "data-format-action=\"bold\"" in response.text
-    assert "data-format-action=\"italic\"" in response.text
-    assert "data-format-action=\"underline\"" in response.text
-    assert "class=\"body-wysiwyg\"" in response.text
+    assert 'data-format-action="bullet"' in response.text
+    assert 'data-format-action="checklist"' in response.text
+    assert 'data-format-action="bold"' in response.text
+    assert 'data-format-action="italic"' in response.text
+    assert 'data-format-action="underline"' in response.text
+    assert 'class="body-wysiwyg"' in response.text
 
 
 @pytest.mark.integration
@@ -81,7 +81,7 @@ def test_htmx_update_note_returns_updated_editor_panel(client) -> None:
     assert update_response.status_code == 200
     assert "Updated via UI" in update_response.text
     assert "Save edits" in update_response.text
-    assert "hx-swap-oob=\"outerHTML\"" in update_response.text
+    assert 'hx-swap-oob="outerHTML"' in update_response.text
     assert "Created:" in update_response.text
     assert "PDT" in update_response.text
 
@@ -146,7 +146,11 @@ def test_htmx_update_note_clears_body_when_body_field_missing(client) -> None:
 def test_private_note_list_item_shows_private_placeholder(client) -> None:
     response = client.post(
         "/ui/notes",
-        data={"title": f"Private Preview Seed {uuid4()}", "body": "secret text", "is_private": "true"},
+        data={
+            "title": f"Private Preview Seed {uuid4()}",
+            "body": "secret text",
+            "is_private": "true",
+        },
     )
 
     assert response.status_code == 201
@@ -170,7 +174,7 @@ def test_notes_page_includes_today_note_target(client) -> None:
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "id=\"today-note-list\"" in response.text
+    assert 'id="today-note-list"' in response.text
 
 
 @pytest.mark.integration
@@ -191,7 +195,11 @@ def test_note_preview_returns_full_content_for_css_ellipsis(client) -> None:
     long_body = "A" * 260
     response = client.post(
         "/ui/notes",
-        data={"title": f"Preview Truncate Seed {uuid4()}", "body": long_body, "is_private": "false"},
+        data={
+            "title": f"Preview Truncate Seed {uuid4()}",
+            "body": long_body,
+            "is_private": "false",
+        },
     )
 
     assert response.status_code == 201
@@ -284,7 +292,7 @@ def test_note_list_item_does_not_render_created_date(client) -> None:
     )
 
     assert response.status_code == 201
-    assert "<span class=\"note-meta\">" not in response.text
+    assert '<span class="note-meta">' not in response.text
 
 
 @pytest.mark.integration
@@ -301,7 +309,10 @@ def test_editor_panel_renders_modified_timestamp_under_created(client) -> None:
 
     editor_response = client.get(f"/ui/notes/{note_id}/editor")
     assert editor_response.status_code == 200
-    assert re.search(r"Modified:\s*[A-Z][a-z]+\s\d{2},\s\d{4}\s\d{2}:\d{2}\s(?:AM|PM)\s(PST|PDT)", editor_response.text)
+    assert re.search(
+        r"Modified:\s*[A-Z][a-z]+\s\d{2},\s\d{4}\s\d{2}:\d{2}\s(?:AM|PM)\s(PST|PDT)",
+        editor_response.text,
+    )
 
 
 @pytest.mark.integration
@@ -326,7 +337,11 @@ def test_modified_timestamp_label_switches_between_pst_and_pdt() -> None:
 def test_editor_panel_renders_checklist_toggle_controls(client) -> None:
     create_response = client.post(
         "/ui/notes",
-        data={"title": f"Checklist Seed {uuid4()}", "body": "- [ ] first task\n- [x] second task", "is_private": "false"},
+        data={
+            "title": f"Checklist Seed {uuid4()}",
+            "body": "- [ ] first task\n- [x] second task",
+            "is_private": "false",
+        },
     )
     assert create_response.status_code == 201
 
@@ -345,7 +360,11 @@ def test_editor_panel_renders_checklist_toggle_controls(client) -> None:
 def test_checklist_toggle_route_persists_state_and_returns_updated_panel(client) -> None:
     create_response = client.post(
         "/ui/notes",
-        data={"title": f"Checklist Toggle {uuid4()}", "body": "- [ ] first task\n- [x] second task", "is_private": "false"},
+        data={
+            "title": f"Checklist Toggle {uuid4()}",
+            "body": "- [ ] first task\n- [x] second task",
+            "is_private": "false",
+        },
     )
     assert create_response.status_code == 201
 
@@ -371,7 +390,11 @@ def test_checklist_toggle_route_persists_state_and_returns_updated_panel(client)
 def test_checklist_toggle_route_returns_400_for_invalid_index(client) -> None:
     create_response = client.post(
         "/ui/notes",
-        data={"title": f"Checklist Invalid {uuid4()}", "body": "- [ ] first task", "is_private": "false"},
+        data={
+            "title": f"Checklist Invalid {uuid4()}",
+            "body": "- [ ] first task",
+            "is_private": "false",
+        },
     )
     assert create_response.status_code == 201
 
@@ -385,3 +408,40 @@ def test_checklist_toggle_route_returns_400_for_invalid_index(client) -> None:
     )
     assert toggle_response.status_code == 400
     assert "out of range" in toggle_response.text
+
+
+@pytest.mark.integration
+def test_create_ui_note_escapes_script_like_body_content(client) -> None:
+    response = client.post(
+        "/ui/notes",
+        data={
+            "title": f"Escaping Seed {uuid4()}",
+            "body": '<script>alert("x")</script> visible text',
+            "is_private": "false",
+        },
+    )
+
+    assert response.status_code == 201
+    assert "<script>" not in response.text
+
+
+@pytest.mark.integration
+def test_editor_panel_escapes_script_like_body_content(client) -> None:
+    create_response = client.post(
+        "/ui/notes",
+        data={
+            "title": f"Editor Escaping {uuid4()}",
+            "body": '<script>alert("x")</script> editable text',
+            "is_private": "false",
+        },
+    )
+    assert create_response.status_code == 201
+
+    match = re.search(r'id="note-([a-zA-Z0-9-]+)"', create_response.text)
+    assert match is not None
+    note_id = match.group(1)
+
+    editor_response = client.get(f"/ui/notes/{note_id}/editor")
+
+    assert editor_response.status_code == 200
+    assert "<script>" not in editor_response.text

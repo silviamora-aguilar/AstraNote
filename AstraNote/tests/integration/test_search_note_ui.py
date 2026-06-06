@@ -19,13 +19,13 @@ class _NoNotesService:
 
 @pytest.mark.integration
 def test_notes_page_places_search_next_to_create_button(client) -> None:
-    response = client.get('/')
+    response = client.get("/")
 
     assert response.status_code == 200
     assert 'id="search-form"' in response.text
     assert 'id="note-search"' in response.text
 
-    create_index = response.text.find('Create Note')
+    create_index = response.text.find("Create Note")
     search_index = response.text.find('id="search-form"')
     assert create_index != -1
     assert search_index != -1
@@ -38,10 +38,10 @@ def test_ui_search_filters_notes_and_returns_matching_partial(client) -> None:
     title_hit = f"Hit {marker}"
     title_miss = f"Miss {marker}"
 
-    client.post('/ui/notes', data={'title': title_hit, 'body': 'find-me'})
-    client.post('/ui/notes', data={'title': title_miss, 'body': 'ignore-me'})
+    client.post("/ui/notes", data={"title": title_hit, "body": "find-me"})
+    client.post("/ui/notes", data={"title": title_miss, "body": "ignore-me"})
 
-    response = client.get('/ui/notes/search', params={'query': 'find-me'})
+    response = client.get("/ui/notes/search", params={"query": "find-me"})
 
     assert response.status_code == 200
     assert title_hit in response.text
@@ -51,12 +51,12 @@ def test_ui_search_filters_notes_and_returns_matching_partial(client) -> None:
 @pytest.mark.integration
 def test_ui_search_no_match_message_when_notes_exist(client) -> None:
     marker = str(uuid4())
-    client.post('/ui/notes', data={'title': f'Existing {marker}', 'body': 'content'})
+    client.post("/ui/notes", data={"title": f"Existing {marker}", "body": "content"})
 
-    response = client.get('/ui/notes/search', params={'query': f'no-match-{marker}'})
+    response = client.get("/ui/notes/search", params={"query": f"no-match-{marker}"})
 
     assert response.status_code == 200
-    assert 'No notes match your search.' in response.text
+    assert "No notes match your search." in response.text
 
 
 @pytest.mark.integration
@@ -65,12 +65,12 @@ def test_ui_search_no_notes_uses_empty_state_message(client) -> None:
 
     app.dependency_overrides[get_note_service] = lambda: _NoNotesService()
     try:
-        response = client.get('/ui/notes/search', params={'query': 'anything'})
+        response = client.get("/ui/notes/search", params={"query": "anything"})
     finally:
         app.dependency_overrides.clear()
 
     assert response.status_code == 200
-    assert 'No notes yet. Create your first note.' in response.text
+    assert "No notes yet. Create your first note." in response.text
 
 
 @pytest.mark.integration
@@ -79,10 +79,10 @@ def test_ui_search_whitespace_query_returns_full_list(client) -> None:
     title_a = f"Whitespace A {marker}"
     title_b = f"Whitespace B {marker}"
 
-    client.post('/ui/notes', data={'title': title_a, 'body': ''})
-    client.post('/ui/notes', data={'title': title_b, 'body': ''})
+    client.post("/ui/notes", data={"title": title_a, "body": ""})
+    client.post("/ui/notes", data={"title": title_b, "body": ""})
 
-    response = client.get('/ui/notes/search', params={'query': '   '})
+    response = client.get("/ui/notes/search", params={"query": "   "})
 
     assert response.status_code == 200
     assert title_a in response.text

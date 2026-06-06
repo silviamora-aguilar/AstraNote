@@ -26,7 +26,9 @@ def get_config_service() -> ConfigService:
 def get_app_logger() -> AppLogger:
     """Provide a singleton diagnostic logger."""
     config = get_config_service()
-    return AppLogger(config.data_dir_path / "astranote.log", level=str(config.get("log_level") or "INFO"))
+    return AppLogger(
+        config.data_dir_path / "astranote.log", level=str(config.get("log_level") or "INFO")
+    )
 
 
 @lru_cache(maxsize=1)
@@ -84,7 +86,7 @@ def get_note_service(
 
 
 def get_private_note_service(
-    note_repository: Annotated[NoteRepository, Depends(get_note_repository)],
+    note_repository: Annotated[SqlNoteRepository, Depends(get_note_repository)],
     crypto_service: Annotated[CryptoService, Depends(get_crypto_service)],
     pin_settings: Annotated[PinSettingsManager, Depends(get_pin_settings_manager)],
     unlock_manager: Annotated[UnlockSessionManager, Depends(get_unlock_session_manager)],
