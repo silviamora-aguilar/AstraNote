@@ -27,7 +27,7 @@ Detailed evidence lives in planning/traceability-matrix.md.
 - MVP priorities: encrypted note title/body at rest, private-note unlock security, and interface localization toggle.
 - Multi-user account/session capabilities are deferred to Post-MVP unless explicitly reactivated.
 
-<h2 style="color: #2a5c8a;">MVP Requirements by Section</h2>
+## MVP Requirements by Section
 
 ### Functional Requirements (REQ)
 
@@ -75,19 +75,18 @@ Detailed evidence lives in planning/traceability-matrix.md.
 
 - **SRG-01 ✅**: All notes shall be encrypted at rest with authenticated encryption (AES-256-GCM or ChaCha20-Poly1305). At minimum, note title, note body, and note content versions shall be encrypted and shall never be written to persistent storage in plaintext; only minimal non-sensitive metadata required for indexing and lifecycle management may remain unencrypted.
 - **SRG-02 ✅**: For notes marked as private, encryption at rest shall include title, body, and private-note content versions; only minimal non-sensitive metadata required for indexing and lifecycle management may remain unencrypted.
-- **SRG-04.1 ✅**: Localhost-only development on 127.0.0.1 may use HTTP during MVP development.
-- **SRG-04.2 [Post-MVP]**: Any non-local network transmission containing note content (including sync, backup, restore, and export/import APIs) shall use TLS 1.2 or higher; note content shall not be transmitted over unencrypted channels outside localhost.
+- **SRG-04**: Any non-local network transmission containing note content (including sync, backup, restore, and export/import APIs) shall use TLS 1.2 or higher; note content shall not be transmitted over unencrypted channels outside localhost. Localhost-only development on 127.0.0.1 may use HTTP during MVP development.
 - **SRG-05 ✅**: Create, read, update, delete, restore, and export operations shall generate audit log entries containing actor identity, action type, note ID, UTC timestamp, operation outcome, and request correlation ID.
 - **SRG-07 ✅**: Audit entries shall not store plaintext private note content; change details shall be limited to metadata and content fingerprints.
-- **SRG-08 [Post-MVP]**: Note version history shall be immutable; updates shall create new version records and shall not modify prior stored versions.
+- **SRG-08 ✅**: Note version history shall be immutable; updates shall create new version records and shall not modify prior stored versions.
 - **SRG-10 ✅**: Deleting a note shall perform a soft delete by default, retaining recoverable metadata and content for 15 calendar days.
 - **SRG-11 ✅**: Soft-deleted notes shall be excluded from default list and search results, and shall be accessible in a Trash view where users can restore notes or permanently delete them before retention expiry. The Trash view shall support read-only note inspection, including rendered body formatting; private trashed notes shall remain locked until PIN authentication succeeds.
 - **SRG-12 ✅**: At retention expiry (15 days after soft delete), notes in Trash shall be automatically and permanently purged.
-- **SRG-13 ✅**: Restore operations shall preserve original note ID and create an audit entry for restore action. Version-history continuity remains deferred until SRG-08 is activated.
+- **SRG-13 ✅**: Restore operations shall preserve original note ID, maintain version history continuity, and create an audit entry for restore action.
 - **SRG-14 ✅**: Invalid save, load, or delete operations (including malformed input, missing records, permission denial, and integrity check failures) shall return structured errors with machine-readable codes and user-safe messages, and shall not crash the application.
 - **SRG-15 ✅**: On failed save, load, delete, or restore operations, the system shall preserve pre-operation data state and prevent partial writes via atomic commit/rollback behavior.
 - **SRG-16 ✅**: Repeated identical invalid requests shall produce consistent error codes and shall not create duplicate side effects in storage or audit logs.
-- **SRG-17 ✅**: No non-local feature that transmits note content may be released unless SRG-04.2 transport encryption requirements are satisfied.
+- **SRG-17 ✅**: No non-local feature that transmits note content may be released unless SRG-04 transport encryption requirements are satisfied.
 - **SRG-18 ✅**: Viewing or decrypting a private note shall require successful private-note unlock authentication using the app-wide 4-digit PIN.
 - **SRG-19 ✅**: Private note content shall remain hidden until unlock authentication succeeds; failed authentication shall not reveal any private title/body/version plaintext.
 - **SRG-20 ✅**: Unlock authentication shall be required at least once per app session before any private note can be opened.
@@ -102,22 +101,25 @@ Detailed evidence lives in planning/traceability-matrix.md.
 
 ### Serviceability and Manageability Requirements (SMR)
 
-- **SMR-01 ✅**: The application shall write diagnostic (non-audit) log entries to a rotating log file in the application data directory. Each entry shall include UTC timestamp, severity (DEBUG / INFO / WARNING / ERROR), and a message string. Tier and correlation metadata are recommended for MVP and required by Post-MVP hardening. The log file shall rotate when it exceeds 5 MB, retaining the two most recent rotated files.
-- **SMR-03 ✅**: Log entries shall never contain plaintext note content (title, body, or private-note fields). Diagnostic context for note operations shall be limited to `note_id` and operation type.
-- **SMR-04 ✅**: Errors originating in Storage or Security shall be translated into stable service/UI-safe domain errors before crossing the service boundary. The UI tier shall not receive raw storage or crypto exceptions. Structured tier-tagged error metadata (`source_tier`) is deferred to Post-MVP hardening.
-- **SMR-05 ✅**: The UI tier shall render a user-safe error state for every structured domain error it receives, without exposing machine-readable codes or stack traces to the user. The machine-readable code shall be available in the diagnostic log at WARNING or ERROR level.
-- **SMR-06 ✅**: On application startup, the application shall verify that the data directory exists and is writable. If the directory does not exist, the application shall create it with appropriate permissions before proceeding. If the directory is not writable, the application shall display a clear startup error and refuse to launch rather than operating in a partially functional state.
-- **SMR-07 ✅**: On startup, the application shall verify that the primary persistence store is readable and structurally valid (SQLite file present/creatable and schema readable). If the store is unreadable or structurally invalid, the application shall log the error with ERROR severity and fail fast with a clear startup message rather than operating in a partially functional state. Automatic corrupt-artifact rename and reinitialize workflows are deferred to Post-MVP hardening.
-- **SMR-09 ✅**: Application configuration shall be stored in `config.json` in the data directory. The application shall define a fixed set of supported configuration keys with documented defaults. Unknown keys in `config.json` shall be silently ignored (forward compatibility). Missing keys shall fall back to their documented defaults (backward compatibility). Config values shall be validated on load; invalid values shall fall back to defaults and log a WARNING.
-- **SMR-10 ✅**: The following configuration keys shall be supported at MVP: `log_level` (default: "INFO"), `data_dir` (default: platform-appropriate app data directory), `inactivity_timeout_minutes` (default: 15, maps to SRG-21), `max_notes` (default: 10000, maps to REQ-23), `private_pin_token` (encrypted token that represents the active app PIN; bootstrap behavior remains default `1234` until user changes it, maps to SRG-27 and SRG-28). Runtime live-reload behavior is deferred per SMR-02.
-- **SMR-11 ✅**: The application shall embed a semantic version string (for example, "1.0.0") accessible at runtime and include it in startup/runtime metadata outputs. A dedicated About/Help UI surface is deferred to Post-MVP.
+- **SMR-01 ✅ [MVP]**: The application shall write diagnostic (non-audit) log entries to a rotating log file in the application data directory. Each entry shall include UTC timestamp, severity (DEBUG / INFO / WARNING / ERROR), and a message string. Tier and correlation metadata are recommended for MVP and required by Post-MVP hardening. The log file shall rotate when it exceeds 5 MB, retaining the two most recent rotated files.
+- **SMR-02 [Post-MVP]**: The active log level shall be configurable in `config.json` under the key `log_level` (values: DEBUG, INFO, WARNING, ERROR). The default level shall be INFO. Changing the log level shall take effect without restarting the application.
+- **SMR-03 ✅ [MVP]**: Log entries shall never contain plaintext note content (title, body, or private-note fields). Diagnostic context for note operations shall be limited to `note_id` and operation type.
+- **SMR-04 ✅ [MVP]**: Errors originating in Storage or Security shall be translated into stable service/UI-safe domain errors before crossing the service boundary. The UI tier shall not receive raw storage or crypto exceptions. Structured tier-tagged error metadata (`source_tier`) is deferred to Post-MVP hardening.
+- **SMR-05 ✅ [MVP]**: The UI tier shall render a user-safe error state for every structured domain error it receives, without exposing machine-readable codes or stack traces to the user. The machine-readable code shall be available in the diagnostic log at WARNING or ERROR level.
+- **SMR-06 ✅ [MVP]**: On application startup, the application shall verify that the data directory exists and is writable. If the directory does not exist, the application shall create it with appropriate permissions before proceeding. If the directory is not writable, the application shall display a clear startup error and refuse to launch rather than operating in a partially functional state.
+- **SMR-07 ✅ [MVP]**: On startup, the application shall verify that the primary persistence store is readable and structurally valid (SQLite file present/creatable and schema readable). If the store is unreadable or structurally invalid, the application shall log the error with ERROR severity and fail fast with a clear startup message rather than operating in a partially functional state. Automatic corrupt-artifact rename and reinitialize workflows are deferred to Post-MVP hardening.
+- **SMR-08 [Post-MVP]**: The storage schema shall include explicit migration/version tracking (for example, Alembic revision history). The application shall reject startup writes if stored schema version is higher than the application's supported version, logging the mismatch at ERROR severity and refusing to write.
+- **SMR-09 ✅ [MVP]**: Application configuration shall be stored in `config.json` in the data directory. The application shall define a fixed set of supported configuration keys with documented defaults. Unknown keys in `config.json` shall be silently ignored (forward compatibility). Missing keys shall fall back to their documented defaults (backward compatibility). Config values shall be validated on load; invalid values shall fall back to defaults and log a WARNING.
+- **SMR-10 ✅ [MVP]**: The following configuration keys shall be supported at MVP: `log_level` (default: "INFO"), `data_dir` (default: platform-appropriate app data directory), `inactivity_timeout_minutes` (default: 15, maps to SRG-21), `max_notes` (default: 10000, maps to REQ-23), `private_pin_token` (encrypted token that represents the active app PIN; bootstrap behavior remains default `1234` until user changes it, maps to SRG-27 and SRG-28). Runtime live-reload behavior is deferred per SMR-02.
+- **SMR-11 ✅ [MVP]**: The application shall embed a semantic version string (for example, "1.0.0") accessible at runtime and include it in startup/runtime metadata outputs. A dedicated About/Help UI surface is deferred to Post-MVP.
+- **SMR-12 [Post-MVP]**: On graceful shutdown (user closes app, OS signals clean exit), any in-progress storage write shall be allowed to complete before the process exits. The application shall not terminate mid-write in response to a graceful shutdown signal.
 
 ### Web Delivery Requirements (WEB)
 
-- **WEB-03 ✅**: The system shall expose HTTP JSON APIs for create, edit, delete, list, search, and restore operations.
-- **WEB-04 ✅**: The web client shall consume only public API endpoints and shall not access storage/security internals directly.
+- **WEB-03 [MVP]**: The system shall expose HTTP JSON APIs for create, edit, delete, list, search, and restore operations.
+- **WEB-04 [MVP]**: The web client shall consume only public API endpoints and shall not access storage/security internals directly.
 
-<h2 style="color: #2a5c8a;">Post-MVP Requirements by Section</h2>
+## Post-MVP Requirements by Section
 
 ### Functional Requirements (REQ)
 
@@ -142,13 +144,7 @@ Detailed evidence lives in planning/traceability-matrix.md.
 - **SRG-03 [Post-MVP]**: Each note shall be encrypted independently using a unique per-note data encryption key; compromise of one note key shall not expose plaintext of other notes.
 - **SRG-06 [Post-MVP]**: Audit logs shall be append-only and tamper-evident using SHA-256 hash chaining where each entry stores the hash of the previous entry.
 - **SRG-09 [Post-MVP]**: Each stored note version shall include a SHA-256 content hash. Hash verification failures shall raise integrity errors, block further writes to affected records, and preserve existing data unchanged.
-- **SRG-29 [Post-MVP]**: At retention expiry (15 days after soft delete), notes in Trash shall be automatically and permanently purged.
-
-### Serviceability and Manageability Requirements (SMR)
-
-- **SMR-02 [Post-MVP]**: The active log level shall be configurable in `config.json` under the key `log_level` (values: DEBUG, INFO, WARNING, ERROR). The default level shall be INFO. Changing the log level shall take effect without restarting the application.
-- **SMR-08 [Post-MVP]**: The storage schema shall include explicit migration/version tracking (for example, Alembic revision history). The application shall reject startup writes if stored schema version is higher than the application's supported version, logging the mismatch at ERROR severity and refusing to write.
-- **SMR-12 [Post-MVP]**: On graceful shutdown (user closes app, OS signals clean exit), any in-progress storage write shall be allowed to complete before the process exits. The application shall not terminate mid-write in response to a graceful shutdown signal.
+- **SRG-12**: At retention expiry (15 days after soft delete), notes in Trash shall be automatically and permanently purged.
 
 ### Web Delivery Requirements (WEB)
 
