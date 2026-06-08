@@ -4,7 +4,7 @@ AstraNotes is a local, single-user note-taking MVP for browser-based desktop wor
 
 ## Design References
 
-- [docs/sdlc-document-map.html](docs/sdlc-document-map.html) for the full document map ([Open in browser](https://silviamora-aguilar.github.io/AstraNote/docs/sdlc-document-map.html))
+- [docs/sdlc-document-map.html](docs/sdlc-document-map.html) for the full document map ([Open in browser](https://silviamora-aguilar.github.io/AstraNote/docs/sdlc-document-map.html), [Backup browser link](https://rawcdn.githack.com/silviamora-aguilar/AstraNote/main/docs/sdlc-document-map.html))
 - [Live demo walkthrough (.mov)](https://drive.google.com/file/d/1XBxujhVUkyjuJhzpCbLRhAN8jt9h8tmI/view?usp=drive_link) for the presentation recording
 
 ## Project Status
