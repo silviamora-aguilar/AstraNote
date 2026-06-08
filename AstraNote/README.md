@@ -2,6 +2,11 @@
 
 AstraNotes is a local, single-user note-taking MVP for browser-based desktop workflows. It focuses on fast note capture, private-note protection, an English/Spanish UI toggle, and a clean review trail across requirements, planning, and acceptance documents.
 
+## Design References
+
+- [docs/sdlc-document-map.html](docs/sdlc-document-map.html) for the full document map ([Open in browser](https://silviamora-aguilar.github.io/AstraNote/docs/sdlc-document-map.html))
+- [Live demo walkthrough (.mov)](https://drive.google.com/file/d/1XBxujhVUkyjuJhzpCbLRhAN8jt9h8tmI/view?usp=drive_link) for the presentation recording
+
 ## Project Status
 
 Delivered MVP baseline for local browser use on `127.0.0.1`. Multi-user accounts, shared ownership scoping, and other expansion items remain Post-MVP.
@@ -88,14 +93,6 @@ Then open the local app in your browser at the address printed by Uvicorn.
 ```bash
 pytest tests/
 ```
-
-## Design References
-
-- [docs/sdlc-document-map.html](docs/sdlc-document-map.html) for the full document map
-- [docs/product-requirements-document.md](docs/product-requirements-document.md) for the product framing
-- [docs/executive-one-pager.md](docs/executive-one-pager.md) for the short project overview
-- [docs/storage_design.md](docs/storage_design.md) for storage tradeoffs and rationale
-- [planning/requirements.md](planning/requirements.md) for the canonical requirement baseline
 
 ## Runtime Data
 
