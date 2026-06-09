@@ -32,9 +32,10 @@ The delivered MVP includes:
 
 ## Quick Start
 
-1. Install dependencies: `pip install -r requirements.txt`
-2. Start the app: `uvicorn src.main:app --reload`
-3. Open the local address printed by Uvicorn in your browser
+1. Create and activate a Python 3.11+ virtual environment.
+2. Install dependencies: `python -m pip install -r requirements.txt`
+3. Start the app: `python -m uvicorn src.main:app --reload`
+4. Open http://127.0.0.1:8000/ui/notes in your browser
 
 ## Feature Highlights
 
@@ -71,22 +72,24 @@ AstraNotes/
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.11+
 - A modern browser such as Chrome, Firefox, or Safari
 
 ### Install dependencies
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ### Start the application
 
 ```bash
-uvicorn src.main:app --reload
+python -m uvicorn src.main:app --reload
 ```
 
 Then open the local app in your browser at the address printed by Uvicorn.
+
+No environment variables are required for local execution; defaults are applied automatically.
 
 ## Test the MVP
 
